@@ -1,0 +1,291 @@
+/* ══════════════════════════════════════════════════════
+   LOGIN  –  InvenControl
+   Dos columnas: carrusel (izq) + formulario (der)
+   ══════════════════════════════════════════════════════ */
+
+/* ── Shell principal ──────────────────────────────────── */
+.login-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  background: var(--ic-surface);
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLUMNA IZQUIERDA – Carrusel
+   ═══════════════════════════════════════════════════════ */
+.carousel-panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--ic-primary-dark);
+}
+
+/* Slides */
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.carousel-slide.active {
+  opacity: 1;
+}
+
+/* Overlay degradado */
+.carousel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(26, 40, 112, 0.88) 0%,
+    rgba(36, 56, 156, 0.75) 50%,
+    rgba(26, 40, 112, 0.92) 100%
+  );
+}
+
+/* Contenido encima del carrusel */
+.carousel-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  color: #fff;
+}
+
+/* Logo del carrusel */
+.carousel-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.carousel-logo mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #a5d6ff;
+}
+
+/* Cita motivacional */
+.carousel-quote {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  animation: fadeInUp 0.6s ease both;
+}
+.quote-text {
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+.quote-sub {
+  font-size: 1rem;
+  font-weight: 400;
+  color: rgba(255,255,255,.75);
+}
+
+/* Dots de navegación */
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+.dot--active {
+  width: 28px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLUMNA DERECHA – Formulario
+   ═══════════════════════════════════════════════════════ */
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  overflow-y: auto;
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 420px;
+  animation: slideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Logo */
+.form-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+.form-logo__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ic-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(36, 56, 156, 0.35);
+}
+.form-logo__icon mat-icon {
+  color: #fff;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+.form-logo__name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ic-primary);
+  letter-spacing: -0.3px;
+}
+
+/* Títulos */
+.form-title {
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ic-on-surface);
+  letter-spacing: -0.5px;
+}
+.form-subtitle {
+  margin: 0 0 28px;
+  font-size: 0.9rem;
+  color: var(--ic-on-surface-variant);
+}
+
+/* Form fields */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.full-width {
+  width: 100%;
+}
+.field-icon {
+  color: var(--ic-outline);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+}
+.visibility-btn {
+  color: var(--ic-outline) !important;
+}
+
+/* Opciones (recordarme + link) */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 12px;
+}
+.remember-check {
+  font-size: 0.875rem;
+}
+.forgot-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ic-primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+  /* Reset button styles */
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: inherit;
+}
+.forgot-link:hover { opacity: 0.75; }
+
+/* Botón submit */
+.submit-btn {
+  width: 100%;
+  height: 52px !important;
+  border-radius: 12px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  background: var(--ic-primary) !important;
+  color: #fff !important;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+  transition: box-shadow 0.2s ease, transform 0.15s ease !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.submit-btn:not([disabled]):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(36, 56, 156, 0.45) !important;
+}
+.submit-btn mat-icon { font-size: 20px; }
+
+/* Footer */
+.form-footer {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--ic-on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.footer-link {
+  font-weight: 600;
+  color: var(--ic-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover { color: var(--ic-primary-dark); text-decoration: underline; }
+
+/* ── Responsive: ocultar carrusel en mobile ───────────────────── */
+@media (max-width: 1023px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+  .carousel-panel {
+    display: none;
+  }
+  .form-panel {
+    padding: 40px 20px;
+    min-height: 100vh;
+    background: var(--ic-surface);
+  }
+}

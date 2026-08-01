@@ -1,0 +1,115 @@
+<!-- ── PASO 3: Nueva contraseña ── -->
+<div class="fp-dialog-container">
+
+  <!-- Header -->
+  <div class="fp-header">
+    <div class="fp-icon-wrap fp-icon-wrap--key">
+      <mat-icon class="fp-header-icon fp-icon--key">key</mat-icon>
+    </div>
+    <h2 class="fp-title" mat-dialog-title>Cambiar contraseña</h2>
+    <p class="fp-subtitle">
+      Crea una nueva contraseña segura para tu cuenta
+    </p>
+  </div>
+
+  <mat-dialog-content class="fp-content">
+    <form [formGroup]="form" novalidate>
+
+      <!-- Nueva contraseña -->
+      <mat-form-field appearance="outline" class="fp-field">
+        <mat-label>Nueva contraseña</mat-label>
+        <mat-icon matPrefix>lock</mat-icon>
+        <input
+          matInput
+          id="fp-nueva"
+          [type]="hideNueva() ? 'password' : 'text'"
+          formControlName="nueva"
+          placeholder="Mínimo 6 caracteres"
+          autocomplete="new-password"
+          (input)="onNuevaChange(nueva.value ?? '')"
+        />
+        <button
+          matSuffix mat-icon-button type="button"
+          [attr.aria-label]="hideNueva() ? 'Mostrar' : 'Ocultar'"
+          (click)="toggleHideNueva()"
+        >
+          <mat-icon>{{ hideNueva() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (nueva.hasError('required') && nueva.touched) {
+          <mat-error>La contraseña es obligatoria.</mat-error>
+        } @else if (nueva.hasError('minlength') && nueva.touched) {
+          <mat-error>Mínimo 6 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Indicador de fortaleza -->
+      @if (nueva.value) {
+        <div class="strength-wrap">
+          <div class="strength-bar">
+            @for (seg of [1,2,3,4]; track seg) {
+              <div
+                class="strength-segment"
+                [class.active]="fortaleza() >= seg"
+                [style.background]="fortaleza() >= seg ? fortalezaColors[fortaleza()] : '#e0e0e0'"
+              ></div>
+            }
+          </div>
+          <span class="strength-label" [style.color]="fortalezaColors[fortaleza()]">
+            {{ fortalezaLabels[fortaleza()] }}
+          </span>
+        </div>
+      }
+
+      <!-- Confirmar contraseña -->
+      <mat-form-field appearance="outline" class="fp-field">
+        <mat-label>Confirmar contraseña</mat-label>
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <input
+          matInput
+          id="fp-confirmar"
+          [type]="hideConfirmar() ? 'password' : 'text'"
+          formControlName="confirmar"
+          placeholder="Repite la contraseña"
+          autocomplete="new-password"
+        />
+        <button
+          matSuffix mat-icon-button type="button"
+          [attr.aria-label]="hideConfirmar() ? 'Mostrar' : 'Ocultar'"
+          (click)="toggleHideConfirmar()"
+        >
+          <mat-icon>{{ hideConfirmar() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (confirmar.hasError('required') && confirmar.touched) {
+          <mat-error>Confirma tu contraseña.</mat-error>
+        } @else if (noCoinciden) {
+          <mat-error>Las contraseñas no coinciden.</mat-error>
+        }
+      </mat-form-field>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="fp-actions">
+    <button mat-stroked-button class="fp-btn-cancel" (click)="cancelar()" id="fp3-cancelar">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      class="fp-btn-primary"
+      id="fp3-guardar"
+      [disabled]="form.invalid || guardando()"
+      (click)="guardar()"
+    >
+      @if (guardando()) {
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        <span>Guardando…</span>
+      } @else {
+        <ng-container>
+          <mat-icon>save</mat-icon>
+          <span>Guardar nueva contraseña</span>
+        </ng-container>
+      }
+    </button>
+  </mat-dialog-actions>
+
+</div>

@@ -1,0 +1,386 @@
+<!-- ═══════════════════════════════════════════════════════
+     CATEGORÍAS – InvenControl
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Encabezado -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Categorías</h1>
+    <p class="page-subtitle">
+      {{ categorias().length }} categorías ·
+      {{ totalProductos() }} productos en total
+    </p>
+  </div>
+  <button mat-flat-button class="btn-nuevo" id="btn-nueva-categoria" (click)="abrirModal()">
+    <mat-icon>add</mat-icon>
+    Nueva categoría
+  </button>
+</div>
+
+<!-- Resumen rápido -->
+<div class="resumen-row">
+  <div class="resumen-card">
+    <div class="resumen-icon" style="background:#dde1ff">
+      <mat-icon style="color:#24389c">category</mat-icon>
+    </div>
+    <div>
+      <div class="resumen-value">{{ categorias().length }}</div>
+      <div class="resumen-label">Total Categorías</div>
+    </div>
+  </div>
+  <div class="resumen-card">
+    <div class="resumen-icon" style="background:#7ef8e0">
+      <mat-icon style="color:#006b5c">inventory_2</mat-icon>
+    </div>
+    <div>
+      <div class="resumen-value">{{ totalProductos() }}</div>
+      <div class="resumen-label">Productos Totales</div>
+    </div>
+  </div>
+  <div class="resumen-card">
+    <div class="resumen-icon" style="background:#ffdad6">
+      <mat-icon style="color:#ba1a1a">warning</mat-icon>
+    </div>
+    <div>
+      <div class="resumen-value">{{ totalStockBajo() }}</div>
+      <div class="resumen-label">Items Stock Bajo</div>
+    </div>
+  </div>
+</div>
+
+<!-- Buscador -->
+<div class="search-wrap">
+  <div class="search-box">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input
+      id="search-categorias"
+      type="text"
+      class="search-input"
+      placeholder="Buscar categoría…"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+    />
+    @if (busqueda()) {
+      <button mat-icon-button class="clear-btn" (click)="busqueda.set('')">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Grid de tarjetas -->
+<div class="categorias-grid">
+  @for (cat of categorias(); track cat.id) {
+    <div class="cat-card" [style.border-top-color]="cat.colorIcono">
+      <!-- Header de la card -->
+      <div class="cat-card-header">
+        <div class="cat-icon-wrap" [style.background]="cat.color">
+          <mat-icon [style.color]="cat.colorIcono">{{ cat.icono }}</mat-icon>
+        </div>
+        <div class="cat-actions">
+          <button
+            mat-icon-button
+            class="cat-action-btn cat-action-btn--view"
+            matTooltip="Ver detalle"
+            [id]="'btn-view-cat-' + cat.id"
+            (click)="abrirDetalle(cat)"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="cat-action-btn"
+            matTooltip="Editar"
+            [id]="'btn-edit-cat-' + cat.id"
+            (click)="abrirModal(cat)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="cat-action-btn cat-action-btn--delete"
+            matTooltip="Eliminar"
+            [id]="'btn-delete-cat-' + cat.id"
+            (click)="abrirConfirmarEliminar(cat)"
+          >
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <h3 class="cat-nombre">{{ cat.nombre }}</h3>
+      <p class="cat-descripcion">{{ cat.descripcion }}</p>
+
+      <!-- Stats -->
+      <div class="cat-stats">
+        <div class="cat-stat">
+          <span class="cat-stat-value">{{ cat.totalProductos }}</span>
+          <span class="cat-stat-label">Productos</span>
+        </div>
+        @if ((cat.stockBajo ?? 0) > 0) {
+          <div class="cat-stat-badge">
+            <mat-icon>warning</mat-icon>
+            {{ cat.stockBajo }} stock bajo
+          </div>
+        }
+      </div>
+
+      <!-- Barra de progreso visual -->
+      <div class="cat-bar-track">
+        <div
+          class="cat-bar-fill"
+          [style.width]="(((cat.totalProductos ?? 0) / (totalProductos() || 1)) * 100) + '%'"
+          [style.background]="cat.colorIcono"
+        ></div>
+      </div>
+      <div class="cat-bar-label">
+        {{ (((cat.totalProductos ?? 0) / (totalProductos() || 1)) * 100 | number:'1.0-0') }}% del inventario
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (categorias().length === 0) {
+    <div class="empty-state">
+      <mat-icon>category</mat-icon>
+      <p>No se encontraron categorías</p>
+      <span>Intenta con otro término o crea una nueva</span>
+    </div>
+  }
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL NUEVA / EDITAR CATEGORÍA
+     ══════════════════════════════════════════════════════════════ -->
+@if (modalAbierto()) {
+  <!-- Backdrop -->
+  <div class="modal-backdrop" (click)="cerrarModal()"></div>
+
+  <!-- Dialog -->
+  <div class="modal-panel" role="dialog" aria-modal="true">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-icon">
+          <mat-icon>{{ editando() ? 'edit' : 'add_circle' }}</mat-icon>
+        </div>
+        <div>
+          <h2 class="modal-title">
+            {{ editando() ? 'Editar categoría' : 'Nueva categoría' }}
+          </h2>
+          <p class="modal-subtitle">Completa la información</p>
+        </div>
+      </div>
+      <button mat-icon-button class="modal-close" (click)="cerrarModal()" id="btn-close-modal-cat">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- Preview en vivo -->
+      <div class="preview-row">
+        <div class="preview-card" [style.border-top-color]="formColor.icon">
+          <div class="preview-icon-wrap" [style.background]="formColor.bg">
+            <mat-icon [style.color]="formColor.icon">{{ formIcono }}</mat-icon>
+          </div>
+          <span class="preview-nombre">{{ formNombre || 'Nombre categoría' }}</span>
+        </div>
+        <p class="preview-hint">Vista previa en tiempo real</p>
+      </div>
+
+      <!-- Nombre -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input
+          matInput
+          id="input-cat-nombre"
+          [(ngModel)]="formNombre"
+          placeholder="Ej. Computación"
+          maxlength="40"
+        />
+        <mat-icon matPrefix>label</mat-icon>
+        @if (formError) {
+          <mat-error>{{ formError }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Descripción -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (opcional)</mat-label>
+        <textarea
+          matInput
+          id="input-cat-desc"
+          [(ngModel)]="formDescripcion"
+          rows="2"
+          placeholder="Describe brevemente esta categoría…"
+        ></textarea>
+      </mat-form-field>
+
+      <!-- Selector de color -->
+      <div class="selector-section">
+        <p class="selector-label">Color</p>
+        <div class="color-options">
+          @for (c of coloresDisponibles; track c.label) {
+            <div
+              class="color-swatch"
+              [class.color-swatch--active]="formColor.bg === c.bg"
+              [style.background]="c.bg"
+              [style.border-color]="c.icon"
+              matRipple
+              [matTooltip]="c.label"
+              (click)="formColor = c"
+            >
+              @if (formColor.bg === c.bg) {
+                <mat-icon [style.color]="c.icon">check</mat-icon>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Selector de ícono -->
+      <div class="selector-section">
+        <p class="selector-label">Ícono</p>
+        <div class="icono-options">
+          @for (ico of iconosDisponibles; track ico) {
+            <div
+              class="icono-chip"
+              [class.icono-chip--active]="formIcono === ico"
+              matRipple
+              [matTooltip]="ico"
+              [id]="'ico-' + ico"
+              (click)="formIcono = ico"
+            >
+              <mat-icon [style.color]="formIcono === ico ? formColor.icon : '#9699aa'">
+                {{ ico }}
+              </mat-icon>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button mat-button class="btn-cancelar" (click)="cerrarModal()" id="btn-cancelar-cat">
+        Cancelar
+      </button>
+      <button mat-flat-button class="btn-guardar" (click)="guardar()" id="btn-guardar-cat">
+        <mat-icon>save</mat-icon>
+        {{ editando() ? 'Actualizar' : 'Guardar categoría' }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     PANEL FLOTANTE – VER DETALLE (ojo)
+     ══════════════════════════════════════════════════════════════ -->
+@if (categoriaViendo()) {
+  <div class="cat-overlay" (click)="cerrarDetalle()"></div>
+  <aside class="cat-side-panel" id="panel-detalle-cat">
+    <div class="cat-panel-header">
+      <h2 class="cat-panel-title">Detalle de categoría</h2>
+      <button mat-icon-button class="cat-panel-close" (click)="cerrarDetalle()" id="btn-close-detalle-cat">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="cat-panel-body">
+      <!-- Ícono grande -->
+      <div class="cat-detail-icon-wrap" [style.background]="categoriaViendo()!.color">
+        <mat-icon [style.color]="categoriaViendo()!.colorIcono" class="cat-detail-icon">
+          {{ categoriaViendo()!.icono }}
+        </mat-icon>
+      </div>
+
+      <h3 class="cat-detail-nombre">{{ categoriaViendo()!.nombre }}</h3>
+      <p class="cat-detail-desc">{{ categoriaViendo()!.descripcion }}</p>
+
+      <!-- Stats grid -->
+      <div class="cat-detail-grid">
+        <div class="cat-detail-field">
+          <span class="cat-detail-label">Total productos</span>
+          <span class="cat-detail-value">{{ categoriaViendo()!.totalProductos }}</span>
+        </div>
+        <div class="cat-detail-field">
+          <span class="cat-detail-label">Stock bajo</span>
+          <span class="cat-detail-value"
+            [style.color]="(categoriaViendo()!.stockBajo ?? 0) > 0 ? '#ba1a1a' : '#006b3c'">
+            {{ categoriaViendo()!.stockBajo ?? 0 }}
+          </span>
+        </div>
+        <div class="cat-detail-field">
+          <span class="cat-detail-label">ID</span>
+          <span class="cat-detail-value">#{{ categoriaViendo()!.id }}</span>
+        </div>
+        <div class="cat-detail-field">
+          <span class="cat-detail-label">Participación</span>
+          <span class="cat-detail-value">
+            {{ ((categoriaViendo()!.totalProductos ?? 0) / (totalProductos() || 1) * 100) | number:'1.0-1' }}%
+          </span>
+        </div>
+      </div>
+
+      <!-- Barra de participación -->
+      <div class="cat-bar-track" style="margin-top:8px">
+        <div
+          class="cat-bar-fill"
+          [style.width]="(((categoriaViendo()!.totalProductos ?? 0) / (totalProductos() || 1)) * 100) + '%'"
+          [style.background]="categoriaViendo()!.colorIcono"
+        ></div>
+      </div>
+
+      @if ((categoriaViendo()!.stockBajo ?? 0) > 0) {
+        <div class="cat-stock-alerta">
+          <mat-icon>warning</mat-icon>
+          {{ categoriaViendo()!.stockBajo }} producto(s) con stock bajo en esta categoría
+        </div>
+      }
+    </div>
+
+    <div class="cat-panel-footer">
+      <button mat-stroked-button class="cat-btn-cancel" (click)="cerrarDetalle()">Cerrar</button>
+      <button mat-flat-button class="cat-btn-primary"
+        (click)="cerrarDetalle(); abrirModal(categoriaViendo()!)">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     DIALOG FLOTANTE – CONFIRMAR ELIMINAR (basurero)
+     ══════════════════════════════════════════════════════════════ -->
+@if (categoriaEliminar()) {
+  <div class="cat-overlay cat-overlay--dark" (click)="cancelarEliminar()"></div>
+  <div class="cat-confirm-dialog" id="dialog-confirmar-eliminar-cat" role="alertdialog">
+    <div class="cat-confirm-icon-wrap">
+      <mat-icon class="cat-confirm-icon">delete_forever</mat-icon>
+    </div>
+    <h3 class="cat-confirm-title">¿Eliminar categoría?</h3>
+    <p class="cat-confirm-msg">
+      Estás a punto de eliminar
+      <strong>{{ categoriaEliminar()!.nombre }}</strong>.
+      Los productos asociados quedarán sin categoría.
+    </p>
+    <div class="cat-confirm-actions">
+      <button mat-stroked-button class="cat-btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar-cat">
+        Cancelar
+      </button>
+      <button mat-flat-button class="cat-btn-danger" (click)="confirmarEliminar()" id="btn-confirmar-eliminar-cat"
+        [disabled]="eliminando()">
+        @if (eliminando()) {
+          <ng-container><mat-icon class="cat-spin">sync</mat-icon> Eliminando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
+        }
+      </button>
+    </div>
+  </div>
+}

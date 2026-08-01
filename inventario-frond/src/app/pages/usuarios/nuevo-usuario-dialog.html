@@ -1,0 +1,95 @@
+<!-- ═══════════════════════════════════════════════════════
+     MODAL – Nuevo / Editar / Ver Usuario
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Header del modal -->
+<div class="dialog-header" mat-dialog-title>
+  <div class="dialog-title-wrap">
+    <div class="dialog-icon">
+      <mat-icon>manage_accounts</mat-icon>
+    </div>
+    <div>
+      <h2 class="dialog-title">
+        {{ data?.readonly ? 'Ver usuario' : (data?.usuario ? 'Editar usuario' : 'Nuevo usuario') }}
+      </h2>
+      <p class="dialog-subtitle">
+        {{ data?.readonly ? 'Información del usuario' : (data?.usuario ? 'Modifica los datos del usuario' : 'Completa la información del usuario') }}
+      </p>
+    </div>
+  </div>
+  <button mat-icon-button class="dialog-close" (click)="cancelar()" id="btn-close-dialog">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<!-- Cuerpo del modal -->
+<mat-dialog-content class="dialog-body">
+  <form [formGroup]="form" class="usuario-form">
+
+    <!-- Nombre + Correo (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Nombre completo" id="input-nombre" />
+        <mat-icon matPrefix>person</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Correo</mat-label>
+        <input matInput formControlName="correo" placeholder="correo@dominio.com" id="input-correo" />
+        <mat-icon matPrefix>email</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Rol + Estado (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="rol" id="select-rol">
+          <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>badge</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado" id="select-estado">
+          <mat-option value="Activo">Activo</mat-option>
+          <mat-option value="Inactivo">Inactivo</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>toggle_on</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Contraseña – solo en creación -->
+    @if (!data?.usuario) {
+      <div class="form-row-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input matInput type="password" formControlName="password" id="input-password" />
+          <mat-icon matPrefix>lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Confirmar contraseña</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" id="input-confirm-password" />
+          <mat-icon matPrefix>lock_reset</mat-icon>
+        </mat-form-field>
+      </div>
+    }
+
+  </form>
+</mat-dialog-content>
+
+<!-- Footer del modal -->
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button class="btn-cancelar" (click)="cancelar()" id="btn-cancelar">
+    {{ data?.readonly ? 'Cerrar' : 'Cancelar' }}
+  </button>
+  @if (!data?.readonly) {
+    <button mat-flat-button class="btn-guardar" (click)="guardar()" id="btn-guardar-usuario">
+      <mat-icon>save</mat-icon>
+      {{ data?.usuario ? 'Guardar cambios' : 'Crear usuario' }}
+    </button>
+  }
+</mat-dialog-actions>

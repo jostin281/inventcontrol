@@ -1,0 +1,241 @@
+/* ═══════════════════════════════════════════════════════
+   Modal – Nuevo Producto
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Header ──────────────────────────────────────────────── */
+.dialog-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid #e8eaf0;
+  margin: 0 !important;
+}
+
+.dialog-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #dde1ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-icon mat-icon {
+  color: #24389c;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1b22;
+  margin: 0 0 2px;
+}
+
+.dialog-subtitle {
+  font-size: 12px;
+  color: #9699aa;
+  margin: 0;
+}
+
+.dialog-close {
+  color: #9699aa !important;
+}
+
+/* ── Body ─────────────────────────────────────────────────── */
+.dialog-body {
+  padding: 20px 24px !important;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* ── Imagen upload ────────────────────────────────────────── */
+.image-upload-zone {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.image-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  border: 2px dashed #c6c5d0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+  flex-shrink: 0;
+  /* label reset */
+  text-align: center;
+  user-select: none;
+}
+
+.image-preview:hover {
+  border-color: #24389c;
+  background: #f0f2ff;
+}
+
+.upload-icon {
+  color: #9699aa;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.upload-label {
+  font-size: 10px;
+  color: #9699aa;
+  margin-top: 2px;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-hint {
+  flex: 1;
+}
+
+.hint-text {
+  font-size: 12px;
+  color: #9699aa;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hint-text span {
+  font-size: 11px;
+  color: #c6c5d0;
+}
+
+/* ── Form layout ──────────────────────────────────────────── */
+.producto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .form-row-2 { grid-template-columns: 1fr; }
+}
+
+/* ── Atributos chips ──────────────────────────────────────── */
+.atributos-section {
+  margin-top: 4px;
+}
+
+.atributos-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #46464f;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.atributos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attr-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #c6c5d0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: #46464f;
+  background: #fff;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.attr-chip:hover {
+  border-color: #24389c;
+  color: #24389c;
+  background: #f0f2ff;
+}
+
+.attr-chip--active {
+  border-color: #24389c !important;
+  background: #dde1ff !important;
+  color: #24389c !important;
+}
+
+.attr-chip-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.attr-chip-check {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #24389c;
+}
+
+/* ── Dialog Actions (footer) ──────────────────────────────── */
+.dialog-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 14px 24px 18px !important;
+  border-top: 1px solid #e8eaf0;
+  margin: 0 !important;
+}
+
+.btn-cancelar {
+  color: #46464f !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+}
+
+.btn-guardar {
+  background: #24389c !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px !important;
+}
+
+.btn-guardar mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}

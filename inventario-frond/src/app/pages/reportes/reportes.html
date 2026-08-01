@@ -1,0 +1,315 @@
+<!-- ══════════════════════════════════════════════════════════
+     REPORTES – Motor de Análisis Inteligente
+     ══════════════════════════════════════════════════════════ -->
+
+<div class="rpt-root">
+
+  <!-- ── HEADER ──────────────────────────────────────────────── -->
+  <div class="rpt-header">
+    <!-- Título -->
+    <div class="rpt-header-left">
+      <span class="rpt-eyebrow">
+        <mat-icon class="rpt-eyebrow-icon">analytics</mat-icon>
+        Motor de Análisis
+      </span>
+      <h1 class="rpt-title">Reportes Inteligentes</h1>
+    </div>
+
+    <!-- Controles -->
+    <div class="rpt-controls">
+      <!-- Selector de categoría -->
+      <mat-form-field appearance="outline" class="rpt-select-field" id="field-categoria">
+        <mat-select
+          [value]="categoria()"
+          (valueChange)="onCategoriaChange($event)"
+          id="select-categoria-reporte">
+          @for (op of categorias; track op.value) {
+            <mat-option [value]="op.value">
+              <div class="cat-option">
+                <mat-icon>{{ op.icon }}</mat-icon>
+                <span>{{ op.label }}</span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Rango de fechas -->
+      <mat-form-field appearance="outline" class="rpt-date-field" [formGroup]="rangoForm">
+        <mat-date-range-input [rangePicker]="picker" id="input-rango-fechas">
+          <input matStartDate formControlName="inicio" placeholder="Inicio">
+          <input matEndDate   formControlName="fin"   placeholder="Fin">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <div class="rpt-controls-divider"></div>
+
+      <!-- Exportar -->
+      <button mat-stroked-button class="btn-export-pdf"
+        (click)="exportarPDF()" id="btn-exportar-pdf"
+        [disabled]="exportandoPdf() || !datos()">
+        @if (exportandoPdf()) {
+          <mat-spinner diameter="18" style="display:inline-block"></mat-spinner>
+          <span>Generando&hellip;</span>
+        } @else {
+          <ng-container>
+            <mat-icon>picture_as_pdf</mat-icon> Exportar PDF
+          </ng-container>
+        }
+      </button>
+      <button mat-flat-button class="btn-export-excel"
+        (click)="exportarExcel()" id="btn-exportar-excel"
+        [disabled]="exportandoExcel() || !datos()">
+        @if (exportandoExcel()) {
+          <mat-spinner diameter="18" style="display:inline-block"></mat-spinner>
+          <span>Generando&hellip;</span>
+        } @else {
+          <ng-container>
+            <mat-icon>table_chart</mat-icon> Exportar Excel
+          </ng-container>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SPINNER de carga ─────────────────────────────────────── -->
+  @if (cargando()) {
+    <div class="rpt-loading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Procesando datos del reporte…</p>
+    </div>
+  }
+
+  <!-- ── CONTENIDO PRINCIPAL ─────────────────────────────────── -->
+  @if (datos(); as d) {
+    <div class="rpt-grid">
+
+      <!-- ══ IZQUIERDA: Gráfico principal (8 cols) ══ -->
+      <mat-card class="rpt-card rpt-card--chart">
+        <mat-card-content>
+
+          <!-- Cabecera del gráfico -->
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">{{ d.titulo }}</h2>
+              <p class="chart-subtitle">{{ d.subtitulo }}</p>
+            </div>
+            <mat-button-toggle-group
+              [value]="vistaGrafico()"
+              (change)="vistaGrafico.set($event.value)"
+              class="chart-toggle"
+              id="toggle-vista-grafico">
+              <mat-button-toggle value="barras" matTooltip="Vista de barras">
+                <mat-icon>bar_chart</mat-icon>
+              </mat-button-toggle>
+              <mat-button-toggle value="lineas" matTooltip="Vista de líneas">
+                <mat-icon>show_chart</mat-icon>
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <!-- Área del gráfico -->
+          <div class="chart-area">
+            <!-- Tooltip flotante -->
+            @if (barraHover()) {
+              <div class="chart-tooltip"
+                [style.left.px]="tooltipX()"
+                [style.top.px]="tooltipY()">
+                <div class="tt-nombre">{{ barraHover()!.label }}</div>
+                <div class="tt-valor">{{ barraHover()!.valorReal | number:'1.0-1' }}</div>
+                <div class="tt-variacion" [class.tt-pos]="barraHover()!.variacion > 0"
+                  [class.tt-neg]="barraHover()!.variacion < 0">
+                  <mat-icon class="tt-icon">
+                    {{ barraHover()!.variacion >= 0 ? 'trending_up' : 'trending_down' }}
+                  </mat-icon>
+                  {{ barraHover()!.variacion > 0 ? '+' : '' }}{{ barraHover()!.variacion | number:'1.1-1' }}%
+                  vs periodo ant.
+                </div>
+              </div>
+            }
+
+            <!-- ── Vista Barras ── -->
+            @if (vistaGrafico() === 'barras') {
+              <div class="bars-container">
+                @for (b of d.barras; track b.label; let i = $index) {
+                  <div class="bar-col"
+                    (mouseenter)="onBarraEnter(b, $event)"
+                    (mousemove)="onBarraMove($event)"
+                    (mouseleave)="onBarraSalir()"
+                    [class.bar-hovered]="barraHover()?.label === b.label"
+                    [id]="'bar-' + i">
+                    <div class="bar-value-label">
+                      {{ b.valorReal | number:'1.0-1' }}
+                    </div>
+                    <div class="bar-track">
+                      <div class="bar-fill"
+                        [style.height]="barrasAnimadas() ? b.valor + '%' : '0%'"
+                        [style.background]="b.color">
+                      </div>
+                    </div>
+                    <div class="bar-label">{{ b.label }}</div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- ── Vista Líneas ── -->
+            @if (vistaGrafico() === 'lineas') {
+              <div class="lines-container">
+                <svg class="lines-svg" viewBox="0 0 580 240"
+                  preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  @for (y of [0,55,110,165,220]; track y) {
+                    <line [attr.x1]="0"   [attr.y1]="y"
+                          [attr.x2]="580" [attr.y2]="y"
+                          class="grid-line"/>
+                  }
+                  <!-- Area fill -->
+                  <path [attr.d]="getAreaPath(d.barras)"
+                    class="line-area"/>
+                  <!-- Line -->
+                  <polyline
+                    [attr.points]="getLineaPoints(d.barras)"
+                    class="line-path"/>
+                  <!-- Points -->
+                  @for (b of d.barras; track b.label; let i = $index) {
+                    <circle
+                      [attr.cx]="getLineaX(i, d.barras.length)"
+                      [attr.cy]="getLineaY(b.valor)"
+                      r="5"
+                      class="line-dot"
+                      (mouseenter)="onBarraEnter(b, $event)"
+                      (mousemove)="onBarraMove($event)"
+                      (mouseleave)="onBarraSalir()"/>
+                  }
+                </svg>
+                <!-- Labels eje X -->
+                <div class="lines-labels">
+                  @for (b of d.barras; track b.label) {
+                    <span>{{ b.label }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Eje Y labels -->
+          <div class="chart-legend">
+            @for (b of d.barras; track b.label) {
+              <div class="legend-item">
+                <span class="legend-dot" [style.background]="b.color"></span>
+                <span class="legend-txt">{{ b.label }}</span>
+              </div>
+            }
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ══ DERECHA: Insight + Regional (4 cols) ══ -->
+      <div class="rpt-right-col">
+
+        <!-- a) Insight Clave -->
+        <mat-card class="rpt-card rpt-card--insight">
+          <mat-card-content>
+            <div class="insight-header">
+              <mat-icon class="insight-icon">lightbulb</mat-icon>
+              <span class="insight-label">Insight Clave</span>
+            </div>
+            <p class="insight-text">{{ d.insight }}</p>
+            <p class="insight-detail">{{ d.insightDetalle }}</p>
+            <div class="insight-progress-wrap">
+              <div class="insight-progress-labels">
+                <span class="ipl-label">{{ d.metaLabel }}</span>
+                <span class="ipl-pct">{{ d.metaValor }}%</span>
+              </div>
+              <div class="insight-track">
+                <div class="insight-bar"
+                  [style.width]="barrasAnimadas() ? d.metaValor + '%' : '0%'">
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- b) Desempeño Regional -->
+        <mat-card class="rpt-card rpt-card--regional">
+          <mat-card-content>
+            <div class="regional-header">
+              <mat-icon>map</mat-icon>
+              <span>Desempeño Regional</span>
+            </div>
+            <div class="regional-list">
+              @for (r of d.regiones; track r.nombre; let i = $index) {
+                <div class="regional-row" [id]="'region-' + i">
+                  <div class="regional-info">
+                    <span class="regional-nombre">{{ r.nombre }}</span>
+                    <span class="regional-val">{{ r.valorReal }}</span>
+                  </div>
+                  <div class="regional-track">
+                    <div class="regional-bar"
+                      [style.width]="barrasAnimadas() ? r.valor + '%' : '0%'"
+                      [style.background]="'hsl(' + (200 + i * 18) + ',60%,40%)'">
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div><!-- /rpt-right-col -->
+    </div><!-- /rpt-grid -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         TABLA DE DETALLE
+         ══════════════════════════════════════════════════════════ -->
+    <mat-card class="rpt-card rpt-card--table">
+      <mat-card-content>
+        <div class="table-header">
+          <div>
+            <h3 class="table-title">Detalle tabular</h3>
+            <p class="table-subtitle">
+              {{ d.filas.length }} registros · {{ getLabelCategoria() }}
+            </p>
+          </div>
+          <span class="table-badge">{{ d.filas.length }} filas</span>
+        </div>
+
+        <div class="table-scroll">
+          <table mat-table [dataSource]="d.filas" class="rpt-table">
+            @for (col of d.columnas; track col.key) {
+              <ng-container [matColumnDef]="col.key">
+                <th mat-header-cell *matHeaderCellDef>{{ col.label }}</th>
+                <td mat-cell *matCellDef="let row">
+                  @if (esBadge(col.tipo)) {
+                    <span class="cell-badge">{{ row[col.key] }}</span>
+                  } @else if (col.tipo === 'porcentaje') {
+                    <span class="cell-var"
+                      [class.var-pos]="esPosVar(row[col.key])"
+                      [class.var-neg]="esNegVar(row[col.key])">
+                      @if (esPosVar(row[col.key])) {
+                        <mat-icon class="var-icon">trending_up</mat-icon>
+                      } @else if (esNegVar(row[col.key])) {
+                        <mat-icon class="var-icon">trending_down</mat-icon>
+                      }
+                      {{ formatearCelda(row[col.key], col.tipo) }}
+                    </span>
+                  } @else {
+                    {{ formatearCelda(row[col.key], col.tipo) }}
+                  }
+                </td>
+              </ng-container>
+            }
+            <tr mat-header-row *matHeaderRowDef="columnaKeys()"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnaKeys();" class="rpt-row"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  }<!-- /if datos -->
+
+</div><!-- /rpt-root -->

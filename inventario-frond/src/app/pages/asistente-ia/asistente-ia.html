@@ -1,0 +1,404 @@
+<div class="ai-page">
+
+  <!-- ═══════════════════════ PLAN SWITCHER BAR ═══════════════════════ -->
+  <div class="plan-switcher-bar">
+    <div class="switcher-left">
+      <span class="switcher-label">Modo IA:</span>
+      <mat-button-toggle-group
+        [value]="plan()"
+        (change)="onPlanChange($event.value)"
+        class="plan-toggle"
+        aria-label="Seleccionar plan de IA"
+      >
+        <mat-button-toggle value="free" class="toggle-free">
+          <mat-icon class="toggle-icon">auto_awesome</mat-icon>
+          Plan gratis
+        </mat-button-toggle>
+        <mat-button-toggle value="pro" class="toggle-pro">
+          <mat-icon class="toggle-icon">workspace_premium</mat-icon>
+          Plan pro
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="switcher-right">
+      <div class="plan-badge" [class.plan-badge--pro]="plan() === 'pro'">
+        <mat-icon class="badge-icon">{{ planInfo().icon }}</mat-icon>
+        <span>{{ planInfo().nombre }} · {{ planInfo().proveedor }}</span>
+      </div>
+
+      <!-- API Key button: visible para ambos planes para ingresar sus llaves -->
+      <button
+        class="key-btn"
+        [class.key-btn--set]="hasApiKey()"
+        (click)="toggleKeyPanel()"
+        [matTooltip]="plan() === 'free' ? (hasGeminiKey() ? 'API key de Gemini configurada — click para cambiar' : 'Configurar API key de Gemini (Gratis)') : (hasOpenAiKey() ? 'API key de OpenAI configurada — click para cambiar' : 'Configurar API key de OpenAI (Pro)')"
+      >
+        <mat-icon>{{ hasApiKey() ? 'key' : 'vpn_key_off' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ API KEY PANEL ══════════════════════ -->
+  @if (showKeyPanel()) {
+    <div class="key-panel" role="region" [attr.aria-label]="plan() === 'free' ? 'Configuración de API key de Gemini' : 'Configuración de API key de OpenAI'">
+      <div class="key-panel-inner">
+        <div class="key-panel-header">
+          <mat-icon class="key-panel-icon">key</mat-icon>
+          <div>
+            <p class="key-panel-title">API Key de {{ plan() === 'free' ? 'Gemini' : 'OpenAI' }}</p>
+            <p class="key-panel-desc">
+              Obtén tu clave en
+              @if (plan() === 'free') {
+                <a href="https://aistudio.google.com/" target="_blank" rel="noopener">
+                  aistudio.google.com
+                </a>
+              } @else {
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">
+                  platform.openai.com
+                </a>
+              }
+              — la clave se guarda solo en tu navegador.
+            </p>
+          </div>
+        </div>
+        <div class="key-input-row">
+          <input
+            class="key-input"
+            type="password"
+            [placeholder]="plan() === 'free' ? 'AIzaSy...' : 'sk-...'"
+            [value]="apiKeyInput()"
+            (input)="apiKeyInput.set($any($event.target).value)"
+            (keydown.enter)="saveApiKey()"
+            [attr.aria-label]="plan() === 'free' ? 'API key de Gemini' : 'API key de OpenAI'"
+            id="api-key-input"
+          />
+          <button class="key-save-btn" (click)="saveApiKey()" matRipple>
+            <mat-icon>save</mat-icon>
+            Guardar
+          </button>
+          @if (hasApiKey()) {
+            <button class="key-clear-btn" (click)="clearApiKey()" matTooltip="Eliminar key guardada">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════ MAIN LAYOUT ═══════════════════════ -->
+  <div class="ai-layout">
+
+    <!-- ─────────────── COLUMNA CHAT ─────────────── -->
+    <section class="chat-column">
+
+      <!-- Chat header -->
+      <div class="chat-header">
+        <div class="header-left">
+          <div class="avatar-wrap">
+            <div class="avatar-ring"></div>
+            <div class="avatar-circle">
+              <mat-icon class="avatar-icon">smart_toy</mat-icon>
+            </div>
+          </div>
+          <div class="header-info">
+            <h2 class="chat-title">InvenControl AI</h2>
+            <div class="status-row">
+              <!-- Free plan: Gemini siempre online. Pro plan: depende de la API key -->
+              <span class="status-dot" [class.status-dot--offline]="!hasApiKey()"></span>
+              <span class="status-text" [class.status-text--offline]="!hasApiKey()">
+                {{ plan() === 'free' ? (hasGeminiKey() ? 'En línea · Gemini' : 'Sin API key') : (hasOpenAiKey() ? 'En línea · OpenAI' : 'Sin API key') }}
+              </span>
+              <span class="provider-tag">{{ planInfo().proveedor }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (plan() === 'pro' && !hasOpenAiKey()) {
+          <button class="header-key-btn" (click)="toggleKeyPanel()" matRipple>
+            <mat-icon>vpn_key</mat-icon>
+            Conectar OpenAI
+          </button>
+        }
+      </div>
+
+      <!-- Messages area -->
+      <div class="messages-area" id="messages-area">
+
+        @for (msg of messages(); track trackById($index, msg)) {
+
+          <!-- USER bubble -->
+          @if (msg.role === 'user') {
+            <div class="msg-row msg-row--user">
+              <div class="bubble bubble--user">
+                <p class="bubble-text" [innerHTML]="renderMarkdown(msg.text)"></p>
+                <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- ASSISTANT bubbles -->
+          @if (msg.role === 'assistant') {
+            <div class="msg-row msg-row--assistant">
+
+              @if (msg.variant === 'text' || msg.variant === 'error') {
+                <div class="bubble bubble--assistant" [class.bubble--error]="msg.variant === 'error'">
+                  <p class="bubble-text" [innerHTML]="renderMarkdown(msg.text)"></p>
+                  <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+                </div>
+              }
+
+              @if (msg.variant === 'action-card') {
+                <div class="bubble bubble--assistant bubble--action">
+                  <div class="action-card">
+                    <div class="action-card-icon">
+                      <mat-icon>check_circle</mat-icon>
+                    </div>
+                    <div class="action-card-body">
+                      <p class="action-card-text" [innerHTML]="renderMarkdown(msg.text)"></p>
+                      @if (msg.actionCard) {
+                        <button class="action-link" (click)="navigateTo(msg.actionCard.ruta)">
+                          <mat-icon class="action-link-icon">open_in_new</mat-icon>
+                          {{ msg.actionCard.label }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                  <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+                </div>
+              }
+
+              @if (msg.variant === 'confirmation') {
+                <div class="bubble bubble--assistant bubble--confirmation">
+                  <p class="bubble-text" [innerHTML]="renderMarkdown(msg.text)"></p>
+                  @if (!msg.confirmationResolved) {
+                    <div class="confirmation-actions">
+                      <button class="confirm-btn confirm-btn--yes" (click)="confirmAction(msg)" matRipple>
+                        <mat-icon>check</mat-icon> Sí, eliminar
+                      </button>
+                      <button class="confirm-btn confirm-btn--no" (click)="rejectAction(msg)" matRipple>
+                        <mat-icon>close</mat-icon> Cancelar
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="confirmation-resolved">
+                      <mat-icon>info</mat-icon>
+                      <span>Acción procesada</span>
+                    </div>
+                  }
+                  <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+                </div>
+              }
+
+              @if (msg.variant === 'upgrade-prompt') {
+                <div class="bubble bubble--assistant bubble--upgrade">
+                  <div class="upgrade-header">
+                    <mat-icon class="upgrade-icon">lock</mat-icon>
+                    <span class="upgrade-tag">Plan Pro requerido</span>
+                  </div>
+                  <p class="bubble-text" [innerHTML]="renderMarkdown(msg.text)"></p>
+                  <button class="upgrade-btn" (click)="upgradeFromBubble()" matRipple>
+                    <mat-icon>workspace_premium</mat-icon>
+                    Mejorar a Pro
+                  </button>
+                  <span class="bubble-time">{{ formatTime(msg.timestamp) }}</span>
+                </div>
+              }
+
+            </div>
+          }
+
+        }
+
+        <!-- Typing indicator -->
+        @if (isTyping()) {
+          <div class="msg-row msg-row--assistant">
+            <div class="bubble bubble--assistant bubble--typing">
+              <div class="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div #scrollAnchor class="scroll-anchor"></div>
+      </div>
+
+      <!-- Suggestions chips -->
+      <div class="suggestions-row">
+        @for (sug of sugerencias(); track sug) {
+          <button class="suggestion-chip" (click)="useSuggestion(sug)" matRipple>
+            {{ sug }}
+          </button>
+        }
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        @if (plan() === 'free') {
+          <div class="msg-counter">
+            <mat-icon class="counter-icon">chat_bubble_outline</mat-icon>
+            <span>{{ mensajesHoy() }}/{{ PLANES.free.limitesMensajes }} mensajes hoy</span>
+            @if ((mensajesRestantes() ?? 0) <= 5) {
+              <span class="counter-warning">· {{ mensajesRestantes() }} restantes</span>
+            }
+          </div>
+        }
+        <div class="input-row">
+          <input
+            class="chat-input"
+            type="text"
+            placeholder="Escribe un mensaje..."
+            [value]="inputText()"
+            (input)="inputText.set($any($event.target).value)"
+            (keydown)="onInputKeydown($event)"
+            [disabled]="isTyping() || (!puedeEnviar() && plan() === 'free')"
+            autocomplete="off"
+            aria-label="Mensaje para el asistente"
+            id="ai-chat-input"
+          />
+          <button
+            class="send-btn"
+            (click)="sendMessage()"
+            [disabled]="isTyping() || !inputText().trim() || (!puedeEnviar() && plan() === 'free')"
+            matTooltip="Enviar (Enter)"
+            aria-label="Enviar mensaje"
+          >
+            @if (isTyping()) {
+              <mat-progress-spinner diameter="20" mode="indeterminate" class="send-spinner"></mat-progress-spinner>
+            } @else {
+              <mat-icon>send</mat-icon>
+            }
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ─────────────── COLUMNA INSIGHTS ─────────────── -->
+    <aside class="insights-column">
+
+      <!-- Salud del inventario -->
+      <div class="insight-card insight-card--health">
+        <div class="health-header">
+          <mat-icon class="health-icon">monitor_heart</mat-icon>
+          <span class="health-label">Salud del inventario</span>
+        </div>
+        <div class="health-percentage">{{ saludInventario() }}%</div>
+        <div class="health-trend">
+          <mat-icon class="trend-icon" [style.color]="tendenciaInventario().color">
+            {{ tendenciaInventario().icon }}
+          </mat-icon>
+          <span class="trend-label">{{ tendenciaInventario().label }}</span>
+        </div>
+        <div class="health-bar-wrap">
+          <div class="health-bar-fill" [style.width.%]="saludInventario()"></div>
+        </div>
+      </div>
+
+      <!-- Uso del asistente -->
+      <div class="insight-card insight-card--usage">
+        <div class="usage-header">
+          <mat-icon>query_stats</mat-icon>
+          <span>Uso del asistente</span>
+        </div>
+        <div class="usage-plan-tag" [class.usage-plan-tag--pro]="plan() === 'pro'">
+          <mat-icon>{{ planInfo().icon }}</mat-icon>
+          {{ planInfo().nombre }} · {{ planInfo().proveedor }}
+        </div>
+
+        @if (plan() === 'free') {
+          <div class="usage-meter">
+            <div class="usage-bar-track">
+              <div
+                class="usage-bar-fill"
+                [style.width.%]="(mensajesHoy() / (PLANES.free.limitesMensajes ?? 20)) * 100"
+              ></div>
+            </div>
+            <span class="usage-text">
+              {{ mensajesHoy() }} de {{ PLANES.free.limitesMensajes }} mensajes hoy
+            </span>
+          </div>
+          <button class="upgrade-cta-btn" (click)="upgradeFromBubble()" matRipple>
+            <mat-icon>workspace_premium</mat-icon>
+            Mejorar a Pro
+          </button>
+        } @else {
+          <div class="usage-unlimited">
+            <mat-icon>all_inclusive</mat-icon>
+            <span>Mensajes ilimitados</span>
+          </div>
+        }
+      </div>
+
+      <!-- Capacidades -->
+      <div class="insight-card insight-card--capabilities">
+        <div class="cap-header">
+          <mat-icon>auto_fix_high</mat-icon>
+          <span>Capacidades activas</span>
+        </div>
+        <ul class="cap-list">
+          @for (cap of capacidades(); track cap.label) {
+            <li class="cap-item" [class.cap-item--locked]="!cap.disponible">
+              <div class="cap-icon-wrap" [class.cap-icon-wrap--available]="cap.disponible">
+                <mat-icon>{{ cap.disponible ? 'check_circle' : 'lock' }}</mat-icon>
+              </div>
+              <span class="cap-label">{{ cap.label }}</span>
+            </li>
+          }
+        </ul>
+        @if (plan() === 'free') {
+          <p class="cap-cta-text">
+            Activa las funciones bloqueadas con <strong>Plan Pro</strong>
+          </p>
+        }
+      </div>
+
+      <!-- Estado de IA -->
+      <div class="insight-card insight-card--ai-status">
+        <div class="ai-status-header">
+          <mat-icon>psychology</mat-icon>
+          <span>Estado de la IA</span>
+        </div>
+        @if (plan() === 'free') {
+          @if (hasGeminiKey()) {
+            <div class="ai-status-ok">
+              <span class="ai-dot ai-dot--ok"></span>
+              <span>Gemini conectado</span>
+            </div>
+            <p class="ai-status-desc">Gemini 2.0 Flash de Google está listo. Tienes **20 preguntas** por día.</p>
+          } @else {
+            <div class="ai-status-warn">
+              <span class="ai-dot ai-dot--warn"></span>
+              <span>Sin API key de Gemini</span>
+            </div>
+            <p class="ai-status-desc">Configura tu API key de Gemini (gratuita) para comenzar a chatear.</p>
+            <button class="key-insight-btn" (click)="toggleKeyPanel()" matRipple>
+              <mat-icon>vpn_key</mat-icon>
+              Configurar API key
+            </button>
+          }
+        } @else if (hasOpenAiKey()) {
+          <div class="ai-status-ok">
+            <span class="ai-dot ai-dot--ok"></span>
+            <span>OpenAI GPT conectado</span>
+          </div>
+          <p class="ai-status-desc">GPT-4o Mini está activo. Respuestas avanzadas con capacidad de acción ilimitadas.</p>
+        } @else {
+          <div class="ai-status-warn">
+            <span class="ai-dot ai-dot--warn"></span>
+            <span>Sin API key de OpenAI</span>
+          </div>
+          <p class="ai-status-desc">Configura tu API key de OpenAI para activar el Plan Pro.</p>
+          <button class="key-insight-btn" (click)="toggleKeyPanel()" matRipple>
+            <mat-icon>vpn_key</mat-icon>
+            Configurar API key
+          </button>
+        }
+      </div>
+
+    </aside>
+
+  </div>
+</div>

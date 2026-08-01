@@ -1,0 +1,183 @@
+:host { display: block; }
+
+.fp-dialog-container { padding: 0; }
+
+/* Header */
+.fp-header {
+  text-align: center;
+  padding: 32px 32px 0;
+}
+
+.fp-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #24389c22, #3f51b522);
+  border: 2px solid #24389c33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.fp-icon-wrap--success {
+  background: linear-gradient(135deg, #006b5c22, #68fadd22);
+  border-color: #006b5c44;
+}
+
+.fp-header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #006b5c;
+}
+
+.fp-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.fp-subtitle {
+  font-size: 0.875rem;
+  color: #5f6368;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.fp-email {
+  color: #24389c;
+  word-break: break-all;
+}
+
+/* Content */
+.fp-content {
+  padding: 24px 32px 8px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* OTP inputs */
+.otp-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.otp-input {
+  width: 48px;
+  height: 56px;
+  border: 2px solid #dadce0;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  background: #f8f9fa;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  caret-color: #24389c;
+}
+
+.otp-input:focus {
+  border-color: #24389c;
+  box-shadow: 0 0 0 3px #24389c22;
+  background: #fff;
+}
+
+.otp-input.otp-filled {
+  border-color: #3f51b5;
+  background: #e8eaf6;
+  color: #24389c;
+}
+
+.otp-input.otp-error {
+  border-color: #ba1a1a !important;
+  box-shadow: 0 0 0 3px #ba1a1a22 !important;
+  background: #fff4f4;
+  color: #ba1a1a;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+
+/* Error msg */
+.otp-error-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #ba1a1a;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.otp-error-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Reenviar */
+.resend-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #5f6368;
+  margin-top: 4px;
+}
+
+.resend-countdown {
+  color: #9aa0a6;
+  font-weight: 500;
+}
+
+.resend-btn {
+  color: #24389c !important;
+  font-weight: 600 !important;
+  min-width: auto !important;
+  padding: 0 4px !important;
+  height: auto !important;
+}
+
+/* Actions */
+.fp-actions {
+  padding: 8px 32px 24px !important;
+  justify-content: flex-end !important;
+  gap: 12px;
+}
+
+.fp-btn-cancel {
+  color: #5f6368;
+  border-color: #dadce0;
+  border-radius: 8px;
+  height: 42px;
+}
+
+.fp-btn-primary {
+  background: linear-gradient(135deg, #24389c, #3f51b5);
+  color: white;
+  border-radius: 8px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.fp-btn-primary:disabled {
+  opacity: 0.55;
+}
+
+.btn-spinner { display: inline-block; }

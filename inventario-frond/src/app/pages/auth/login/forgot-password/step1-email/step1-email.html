@@ -1,0 +1,62 @@
+<!-- ── PASO 1: Solicitar correo ── -->
+<div class="fp-dialog-container">
+
+  <!-- Header con ícono -->
+  <div class="fp-header">
+    <div class="fp-icon-wrap">
+      <mat-icon class="fp-header-icon">lock_reset</mat-icon>
+    </div>
+    <h2 class="fp-title" mat-dialog-title>Recuperar contraseña</h2>
+    <p class="fp-subtitle">
+      Ingresa tu correo y te enviaremos un código de verificación
+    </p>
+  </div>
+
+  <!-- Contenido -->
+  <mat-dialog-content class="fp-content">
+    <form [formGroup]="form" novalidate>
+      <mat-form-field appearance="outline" class="fp-field">
+        <mat-label>Correo electrónico</mat-label>
+        <mat-icon matPrefix>email</mat-icon>
+        <input
+          matInput
+          id="fp-correo"
+          type="email"
+          formControlName="correo"
+          placeholder="usuario@ejemplo.com"
+          autocomplete="email"
+        />
+        @if (correo.hasError('required') && correo.touched) {
+          <mat-error>El correo es obligatorio.</mat-error>
+        } @else if (correo.hasError('email') && correo.touched) {
+          <mat-error>Introduce un correo válido.</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <!-- Footer -->
+  <mat-dialog-actions class="fp-actions">
+    <button mat-stroked-button class="fp-btn-cancel" (click)="cancelar()" id="fp1-cancelar">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      class="fp-btn-primary"
+      id="fp1-enviar"
+      [disabled]="form.invalid || enviando()"
+      (click)="enviarCodigo()"
+    >
+      @if (enviando()) {
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        <span>Enviando…</span>
+      } @else {
+        <ng-container>
+          <mat-icon>send</mat-icon>
+          <span>Enviar código</span>
+        </ng-container>
+      }
+    </button>
+  </mat-dialog-actions>
+
+</div>

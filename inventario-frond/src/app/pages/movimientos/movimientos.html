@@ -1,0 +1,551 @@
+<!-- ═══════════════════════════════════════════════════════
+     MOVIMIENTOS – InvenControl
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Encabezado -->
+<div class="page-header">
+  <div>
+    <p class="page-eyebrow">Control de Inventario</p>
+    <h1 class="page-title">Movimientos</h1>
+    <p class="page-subtitle">{{ movimientos().length }} registros · Hoy</p>
+  </div>
+  <button mat-flat-button class="btn-nuevo" id="btn-registrar-movimiento" (click)="abrirCrear()">
+    <mat-icon>add</mat-icon>
+    Registrar movimiento
+  </button>
+</div>
+
+<!-- ── KPI Cards ──────────────────────────────────────────── -->
+<div class="kpi-grid">
+
+  <!-- Total Entradas -->
+  <div class="kpi-card kpi-card--success">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--success">
+        <mat-icon>arrow_downward</mat-icon>
+      </div>
+      <span class="kpi-badge kpi-badge--success">+{{ pctEntradas() }}%</span>
+    </div>
+    <div class="kpi-value">{{ totalEntradas() }}</div>
+    <div class="kpi-title">Total Entradas</div>
+    <div class="kpi-subtitle">Unidades ingresadas</div>
+  </div>
+
+  <!-- Total Salidas -->
+  <div class="kpi-card kpi-card--error">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--error">
+        <mat-icon>arrow_upward</mat-icon>
+      </div>
+      <span class="kpi-badge kpi-badge--error">-{{ pctSalidas() }}%</span>
+    </div>
+    <div class="kpi-value kpi-value--error">{{ totalSalidas() }}</div>
+    <div class="kpi-title">Total Salidas</div>
+    <div class="kpi-subtitle">Unidades egresadas</div>
+  </div>
+
+  <!-- Movimiento Neto (tarjeta ancha con sparkline) -->
+  <div class="kpi-card kpi-card--primary kpi-card--wide">
+    <div class="kpi-card-header">
+      <div>
+        <div class="kpi-icon-wrap kpi-icon-wrap--on-primary">
+          <mat-icon>swap_vert</mat-icon>
+        </div>
+      </div>
+      <svg class="sparkline" viewBox="0 0 160 50" preserveAspectRatio="none">
+        <polyline
+          fill="none"
+          stroke="rgba(255,255,255,0.6)"
+          stroke-width="1.5"
+          [attr.points]="sparklinePoints"
+          class="sparkline-line"
+        />
+        <polyline
+          fill="rgba(255,255,255,0.1)"
+          stroke="none"
+          [attr.points]="'0,50 ' + sparklinePoints + ' 160,50'"
+        />
+      </svg>
+    </div>
+    <div class="kpi-value kpi-value--white">
+      {{ movimientoNeto() >= 0 ? '+' : '' }}{{ movimientoNeto() }}
+    </div>
+    <div class="kpi-title kpi-title--white">Movimiento Neto</div>
+    <div class="kpi-subtitle kpi-subtitle--white">Entradas – Salidas del período</div>
+  </div>
+
+  <!-- Total registros -->
+  <div class="kpi-card kpi-card--default">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--default">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+    </div>
+    <div class="kpi-value">{{ svc.movimientos().length }}</div>
+    <div class="kpi-title">Total Registros</div>
+    <div class="kpi-subtitle">En este período</div>
+  </div>
+
+</div>
+
+<!-- ── Barra de Filtros ───────────────────────────────────── -->
+<div class="filter-card">
+
+  <!-- Buscador -->
+  <div class="search-box">
+    <mat-icon class="search-icon-local">search</mat-icon>
+    <input
+      id="search-movimientos"
+      type="text"
+      class="search-input-local"
+      placeholder="Buscar por SKU, producto o usuario…"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+    />
+    @if (busqueda()) {
+      <button mat-icon-button class="clear-btn" (click)="busqueda.set('')" id="btn-clear-search-mov">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Tipo de movimiento -->
+  <mat-form-field appearance="outline" class="filter-select">
+    <mat-label>Tipo</mat-label>
+    <mat-select
+      id="select-tipo-movimiento"
+      [ngModel]="tipoFiltro()"
+      (ngModelChange)="tipoFiltro.set($event)"
+    >
+      <mat-option value="Todos">Todos</mat-option>
+      <mat-option value="Entrada">Entrada</mat-option>
+      <mat-option value="Salida">Salida</mat-option>
+      <mat-option value="Ajuste">Ajuste</mat-option>
+    </mat-select>
+    <mat-icon matPrefix>filter_list</mat-icon>
+  </mat-form-field>
+
+</div>
+
+<!-- ── Tabla ─────────────────────────────────────────────── -->
+<div class="table-card">
+  <div class="table-header-row">
+    <h2 class="card-title">Actividad reciente</h2>
+    <span class="table-count">{{ movimientos().length }} registros</span>
+  </div>
+
+  <table mat-table [dataSource]="movimientos()" class="mov-table">
+
+    <!-- Columna: Fecha/Hora -->
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha / Hora</th>
+      <td mat-cell *matCellDef="let m">
+        <div class="fecha-cell">
+          <span class="fecha-main">{{ formatFecha(m.fecha) }}</span>
+          <span class="fecha-hora">{{ formatHora(m.fecha) }} · {{ getRelativo(m.fecha) }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Producto -->
+    <ng-container matColumnDef="producto">
+      <th mat-header-cell *matHeaderCellDef>Producto</th>
+      <td mat-cell *matCellDef="let m">
+        <div class="product-cell">
+          <div class="product-thumb" [style.background]="m.colorProducto">
+            <span class="product-initial">{{ getInitials(m.producto) }}</span>
+          </div>
+          <div class="product-info">
+            <span class="product-name">{{ m.producto }}</span>
+            <span class="product-sku">{{ m.sku }}</span>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Tipo -->
+    <ng-container matColumnDef="tipo">
+      <th mat-header-cell *matHeaderCellDef>Tipo</th>
+      <td mat-cell *matCellDef="let m">
+        <div class="tipo-chip tipo-chip--{{ m.tipo.toLowerCase() }}">
+          <mat-icon class="tipo-icon">
+            {{ m.tipo === 'Entrada' ? 'arrow_downward' : m.tipo === 'Salida' ? 'arrow_upward' : 'tune' }}
+          </mat-icon>
+          {{ m.tipo }}
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Cantidad -->
+    <ng-container matColumnDef="cantidad">
+      <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+      <td mat-cell *matCellDef="let m">
+        <span
+          class="cantidad-val"
+          [class.cantidad-pos]="m.cantidad > 0"
+          [class.cantidad-neg]="m.cantidad < 0"
+        >
+          {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Usuario -->
+    <ng-container matColumnDef="usuario">
+      <th mat-header-cell *matHeaderCellDef>Usuario</th>
+      <td mat-cell *matCellDef="let m">
+        <div class="user-cell">
+          <div class="user-avatar">{{ getInitials(m.usuario) }}</div>
+          <span class="user-name">{{ m.usuario }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Acciones -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let m">
+        <div class="actions-cell">
+          <button mat-icon-button class="action-btn action-btn--view"
+            matTooltip="Ver detalle" [id]="'btn-view-mov-' + m.id"
+            (click)="abrirDetalle(m)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button class="action-btn action-btn--edit"
+            matTooltip="Editar" [id]="'btn-edit-mov-' + m.id"
+            (click)="abrirEditar(m)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button class="action-btn action-btn--delete"
+            matTooltip="Eliminar" [id]="'btn-delete-mov-' + m.id"
+            (click)="abrirEliminar(m)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+    <!-- Empty state -->
+    <tr class="mat-row empty-row" *matNoDataRow>
+      <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+        <div class="empty-state">
+          <mat-icon>swap_horiz</mat-icon>
+          <p>No se encontraron movimientos</p>
+          <span>Intenta con otros filtros de búsqueda</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="table-footer">
+    <span class="table-count">Mostrando {{ movimientos().length }} de {{ svc.movimientos().length }} registros</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     OVERLAY
+     ══════════════════════════════════════════════════════════ -->
+@if (panelCrearVisible() || movimientoEditando() || movimientoViendo()) {
+  <div class="overlay" (click)="cerrarCrear(); cerrarEditar(); cerrarDetalle()"></div>
+}
+
+@if (movimientoEliminar()) {
+  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – CREAR MOVIMIENTO
+     ══════════════════════════════════════════════════════════ -->
+@if (panelCrearVisible()) {
+  <aside class="side-panel" id="panel-crear-mov">
+    <div class="panel-header">
+      <div class="panel-header-icon panel-header-icon--primary">
+        <mat-icon>add_circle</mat-icon>
+      </div>
+      <h2 class="panel-title">Registrar movimiento</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarCrear()" id="btn-close-crear-mov">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body" [formGroup]="form">
+
+      <!-- Producto Autocomplete -->
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Producto (nombre o SKU)</mat-label>
+        <mat-icon matPrefix>inventory_2</mat-icon>
+        <input matInput
+          formControlName="productoBusqueda"
+          id="create-producto"
+          [matAutocomplete]="autoProducto"
+          (input)="onBusquedaProducto($any($event.target).value)"
+          placeholder="Buscar producto…"
+        />
+        <mat-autocomplete #autoProducto="matAutocomplete" (optionSelected)="seleccionarProducto($event.option.value)">
+          @for (p of productosFiltrados(); track p.sku) {
+            <mat-option [value]="p">
+              <div class="autocomplete-option">
+                <div class="auto-thumb" [style.background]="p.color">
+                  {{ getInitials(p.nombre) }}
+                </div>
+                <div>
+                  <div class="auto-name">{{ p.nombre }}</div>
+                  <div class="auto-sku">{{ p.sku }}</div>
+                </div>
+              </div>
+            </mat-option>
+          }
+        </mat-autocomplete>
+        @if (form.get('productoBusqueda')?.hasError('required') && form.get('productoBusqueda')?.touched) {
+          <mat-error>Selecciona un producto</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Tipo -->
+      <div class="field-label">Tipo de movimiento</div>
+      <mat-button-toggle-group
+        formControlName="tipo"
+        id="create-tipo"
+        class="tipo-toggle-group"
+        aria-label="Tipo de movimiento"
+      >
+        <mat-button-toggle value="Entrada" class="toggle-entrada">
+          <mat-icon>arrow_downward</mat-icon> Entrada
+        </mat-button-toggle>
+        <mat-button-toggle value="Salida" class="toggle-salida">
+          <mat-icon>arrow_upward</mat-icon> Salida
+        </mat-button-toggle>
+        <mat-button-toggle value="Ajuste" class="toggle-ajuste">
+          <mat-icon>tune</mat-icon> Ajuste
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <!-- Cantidad -->
+      <mat-form-field appearance="outline" class="full-field" style="margin-top:16px">
+        <mat-label>Cantidad</mat-label>
+        <mat-icon matPrefix>tag</mat-icon>
+        <input matInput type="number" formControlName="cantidad" id="create-cantidad" min="1">
+        @if (form.get('cantidad')?.hasError('min') && form.get('cantidad')?.touched) {
+          <mat-error>La cantidad debe ser mayor a 0</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Nota -->
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Nota (opcional)</mat-label>
+        <mat-icon matPrefix>notes</mat-icon>
+        <textarea matInput formControlName="nota" id="create-nota" rows="3" placeholder="Observaciones del movimiento…"></textarea>
+      </mat-form-field>
+
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarCrear()" id="btn-cancelar-crear">
+        Cancelar
+      </button>
+      <button mat-flat-button class="btn-primary-panel" (click)="guardarNuevo()" id="btn-guardar-crear" [disabled]="guardando()">
+        @if (guardando()) {
+          <ng-container><mat-spinner diameter="16" class="spinner-inline"></mat-spinner> Guardando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>save</mat-icon> Guardar</ng-container>
+        }
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – VER DETALLE
+     ══════════════════════════════════════════════════════════ -->
+@if (movimientoViendo()) {
+  <aside class="side-panel" id="panel-detalle-mov">
+    <div class="panel-header">
+      <div class="panel-header-icon" [style.background]="movimientoViendo()!.colorProducto">
+        <span style="font-size:13px;font-weight:700;color:#1a1b22">
+          {{ getInitials(movimientoViendo()!.producto) }}
+        </span>
+      </div>
+      <h2 class="panel-title">Detalle del movimiento</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarDetalle()" id="btn-close-detalle-mov">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Chip tipo grande -->
+      <div class="detalle-tipo-wrap">
+        <div class="tipo-chip tipo-chip--{{ movimientoViendo()!.tipo.toLowerCase() }} tipo-chip--lg">
+          <mat-icon class="tipo-icon">
+            {{ movimientoViendo()!.tipo === 'Entrada' ? 'arrow_downward' : movimientoViendo()!.tipo === 'Salida' ? 'arrow_upward' : 'tune' }}
+          </mat-icon>
+          {{ movimientoViendo()!.tipo }}
+        </div>
+        <div class="cantidad-val cantidad-val--lg"
+          [class.cantidad-pos]="movimientoViendo()!.cantidad > 0"
+          [class.cantidad-neg]="movimientoViendo()!.cantidad < 0">
+          {{ movimientoViendo()!.cantidad > 0 ? '+' : '' }}{{ movimientoViendo()!.cantidad }}
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-label">Producto</span>
+          <span class="detail-value">{{ movimientoViendo()!.producto }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">SKU</span>
+          <span class="detail-value">{{ movimientoViendo()!.sku }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Fecha</span>
+          <span class="detail-value">{{ formatFecha(movimientoViendo()!.fecha) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Hora</span>
+          <span class="detail-value">{{ formatHora(movimientoViendo()!.fecha) }}</span>
+        </div>
+        <div class="detail-field" style="grid-column: 1/-1">
+          <span class="detail-label">Registrado por</span>
+          <div class="user-cell" style="margin-top:4px">
+            <div class="user-avatar">{{ getInitials(movimientoViendo()!.usuario) }}</div>
+            <span class="detail-value">{{ movimientoViendo()!.usuario }}</span>
+          </div>
+        </div>
+      </div>
+
+      @if (movimientoViendo()!.nota) {
+        <div class="detail-field detail-field--full">
+          <span class="detail-label">Nota</span>
+          <p class="detail-desc">{{ movimientoViendo()!.nota }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarDetalle()">Cerrar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="abrirEditar(movimientoViendo()!)" id="btn-editar-desde-detalle-mov">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – EDITAR MOVIMIENTO
+     ══════════════════════════════════════════════════════════ -->
+@if (movimientoEditando()) {
+  <aside class="side-panel" id="panel-editar-mov">
+    <div class="panel-header">
+      <div class="panel-header-icon panel-header-icon--secondary">
+        <mat-icon>edit</mat-icon>
+      </div>
+      <h2 class="panel-title">Editar movimiento</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarEditar()" id="btn-close-editar-mov">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body" [formGroup]="form">
+
+      <!-- Producto (read-only en edición) -->
+      <div class="detail-field detail-field--full" style="margin-bottom:8px">
+        <span class="detail-label">Producto</span>
+        <div class="product-cell" style="margin-top:6px">
+          <div class="product-thumb" [style.background]="movimientoEditando()!.colorProducto">
+            <span class="product-initial">{{ getInitials(movimientoEditando()!.producto) }}</span>
+          </div>
+          <div class="product-info">
+            <span class="product-name">{{ movimientoEditando()!.producto }}</span>
+            <span class="product-sku">{{ movimientoEditando()!.sku }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo -->
+      <div class="field-label">Tipo de movimiento</div>
+      <mat-button-toggle-group
+        formControlName="tipo"
+        id="edit-tipo-mov"
+        class="tipo-toggle-group"
+        aria-label="Tipo de movimiento"
+      >
+        <mat-button-toggle value="Entrada" class="toggle-entrada">
+          <mat-icon>arrow_downward</mat-icon> Entrada
+        </mat-button-toggle>
+        <mat-button-toggle value="Salida" class="toggle-salida">
+          <mat-icon>arrow_upward</mat-icon> Salida
+        </mat-button-toggle>
+        <mat-button-toggle value="Ajuste" class="toggle-ajuste">
+          <mat-icon>tune</mat-icon> Ajuste
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <!-- Cantidad -->
+      <mat-form-field appearance="outline" class="full-field" style="margin-top:16px">
+        <mat-label>Cantidad</mat-label>
+        <mat-icon matPrefix>tag</mat-icon>
+        <input matInput type="number" formControlName="cantidad" id="edit-cantidad-mov" min="1">
+        @if (form.get('cantidad')?.hasError('min') && form.get('cantidad')?.touched) {
+          <mat-error>La cantidad debe ser mayor a 0</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Nota -->
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Nota</mat-label>
+        <mat-icon matPrefix>notes</mat-icon>
+        <textarea matInput formControlName="nota" id="edit-nota-mov" rows="3"></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarEditar()" id="btn-cancelar-editar-mov">Cancelar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="guardarEdicion()" id="btn-guardar-editar-mov" [disabled]="guardando()">
+        @if (guardando()) {
+          <ng-container><mat-spinner diameter="16" class="spinner-inline"></mat-spinner> Guardando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>save</mat-icon> Guardar cambios</ng-container>
+        }
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     DIALOG – CONFIRMAR ELIMINAR
+     ══════════════════════════════════════════════════════════ -->
+@if (movimientoEliminar()) {
+  <div class="confirm-dialog" id="dialog-eliminar-mov" role="alertdialog">
+    <div class="confirm-icon-wrap">
+      <mat-icon class="confirm-icon">delete_forever</mat-icon>
+    </div>
+    <h3 class="confirm-title">¿Eliminar movimiento?</h3>
+    <p class="confirm-msg">
+      Se eliminará el registro de
+      <strong>{{ movimientoEliminar()!.tipo }}</strong> de
+      <strong>{{ movimientoEliminar()!.producto }}</strong>.
+      Podrás deshacerlo con la opción en la notificación.
+    </p>
+    <div class="confirm-actions">
+      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar-mov">
+        Cancelar
+      </button>
+      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar-mov"
+        [disabled]="eliminando()">
+        @if (eliminando()) {
+          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
+        }
+      </button>
+    </div>
+  </div>
+}

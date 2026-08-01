@@ -1,0 +1,95 @@
+<!-- ═══════════════════════════════════════════════════════
+     MODAL – Nueva Venta
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Header del modal -->
+<div class="dialog-header" mat-dialog-title>
+  <div class="dialog-title-wrap">
+    <div class="dialog-icon">
+      <mat-icon>point_of_sale</mat-icon>
+    </div>
+    <div>
+      <h2 class="dialog-title">Nueva venta</h2>
+      <p class="dialog-subtitle">Registra una venta en el sistema</p>
+    </div>
+  </div>
+  <button mat-icon-button class="dialog-close" (click)="cancelar()" id="btn-close-dialog">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<!-- Cuerpo del modal -->
+<mat-dialog-content class="dialog-body">
+  <form [formGroup]="form" class="venta-form">
+
+    <!-- Cliente (fila completa) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cliente</mat-label>
+      <input matInput formControlName="cliente" placeholder="Nombre del cliente" id="input-cliente" />
+      <mat-icon matPrefix>person</mat-icon>
+      @if (form.get('cliente')?.hasError('required') && form.get('cliente')?.touched) {
+        <mat-error>El cliente es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Producto + Cantidad (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Producto</mat-label>
+        <mat-select formControlName="productoId" (selectionChange)="onProductoChange()" id="select-producto">
+          @for (p of productos(); track p.id) {
+            <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>inventory_2</mat-icon>
+        @if (form.get('productoId')?.hasError('required') && form.get('productoId')?.touched) {
+          <mat-error>Selecciona un producto</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Cantidad</mat-label>
+        <input matInput type="number" formControlName="cantidad" placeholder="1" id="input-cantidad" />
+        <mat-icon matPrefix>numbers</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Precio unitario + Fecha (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Precio unitario</mat-label>
+        <input matInput type="number" formControlName="precio" placeholder="0.00" id="input-precio" />
+        <mat-icon matPrefix>attach_money</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha</mat-label>
+        <input matInput formControlName="fecha" placeholder="YYYY-MM-DD" id="input-fecha" />
+        <mat-icon matPrefix>calendar_today</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Estado (fila completa) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="estado" id="select-estado">
+        <mat-option value="Completada">Completada</mat-option>
+        <mat-option value="Pendiente">Pendiente</mat-option>
+        <mat-option value="Cancelada">Cancelada</mat-option>
+      </mat-select>
+      <mat-icon matPrefix>fact_check</mat-icon>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<!-- Footer del modal -->
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button class="btn-cancelar" (click)="cancelar()" id="btn-cancelar">
+    Cancelar
+  </button>
+  <button mat-flat-button class="btn-guardar" (click)="guardar()" id="btn-guardar-venta">
+    <mat-icon>save</mat-icon>
+    Guardar venta
+  </button>
+</mat-dialog-actions>

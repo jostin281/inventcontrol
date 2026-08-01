@@ -1,0 +1,179 @@
+<div class="registro-shell">
+  <div class="registro-card">
+
+    <!-- ══ IZQUIERDA – Panel decorativo ══ -->
+    <aside class="deco-panel" aria-hidden="true">
+      <div class="deco-orb deco-orb--1"></div>
+      <div class="deco-orb deco-orb--2"></div>
+
+      <div class="deco-content">
+        <div class="deco-logo">
+          <mat-icon>inventory_2</mat-icon>
+          <span>InvenControl</span>
+        </div>
+
+        <div class="deco-body">
+          <h2 class="deco-title">Controla tu<br>inventario desde<br>hoy mismo</h2>
+          <p class="deco-sub">Gestión inteligente para PyMEs</p>
+
+          <div class="glass-card">
+            <mat-icon class="glass-icon">verified</mat-icon>
+            <div>
+              <div class="glass-title">Trusted Platform</div>
+              <div class="glass-sub">Seguro · Rápido · Escalable</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deco-stats">
+          <div class="deco-stat">
+            <span class="stat-num">+500</span>
+            <span class="stat-label">negocios</span>
+          </div>
+          <div class="deco-stat">
+            <span class="stat-num">99.9%</span>
+            <span class="stat-label">uptime</span>
+          </div>
+          <div class="deco-stat">
+            <span class="stat-num">Gratis</span>
+            <span class="stat-label">para empezar</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══ DERECHA – Formulario compacto ══ -->
+    <main class="form-panel">
+
+      <!-- Logo -->
+      <div class="form-logo">
+        <div class="form-logo__icon"><mat-icon>inventory_2</mat-icon></div>
+        <span class="form-logo__name">InvenControl</span>
+      </div>
+
+      <h1 class="form-title">Crea tu cuenta</h1>
+      <p class="form-subtitle">Empieza gratis · Sin tarjeta de crédito</p>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="compact-form">
+
+        <!-- Fila 1: Negocio + Tipo -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre del negocio</mat-label>
+            <mat-icon matPrefix class="field-icon">store</mat-icon>
+            <input matInput id="reg-nombre-negocio" formControlName="nombreNegocio"
+                   placeholder="Distribuidora López" />
+            @if (nombreNegocio.hasError('required') && nombreNegocio.touched) {
+              <mat-error>Campo obligatorio.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tipo de negocio</mat-label>
+            <mat-icon matPrefix class="field-icon">category</mat-icon>
+            <mat-select id="reg-tipo-negocio" formControlName="tipoNegocio">
+              @for (tipo of tiposNegocio; track tipo.value) {
+                <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+              }
+            </mat-select>
+            @if (tipoNegocio.hasError('required') && tipoNegocio.touched) {
+              <mat-error>Selecciona un tipo.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 2: Nombre + Correo -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre completo</mat-label>
+            <mat-icon matPrefix class="field-icon">person</mat-icon>
+            <input matInput id="reg-nombre" formControlName="nombreCompleto"
+                   placeholder="María García" autocomplete="name" />
+            @if (nombreCompleto.hasError('required') && nombreCompleto.touched) {
+              <mat-error>Campo obligatorio.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Correo electrónico</mat-label>
+            <mat-icon matPrefix class="field-icon">email</mat-icon>
+            <input matInput id="reg-correo" type="email" formControlName="correo"
+                   placeholder="admin@negocio.com" autocomplete="email" />
+            @if (correo.hasError('required') && correo.touched) {
+              <mat-error>Campo obligatorio.</mat-error>
+            } @else if (correo.hasError('email') && correo.touched) {
+              <mat-error>Correo inválido.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 3: Contraseñas -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Contraseña</mat-label>
+            <mat-icon matPrefix class="field-icon">lock</mat-icon>
+            <input matInput id="reg-contrasena"
+                   [type]="hidePass() ? 'password' : 'text'"
+                   formControlName="contrasena"
+                   placeholder="Mín. 8 caracteres"
+                   autocomplete="new-password" />
+            <button matSuffix mat-icon-button type="button"
+                    [attr.aria-label]="hidePass() ? 'Mostrar' : 'Ocultar'"
+                    (click)="toggleHidePass()">
+              <mat-icon>{{ hidePass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (contrasena.hasError('required') && contrasena.touched) {
+              <mat-error>Campo obligatorio.</mat-error>
+            } @else if (contrasena.hasError('minlength') && contrasena.touched) {
+              <mat-error>Mínimo 8 caracteres.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirmar contraseña</mat-label>
+            <mat-icon matPrefix class="field-icon">lock_reset</mat-icon>
+            <input matInput id="reg-confirmar"
+                   [type]="hidePass2() ? 'password' : 'text'"
+                   formControlName="confirmarContrasena"
+                   placeholder="Repite tu contraseña"
+                   autocomplete="new-password" />
+            <button matSuffix mat-icon-button type="button"
+                    [attr.aria-label]="hidePass2() ? 'Mostrar' : 'Ocultar'"
+                    (click)="toggleHidePass2()">
+              <mat-icon>{{ hidePass2() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (confirmarContrasena.hasError('required') && confirmarContrasena.touched) {
+              <mat-error>Campo obligatorio.</mat-error>
+            } @else if (form.hasError('passwordMismatch') && confirmarContrasena.touched) {
+              <mat-error>Las contraseñas no coinciden.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Botón submit -->
+        <button mat-raised-button class="submit-btn" type="submit"
+                id="reg-submit" [disabled]="form.invalid || isLoading()">
+          @if (isLoading()) {
+            <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>person_add</mat-icon>
+          }
+          <span>{{ isLoading() ? 'Creando cuenta…' : 'Registrarse' }}</span>
+        </button>
+
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <span>Al registrarte aceptas los</span>
+        <a href="#" class="legal-link">Términos</a>
+        <span>·</span>
+        <a href="#" class="legal-link">Privacidad</a>
+        <span class="footer-sep">|</span>
+        <span>¿Ya tienes cuenta?</span>
+        <a [routerLink]="['/login']" id="link-login" class="footer-link">Inicia sesión</a>
+      </div>
+
+    </main>
+  </div>
+</div>

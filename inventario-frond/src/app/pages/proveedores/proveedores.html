@@ -1,0 +1,603 @@
+<!-- ═══════════════════════════════════════════════════════
+     PROVEEDORES – InvenControl
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Encabezado -->
+<div class="page-header">
+  <div>
+    <p class="page-eyebrow">Supply Chain Management</p>
+    <h1 class="page-title">Red de Proveedores</h1>
+    <p class="page-subtitle">{{ proveedores().length }} proveedores en la red</p>
+  </div>
+  <div class="header-actions">
+    <button mat-stroked-button class="btn-filtrar" id="btn-filtrar-proveedores" (click)="toggleFiltro()">
+      <mat-icon>tune</mat-icon>
+      Filtrar
+    </button>
+    <button mat-flat-button class="btn-nuevo" id="btn-agregar-proveedor" (click)="abrirCrear()">
+      <mat-icon>add</mat-icon>
+      Agregar proveedor
+    </button>
+  </div>
+</div>
+
+<!-- ── Panel de filtro desplegable ───────────────────────── -->
+@if (filtroVisible()) {
+  <div class="filter-card">
+    <div class="search-box">
+      <mat-icon class="search-icon-local">search</mat-icon>
+      <input
+        id="search-proveedores"
+        type="text"
+        class="search-input-local"
+        placeholder="Buscar por nombre, categoría, producto…"
+        [ngModel]="busqueda()"
+        (ngModelChange)="busqueda.set($event)"
+      />
+      @if (busqueda()) {
+        <button mat-icon-button class="clear-btn" (click)="busqueda.set('')" id="btn-clear-prov">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Categoría</mat-label>
+      <mat-select [ngModel]="categoriaFiltro()" (ngModelChange)="categoriaFiltro.set($event)" id="select-cat-prov">
+        @for (cat of categorias(); track cat) {
+          <mat-option [value]="cat">{{ cat }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+}
+
+<!-- ── KPI Cards ──────────────────────────────────────────── -->
+<div class="kpi-grid">
+
+  <!-- Proveedores Activos -->
+  <div class="kpi-card kpi-card--default">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--default">
+        <mat-icon>handshake</mat-icon>
+      </div>
+    </div>
+    <div class="kpi-value">{{ proveedoresActivos() }}</div>
+    <div class="kpi-title">Proveedores Activos</div>
+    <div class="kpi-subtitle">de {{ svc.proveedores().length }} en total</div>
+  </div>
+
+  <!-- Tiempo Promedio -->
+  <div class="kpi-card kpi-card--secondary">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--secondary">
+        <mat-icon>schedule</mat-icon>
+      </div>
+    </div>
+    <div class="kpi-value">{{ tiempoPromedio() }}<span class="kpi-unit">d</span></div>
+    <div class="kpi-title">Tiempo Prom. Entrega</div>
+    <div class="kpi-subtitle">Promedio de proveedores activos</div>
+  </div>
+
+  <!-- Tasa de Confiabilidad -->
+  <div class="kpi-card kpi-card--success">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap kpi-icon-wrap--success">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <span class="kpi-badge kpi-badge--success">{{ tasaConfiabilidad() }}%</span>
+    </div>
+    <div class="kpi-value">{{ tasaConfiabilidad() }}<span class="kpi-unit">%</span></div>
+    <div class="kpi-title">Tasa de Confiabilidad</div>
+    <div class="kpi-progress-track">
+      <div class="kpi-progress-bar" [style.width]="tasaConfiabilidad() + '%'"></div>
+    </div>
+  </div>
+
+  <!-- Auditorías Pendientes -->
+  <div class="kpi-card" [class.kpi-card--error]="auditoriasPend() > 0" [class.kpi-card--default]="auditoriasPend() === 0">
+    <div class="kpi-card-header">
+      <div class="kpi-icon-wrap" [class.kpi-icon-wrap--error]="auditoriasPend() > 0" [class.kpi-icon-wrap--default]="auditoriasPend() === 0">
+        <mat-icon>fact_check</mat-icon>
+      </div>
+    </div>
+    <div class="kpi-value" [class.kpi-value--error]="auditoriasPend() > 0">{{ auditoriasPend() }}</div>
+    <div class="kpi-title">Auditorías Pendientes</div>
+    @if (auditoriasPend() > 0) {
+      <div class="kpi-subtitle kpi-subtitle--error">
+        <mat-icon class="subtitle-icon">error_outline</mat-icon>
+        Requieren atención inmediata
+      </div>
+    } @else {
+      <div class="kpi-subtitle">Al día en auditorías</div>
+    }
+  </div>
+
+</div>
+
+<!-- ── Grid de tarjetas de proveedor ─────────────────────── -->
+@if (proveedores().length === 0) {
+  <div class="empty-state-full">
+    <mat-icon>business</mat-icon>
+    <p>No se encontraron proveedores</p>
+    <span>Intenta con otros filtros o agrega un nuevo proveedor</span>
+  </div>
+} @else {
+  <div class="proveedores-grid">
+    @for (p of proveedores(); track p.id; let i = $index) {
+      <div class="prov-card" [style.animation-delay]="(i * 60) + 'ms'">
+
+        <!-- Cabecera con gradiente -->
+        <div class="prov-card-header" [style.background]="p.gradienteColor">
+          <!-- Acciones hover -->
+          <div class="prov-card-actions">
+            <button mat-icon-button class="prov-action-btn prov-action-btn--edit"
+              matTooltip="Editar" [id]="'btn-edit-prov-' + p.id"
+              (click)="abrirEditar(p)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="prov-action-btn prov-action-btn--delete"
+              matTooltip="Eliminar" [id]="'btn-delete-prov-' + p.id"
+              (click)="abrirEliminar(p)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+
+          <!-- Nombre + categoría superpuestos -->
+          <div class="prov-header-info">
+            <div class="prov-avatar">{{ p.iniciales }}</div>
+            <div>
+              <div class="prov-nombre">{{ p.nombre }}</div>
+              <div class="prov-categoria">{{ p.categoria }}</div>
+            </div>
+          </div>
+
+          <!-- Badge estado -->
+          @if (!p.activo) {
+            <span class="prov-status-badge prov-status-badge--inactive">Inactivo</span>
+          }
+        </div>
+
+        <!-- Cuerpo -->
+        <div class="prov-card-body">
+
+          <!-- Calificación -->
+          <div class="prov-rating">
+            <div class="stars-row">
+              @for (star of getStars(p.calificacion); track star) {
+                <mat-icon class="star-icon" [class.star-filled]="star <= Math.round(p.calificacion)">
+                  {{ star <= Math.round(p.calificacion) ? 'star' : 'star_border' }}
+                </mat-icon>
+              }
+            </div>
+            <span class="rating-num">{{ p.calificacion }}</span>
+          </div>
+
+          <!-- Contacto -->
+          <div class="prov-info-row">
+            <mat-icon class="info-icon">person</mat-icon>
+            <span>{{ p.contacto }}</span>
+          </div>
+          <div class="prov-info-row">
+            <mat-icon class="info-icon">phone</mat-icon>
+            <span>{{ p.telefono }}</span>
+          </div>
+          <div class="prov-info-row">
+            <mat-icon class="info-icon">mail_outline</mat-icon>
+            <span class="prov-email">{{ p.correo }}</span>
+          </div>
+
+          <!-- Productos chips -->
+          <div class="prov-productos">
+            @for (prod of p.productos.slice(0, 2); track prod) {
+              <span class="prod-chip">{{ prod }}</span>
+            }
+            @if (p.productos.length > 2) {
+              <span class="prod-chip prod-chip--more">+{{ p.productos.length - 2 }} más</span>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="prov-card-footer">
+          <div class="audit-info">
+            <mat-icon class="audit-icon" [class.audit-icon--warn]="esPendienteAuditoria(p)">
+              {{ esPendienteAuditoria(p) ? 'warning' : 'event_available' }}
+            </mat-icon>
+            <span [class.audit-warn]="esPendienteAuditoria(p)">
+              Auditoría: {{ formatFecha(p.ultimaAuditoria) }}
+            </span>
+          </div>
+          <button mat-stroked-button class="btn-ver-perfil" [id]="'btn-ver-prov-' + p.id" (click)="abrirDetalle(p)">
+            Ver perfil
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+
+      </div>
+    }
+  </div>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     OVERLAYS
+     ══════════════════════════════════════════════════════════ -->
+@if (panelCrearVisible() || proveedorEditando() || proveedorViendo()) {
+  <div class="overlay" (click)="cerrarCrear(); cerrarEditar(); cerrarDetalle()"></div>
+}
+
+@if (proveedorEliminar()) {
+  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – CREAR PROVEEDOR
+     ══════════════════════════════════════════════════════════ -->
+@if (panelCrearVisible()) {
+  <aside class="side-panel" id="panel-crear-prov">
+    <div class="panel-header">
+      <div class="panel-header-icon panel-header-icon--primary">
+        <mat-icon>add_business</mat-icon>
+      </div>
+      <h2 class="panel-title">Agregar proveedor</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarCrear()" id="btn-close-crear-prov">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body" [formGroup]="form">
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Nombre del proveedor</mat-label>
+        <mat-icon matPrefix>business</mat-icon>
+        <input matInput formControlName="nombre" id="create-prov-nombre" placeholder="Ej. TechSupply SA">
+        @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+          <mat-error>El nombre es obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Categoría</mat-label>
+        <mat-icon matPrefix>category</mat-icon>
+        <input matInput formControlName="categoria" id="create-prov-categoria" placeholder="ej. Electrónica, Servicios, Alimentos...">
+        @if (form.get('categoria')?.hasError('required') && form.get('categoria')?.touched) {
+          <mat-error>La categoría es obligatoria</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Contacto</mat-label>
+        <mat-icon matPrefix>person</mat-icon>
+        <input matInput formControlName="contacto" id="create-prov-contacto">
+        @if (form.get('contacto')?.hasError('required') && form.get('contacto')?.touched) {
+          <mat-error>El contacto es obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Teléfono</mat-label>
+          <mat-icon matPrefix>phone</mat-icon>
+          <input matInput formControlName="telefono" id="create-prov-telefono">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Correo</mat-label>
+          <mat-icon matPrefix>mail_outline</mat-icon>
+          <input matInput formControlName="correo" id="create-prov-correo" type="email">
+          @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
+            <mat-error>Correo inválido</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Tiempo entrega (días)</mat-label>
+          <mat-icon matPrefix>local_shipping</mat-icon>
+          <input matInput type="number" formControlName="tiempoEntrega" id="create-prov-tiempo" min="1">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Confiabilidad (%)</mat-label>
+          <mat-icon matPrefix>verified</mat-icon>
+          <input matInput type="number" formControlName="confiabilidad" id="create-prov-conf" min="0" max="100">
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Calificación inicial</mat-label>
+        <mat-icon matPrefix>star</mat-icon>
+        <input matInput type="number" formControlName="calificacion" id="create-prov-cal" min="1" max="5" step="0.1">
+      </mat-form-field>
+
+      <!-- Productos (chips) -->
+      <div class="field-label">Productos asociados</div>
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Agregar producto y presionar Enter</mat-label>
+        <mat-chip-grid #chipGridCrear aria-label="Productos">
+          @for (prod of productosNuevos; track prod) {
+            <mat-chip-row (removed)="removeProductoCrear(prod)">
+              {{ prod }}
+              <button matChipRemove><mat-icon>cancel</mat-icon></button>
+            </mat-chip-row>
+          }
+          <input
+            placeholder="Nuevo producto…"
+            [matChipInputFor]="chipGridCrear"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+            (matChipInputTokenEnd)="addProductoCrear($event)"
+          />
+        </mat-chip-grid>
+      </mat-form-field>
+
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarCrear()" id="btn-cancelar-crear-prov">Cancelar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="guardarNuevo()" id="btn-guardar-crear-prov" [disabled]="guardando()">
+        @if (guardando()) {
+          <ng-container><mat-spinner diameter="16" class="spinner-inline"></mat-spinner> Guardando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>save</mat-icon> Guardar</ng-container>
+        }
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – VER PERFIL
+     ══════════════════════════════════════════════════════════ -->
+@if (proveedorViendo()) {
+  <aside class="side-panel side-panel--wide" id="panel-detalle-prov">
+    <div class="panel-header-gradient" [style.background]="proveedorViendo()!.gradienteColor">
+      <button mat-icon-button class="panel-close-btn panel-close-btn--white" (click)="cerrarDetalle()" id="btn-close-detalle-prov">
+        <mat-icon>close</mat-icon>
+      </button>
+      <div class="prov-detalle-avatar">{{ proveedorViendo()!.iniciales }}</div>
+      <h2 class="prov-detalle-nombre">{{ proveedorViendo()!.nombre }}</h2>
+      <p class="prov-detalle-cat">{{ proveedorViendo()!.categoria }}</p>
+      <!-- Estrellas -->
+      <div class="stars-row" style="margin-top:6px; justify-content:center;">
+        @for (star of getStars(proveedorViendo()!.calificacion); track star) {
+          <mat-icon class="star-icon star-icon--white" [class.star-filled]="star <= Math.round(proveedorViendo()!.calificacion)">
+            {{ star <= Math.round(proveedorViendo()!.calificacion) ? 'star' : 'star_border' }}
+          </mat-icon>
+        }
+        <span class="rating-num rating-num--white">{{ proveedorViendo()!.calificacion }}</span>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <!-- Info grid -->
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-label">Contacto</span>
+          <span class="detail-value">{{ proveedorViendo()!.contacto }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Teléfono</span>
+          <span class="detail-value">{{ proveedorViendo()!.telefono }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Correo</span>
+          <span class="detail-value detail-value--small">{{ proveedorViendo()!.correo }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Estado</span>
+          <span class="detail-value" [class.text-success]="proveedorViendo()!.activo" [class.text-error]="!proveedorViendo()!.activo">
+            {{ proveedorViendo()!.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Tiempo entrega</span>
+          <span class="detail-value">{{ proveedorViendo()!.tiempoEntregaDias }} días</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Confiabilidad</span>
+          <span class="detail-value">{{ proveedorViendo()!.confiabilidad }}%</span>
+        </div>
+      </div>
+
+      <!-- Productos completos -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <mat-icon>inventory</mat-icon>
+          Productos asociados ({{ proveedorViendo()!.productos.length }})
+        </div>
+        <div class="prov-productos prov-productos--full">
+          @for (prod of proveedorViendo()!.productos; track prod) {
+            <span class="prod-chip">{{ prod }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Historial de auditorías (mock) -->
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <mat-icon>history</mat-icon>
+          Historial de auditorías
+        </div>
+        <div class="audit-history">
+          <div class="audit-entry audit-entry--ok">
+            <mat-icon class="audit-hist-icon">check_circle</mat-icon>
+            <div>
+              <div class="audit-entry-title">Auditoría rutinaria</div>
+              <div class="audit-entry-date">{{ formatFecha(proveedorViendo()!.ultimaAuditoria) }}</div>
+            </div>
+            <span class="audit-chip audit-chip--ok">Aprobada</span>
+          </div>
+          <div class="audit-entry audit-entry--ok">
+            <mat-icon class="audit-hist-icon">check_circle</mat-icon>
+            <div>
+              <div class="audit-entry-title">Revisión documentación</div>
+              <div class="audit-entry-date">Hace 6 meses</div>
+            </div>
+            <span class="audit-chip audit-chip--ok">Aprobada</span>
+          </div>
+          @if (esPendienteAuditoria(proveedorViendo()!)) {
+            <div class="audit-entry audit-entry--warn">
+              <mat-icon class="audit-hist-icon audit-hist-icon--warn">warning</mat-icon>
+              <div>
+                <div class="audit-entry-title">Auditoría pendiente</div>
+                <div class="audit-entry-date">{{ formatFecha(proveedorViendo()!.proximaAuditoria!) }}</div>
+              </div>
+              <span class="audit-chip audit-chip--warn">Pendiente</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarDetalle()">Cerrar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="abrirEditar(proveedorViendo()!)" id="btn-editar-desde-detalle-prov">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL LATERAL – EDITAR PROVEEDOR
+     ══════════════════════════════════════════════════════════ -->
+@if (proveedorEditando()) {
+  <aside class="side-panel" id="panel-editar-prov">
+    <div class="panel-header">
+      <div class="panel-header-icon panel-header-icon--secondary">
+        <mat-icon>edit</mat-icon>
+      </div>
+      <h2 class="panel-title">Editar proveedor</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarEditar()" id="btn-close-editar-prov">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body" [formGroup]="form">
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Nombre del proveedor</mat-label>
+        <mat-icon matPrefix>business</mat-icon>
+        <input matInput formControlName="nombre" id="edit-prov-nombre">
+        @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+          <mat-error>El nombre es obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Categoría</mat-label>
+        <mat-icon matPrefix>category</mat-icon>
+        <input matInput formControlName="categoria" id="edit-prov-categoria" placeholder="ej. Electrónica, Servicios, Alimentos...">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Contacto</mat-label>
+        <mat-icon matPrefix>person</mat-icon>
+        <input matInput formControlName="contacto" id="edit-prov-contacto">
+      </mat-form-field>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Teléfono</mat-label>
+          <mat-icon matPrefix>phone</mat-icon>
+          <input matInput formControlName="telefono" id="edit-prov-telefono">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Correo</mat-label>
+          <mat-icon matPrefix>mail_outline</mat-icon>
+          <input matInput formControlName="correo" id="edit-prov-correo" type="email">
+          @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
+            <mat-error>Correo inválido</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Tiempo entrega (días)</mat-label>
+          <input matInput type="number" formControlName="tiempoEntrega" id="edit-prov-tiempo" min="1">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Confiabilidad (%)</mat-label>
+          <input matInput type="number" formControlName="confiabilidad" id="edit-prov-conf" min="0" max="100">
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Calificación (1-5)</mat-label>
+        <mat-icon matPrefix>star</mat-icon>
+        <input matInput type="number" formControlName="calificacion" id="edit-prov-cal" min="1" max="5" step="0.1">
+      </mat-form-field>
+
+      <!-- Productos chips editables -->
+      <div class="field-label">Productos asociados</div>
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Agregar y presionar Enter</mat-label>
+        <mat-chip-grid #chipGridEditar aria-label="Productos">
+          @for (prod of productosEditar; track prod) {
+            <mat-chip-row (removed)="removeProductoEditar(prod)">
+              {{ prod }}
+              <button matChipRemove><mat-icon>cancel</mat-icon></button>
+            </mat-chip-row>
+          }
+          <input
+            placeholder="Agregar producto…"
+            [matChipInputFor]="chipGridEditar"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+            (matChipInputTokenEnd)="addProductoEditar($event)"
+          />
+        </mat-chip-grid>
+      </mat-form-field>
+
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarEditar()" id="btn-cancelar-editar-prov">Cancelar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="guardarEdicion()" id="btn-guardar-editar-prov" [disabled]="guardando()">
+        @if (guardando()) {
+          <ng-container><mat-spinner diameter="16" class="spinner-inline"></mat-spinner> Guardando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>save</mat-icon> Guardar cambios</ng-container>
+        }
+      </button>
+    </div>
+  </aside>
+}
+
+
+<!-- ══════════════════════════════════════════════════════════
+     DIALOG – CONFIRMAR ELIMINAR
+     ══════════════════════════════════════════════════════════ -->
+@if (proveedorEliminar()) {
+  <div class="confirm-dialog" id="dialog-eliminar-prov" role="alertdialog">
+    <div class="confirm-icon-wrap">
+      <mat-icon class="confirm-icon">delete_forever</mat-icon>
+    </div>
+    <h3 class="confirm-title">¿Eliminar proveedor?</h3>
+    <p class="confirm-msg">
+      Estás a punto de eliminar <strong>{{ proveedorEliminar()!.nombre }}</strong>.
+      @if (proveedorEliminar()!.productos.length > 0) {
+        <span class="confirm-warn-note">
+          <mat-icon class="warn-inline-icon">warning</mat-icon>
+          Este proveedor tiene <strong>{{ proveedorEliminar()!.productos.length }} productos</strong> asociados.
+        </span>
+      }
+    </p>
+    <div class="confirm-actions">
+      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar-prov">
+        Cancelar
+      </button>
+      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar-prov"
+        [disabled]="eliminando()">
+        @if (eliminando()) {
+          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
+        }
+      </button>
+    </div>
+  </div>
+}

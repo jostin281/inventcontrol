@@ -1,0 +1,265 @@
+<div class="page-shell">
+  <div class="page-header">
+    <div>
+      <p class="page-eyebrow">Administración</p>
+      <h1 class="page-title">Ventas</h1>
+      <p class="page-subtitle">Consulta el desempeño comercial del negocio y controla los pedidos recientes.</p>
+    </div>
+    <button mat-flat-button class="btn-nuevo" (click)="abrirNuevoVenta()" id="btn-nueva-venta">
+      <mat-icon>add_circle</mat-icon>
+      Nueva venta
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card__icon">
+        <mat-icon>attach_money</mat-icon>
+      </div>
+      <div>
+        <p class="stat-card__label">Ventas del mes</p>
+        <h3 class="stat-card__value">$ {{ totalVentas() | number:'1.0-0' }}</h3>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+      <div>
+        <p class="stat-card__label">Órdenes registradas</p>
+        <h3 class="stat-card__value">{{ ventas.length }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="filter-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon-local">search</mat-icon>
+      <input
+        class="search-input-local"
+        [(ngModel)]="filtroStr"
+        placeholder="Buscar por cliente, producto o estado…"
+        id="input-buscar-venta"
+      />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-card">
+    <table mat-table [dataSource]="ventasFiltradas" class="ventas-table">
+
+      <!-- Cliente -->
+      <ng-container matColumnDef="cliente">
+        <th mat-header-cell *matHeaderCellDef>Cliente</th>
+        <td mat-cell *matCellDef="let v">
+          <div class="cliente-cell">
+            <div class="cliente-avatar">{{ v.cliente.charAt(0).toUpperCase() }}</div>
+            <span class="cliente-name">{{ v.cliente }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Producto -->
+      <ng-container matColumnDef="producto">
+        <th mat-header-cell *matHeaderCellDef>Producto</th>
+        <td mat-cell *matCellDef="let v">
+          <span class="prod-chip">{{ v.producto }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Total -->
+      <ng-container matColumnDef="total">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let v">
+          <span class="price-val">${{ v.total | number:'1.0-0' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Fecha -->
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef>Fecha</th>
+        <td mat-cell *matCellDef="let v">
+          <span class="date-text">{{ v.fecha }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Estado -->
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let v">
+          <span class="status-pill"
+                [class.status-pill--pending]="v.estado === 'Pendiente'"
+                [class.status-pill--canceled]="v.estado === 'Cancelada'">
+            {{ v.estado }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let v">
+          <div class="actions-cell">
+            <button mat-icon-button class="action-btn action-btn--view"
+                    matTooltip="Ver" (click)="abrirDetalle(v)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn action-btn--edit"
+                    matTooltip="Editar" (click)="abrirEditar(v)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn action-btn--delete"
+                    matTooltip="Eliminar" (click)="abrirConfirmarEliminar(v)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas" class="header-row"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas" class="table-row"></tr>
+
+      <!-- Empty state -->
+      <tr class="mat-row empty-row" *matNoDataRow>
+        <td class="mat-cell empty-cell" [attr.colspan]="columnas.length">
+          <div class="empty-state">
+            <mat-icon>receipt_long</mat-icon>
+            <p>No se encontraron ventas</p>
+            <span>Intenta con otro término o registra una venta nueva.</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="table-footer">
+      <span class="table-count">{{ ventasFiltradas.length }} venta{{ ventasFiltradas.length !== 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- PANEL VER DETALLE -->
+  @if (ventaViendo()) {
+    <div class="overlay" (click)="cerrarDetalle()"></div>
+    <aside class="side-panel" id="panel-detalle-venta">
+      <div class="panel-header">
+        <h2 class="panel-title">Detalle de la venta</h2>
+        <button mat-icon-button class="panel-close-btn" (click)="cerrarDetalle()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="detail-avatar">{{ ventaViendo()!.cliente.charAt(0).toUpperCase() }}</div>
+        <h3 class="detail-name">{{ ventaViendo()!.cliente }}</h3>
+        <p class="detail-sub">{{ ventaViendo()!.fecha }}</p>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-label">Producto</span>
+            <span class="detail-value">{{ ventaViendo()!.producto }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Total</span>
+            <span class="detail-value">${{ ventaViendo()!.total | number:'1.2-2' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Estado</span>
+            <span class="detail-value">{{ ventaViendo()!.estado }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Fecha</span>
+            <span class="detail-value">{{ ventaViendo()!.fecha }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarDetalle()">Cerrar</button>
+        <button mat-flat-button class="btn-primary-panel"
+                (click)="cerrarDetalle(); abrirEditar(ventaViendo()!)">
+          <mat-icon>edit</mat-icon> Editar
+        </button>
+      </div>
+    </aside>
+  }
+
+  <!-- PANEL EDITAR -->
+  @if (ventaEditando()) {
+    <div class="overlay" (click)="cerrarEditar()"></div>
+    <aside class="side-panel" id="panel-editar-venta">
+      <div class="panel-header">
+        <h2 class="panel-title">Editar venta</h2>
+        <button mat-icon-button class="panel-close-btn" (click)="cerrarEditar()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="panel-body" [formGroup]="editForm">
+        <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Cliente</mat-label>
+          <input matInput formControlName="cliente" />
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Producto</mat-label>
+          <mat-select formControlName="producto">
+            <mat-option *ngFor="let p of productos()" [value]="p.nombre">{{ p.nombre }}</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>inventory_2</mat-icon>
+        </mat-form-field>
+
+        <div class="edit-row">
+          <mat-form-field appearance="outline" class="half-field">
+            <mat-label>Total</mat-label>
+            <input matInput type="number" formControlName="total" />
+            <mat-icon matPrefix>attach_money</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-field">
+            <mat-label>Fecha</mat-label>
+            <input matInput formControlName="fecha" />
+            <mat-icon matPrefix>calendar_today</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="estado">
+            <mat-option value="Completada">Completada</mat-option>
+            <mat-option value="Pendiente">Pendiente</mat-option>
+            <mat-option value="Cancelada">Cancelada</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>fact_check</mat-icon>
+        </mat-form-field>
+      </div>
+      <div class="panel-footer">
+        <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarEditar()">Cancelar</button>
+        <button mat-flat-button class="btn-primary-panel" (click)="guardarEdicion()">Guardar cambios</button>
+      </div>
+    </aside>
+  }
+
+  <!-- CONFIRMAR ELIMINAR -->
+  @if (ventaEliminar()) {
+    <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
+    <div class="confirm-dialog" role="alertdialog">
+      <div class="confirm-icon-wrap">
+        <mat-icon class="confirm-icon">delete_forever</mat-icon>
+      </div>
+      <h3 class="confirm-title">¿Eliminar venta?</h3>
+      <p class="confirm-msg">
+        Estás a punto de eliminar la venta de <strong>{{ ventaEliminar()!.cliente }}</strong>.
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="confirm-actions">
+        <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()">Cancelar</button>
+        <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" [disabled]="eliminando()">
+          <ng-container *ngIf="eliminando(); else normalEliminar">
+            <mat-icon class="spin-icon">sync</mat-icon> Eliminando…
+          </ng-container>
+          <ng-template #normalEliminar>
+            <mat-icon>delete</mat-icon> Sí, eliminar
+          </ng-template>
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,134 @@
+<!-- ═══════════════════════════════════════════
+     DASHBOARD – InvenControl
+     ═══════════════════════════════════════════ -->
+
+<!-- Encabezado de página -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Resumen general del inventario · Hoy, {{ today | date:'EEEE d MMMM yyyy' : '' : 'es' }}</p>
+  </div>
+  <button mat-flat-button class="btn-export" id="btn-export-dashboard">
+    <mat-icon>file_download</mat-icon>
+    Exportar reporte
+  </button>
+</div>
+
+<!-- Estado de carga -->
+@if (isLoading()) {
+  <div style="display:flex;justify-content:center;padding:3rem;">
+    <mat-icon style="font-size:2rem;animation:spin 1s linear infinite">sync</mat-icon>
+  </div>
+}
+
+<!-- ── KPI Cards ─────────────────────────────────────────────── -->
+@if (!isLoading()) {
+<div class="kpi-grid">
+
+  @for (kpi of kpis(); track kpi.title; let i = $index) {
+    <div class="kpi-card" [class]="'kpi-card--' + kpi.variant">
+      <div class="kpi-card-header">
+        <div class="kpi-icon-wrap" [class]="'kpi-icon-wrap--' + kpi.variant">
+          <mat-icon>{{ kpi.icon }}</mat-icon>
+        </div>
+        @if (kpi.badge) {
+          <span class="kpi-badge" [class]="'kpi-badge--' + kpi.badgeColor">{{ kpi.badge }}</span>
+        }
+      </div>
+      <div class="kpi-value" [class.kpi-value--large]="kpi.variant === 'error'" [class.kpi-value--white]="kpi.variant === 'primary'">
+        {{ kpi.value }}
+      </div>
+      <div class="kpi-title" [class.kpi-title--white]="kpi.variant === 'primary'">{{ kpi.title }}</div>
+      <div class="kpi-subtitle" [class.kpi-subtitle--white]="kpi.variant === 'primary'" [class.kpi-subtitle--error]="kpi.variant === 'error'">
+        @if (kpi.variant === 'error') {
+          <mat-icon class="subtitle-icon">error_outline</mat-icon>
+        }
+        {{ kpi.subtitle }}
+      </div>
+      @if (kpi.progress !== undefined) {
+        <div class="kpi-progress-track">
+          <div class="kpi-progress-bar" [style.width]="kpi.progress + '%'"></div>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Sección inferior: Gráfico + Movimientos ───────────────── -->
+<div class="dashboard-grid">
+
+  <!-- Gráfico de barras horizontales -->
+  <div class="chart-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Productos con mayor stock</h2>
+        <p class="card-subtitle">Top 6 por unidades disponibles</p>
+      </div>
+      <button mat-icon-button matTooltip="Ver todos" id="btn-ver-todos-ventas">
+        <mat-icon>more_horiz</mat-icon>
+      </button>
+    </div>
+
+    <div class="bar-chart">
+      @for (item of productosTop(); track item.nombre; let i = $index) {
+        <div class="bar-row" [style.animation-delay]="(i * 80) + 'ms'">
+          <div class="bar-label">{{ item.nombre }}</div>
+          <div class="bar-track">
+            <div
+              class="bar-fill"
+              [style.width]="barrasAnimadas() ? item.porcentaje + '%' : '0%'"
+              [style.background]="item.color"
+            ></div>
+          </div>
+          <div class="bar-value">{{ item.unidades }}</div>
+        </div>
+      }
+      @if (productosTop().length === 0) {
+        <p style="color:var(--on-surface-variant);text-align:center;padding:1rem">Sin productos aún</p>
+      }
+    </div>
+  </div>
+
+  <!-- Movimientos Recientes -->
+  <div class="movements-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Movimientos Recientes</h2>
+        <p class="card-subtitle">Últimos registrados</p>
+      </div>
+      <button mat-icon-button matTooltip="Ver todos" id="btn-ver-todos-mov">
+        <mat-icon>more_horiz</mat-icon>
+      </button>
+    </div>
+
+    <div class="movements-list">
+      @for (mov of movimientos(); track mov.producto) {
+        <div class="movement-item">
+          <div class="mov-avatar" [style.background]="mov.color">
+            {{ mov.inicial }}
+          </div>
+          <div class="mov-info">
+            <div class="mov-producto">{{ mov.producto }}</div>
+            <div class="mov-meta">{{ mov.cliente }} · {{ mov.hora }}</div>
+          </div>
+          <div class="mov-right">
+            <div
+              class="mov-cantidad"
+              [class.mov-cantidad--pos]="mov.cantidad > 0"
+              [class.mov-cantidad--neg]="mov.cantidad < 0"
+            >
+              {{ mov.cantidad > 0 ? '+' : '' }}{{ mov.cantidad }}
+            </div>
+            <div class="mov-chip">{{ mov.estado }}</div>
+          </div>
+        </div>
+      }
+      @if (movimientos().length === 0) {
+        <p style="color:var(--on-surface-variant);text-align:center;padding:1rem">Sin movimientos aún</p>
+      }
+    </div>
+  </div>
+
+</div>
+} <!-- end !isLoading -->

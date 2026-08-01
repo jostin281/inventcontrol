@@ -1,0 +1,90 @@
+<!-- ── PASO 2: Verificar código OTP ── -->
+<div class="fp-dialog-container">
+
+  <!-- Header -->
+  <div class="fp-header">
+    <div class="fp-icon-wrap fp-icon-wrap--success">
+      <mat-icon class="fp-header-icon">mark_email_read</mat-icon>
+    </div>
+    <h2 class="fp-title" mat-dialog-title>Verifica tu correo</h2>
+    <p class="fp-subtitle">
+      Se envió el código de verificación a<br>
+      <strong class="fp-email">{{ data.correo }}</strong>
+    </p>
+  </div>
+
+  <mat-dialog-content class="fp-content">
+
+    <!-- OTP inputs -->
+    <div class="otp-wrapper">
+      @for (digit of digits(); track $index; let i = $index) {
+        <input
+          #digitInput
+          class="otp-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="1"
+          [value]="digit"
+          [class.otp-filled]="digit !== ''"
+          [class.otp-error]="codigoError()"
+          [attr.id]="'otp-digit-' + i"
+          (input)="onDigitInput(i, $event)"
+          (keydown)="onDigitKeydown(i, $event)"
+          (paste)="onDigitPaste($event)"
+        />
+      }
+    </div>
+
+    <!-- Error del código -->
+    @if (codigoError()) {
+      <div class="otp-error-msg">
+        <mat-icon class="otp-error-icon">error_outline</mat-icon>
+        Código incorrecto, intenta de nuevo
+      </div>
+    }
+
+    <!-- Reenviar -->
+    <div class="resend-wrap">
+      <span class="resend-text">¿No recibiste el código?</span>
+      @if (resendCountdown() > 0) {
+        <span class="resend-countdown">
+          Reenviar en {{ resendCountdown() }}s
+        </span>
+      } @else {
+        <button
+          mat-button
+          class="resend-btn"
+          id="btn-reenviar-codigo"
+          (click)="reenviarCodigo()"
+        >
+          Reenviar
+        </button>
+      }
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="fp-actions">
+    <button mat-stroked-button class="fp-btn-cancel" (click)="cancelar()" id="fp2-cancelar">
+      Cancelar
+    </button>
+    <button
+      mat-flat-button
+      class="fp-btn-primary"
+      id="fp2-verificar"
+      [disabled]="!codigoCompleto || verificando()"
+      (click)="verificarCodigo()"
+    >
+      @if (verificando()) {
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        <span>Verificando…</span>
+      } @else {
+        <ng-container>
+          <mat-icon>verified</mat-icon>
+          <span>Verificar código</span>
+        </ng-container>
+      }
+    </button>
+  </mat-dialog-actions>
+
+</div>

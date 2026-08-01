@@ -1,0 +1,270 @@
+/* ══════════════════════════════════════════════════════
+   REGISTRO – InvenControl  (pantalla completa sin scroll)
+   ══════════════════════════════════════════════════════ */
+
+/* ── Shell: ocupa exactamente 100vh ──────────────────── */
+.registro-shell {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eef0fb 0%, #f5f4ff 50%, #e8f5f2 100%);
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Card principal ───────────────────────────────────── */
+.registro-card {
+  width: 100%;
+  max-width: 960px;
+  height: min(720px, calc(100vh - 32px));
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(36,56,156,.18), 0 8px 24px rgba(0,0,0,.1);
+  animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.96) translateY(16px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLUMNA IZQUIERDA – Decorativa
+   ═══════════════════════════════════════════════════════ */
+.deco-panel {
+  position: relative;
+  background: var(--ic-primary);
+  overflow: hidden;
+}
+
+/* Orbes decorativos */
+.deco-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+.deco-orb--1 { width: 280px; height: 280px; top: -80px;  right: -80px; }
+.deco-orb--2 { width: 200px; height: 200px; bottom: -60px; left: -60px; }
+
+.deco-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 28px;
+  color: #fff;
+}
+
+/* Logo */
+.deco-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.deco-logo mat-icon { font-size: 22px; width: 22px; height: 22px; color: #a5d6ff; }
+
+/* Cuerpo decorativo */
+.deco-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.deco-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 1.8vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+}
+
+.deco-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,.65);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.glass-icon {
+  font-size: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  color: var(--ic-secondary-light);
+  flex-shrink: 0;
+}
+.glass-title { font-size: 0.88rem; font-weight: 600; }
+.glass-sub   { font-size: 0.72rem; color: rgba(255,255,255,.6); margin-top: 2px; }
+
+/* Stats */
+.deco-stats {
+  display: flex;
+  gap: 20px;
+  padding-top: 4px;
+}
+.deco-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.stat-num   { font-size: 1.15rem; font-weight: 800; color: var(--ic-secondary-light); }
+.stat-label { font-size: 0.7rem;  color: rgba(255,255,255,.55); }
+
+/* ═══════════════════════════════════════════════════════
+   COLUMNA DERECHA – Formulario compacto
+   ═══════════════════════════════════════════════════════ */
+.form-panel {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px 36px;
+  overflow: hidden;
+}
+
+/* Logo */
+.form-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.form-logo__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--ic-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.form-logo__icon mat-icon { color: #fff; font-size: 20px; width: 20px; height: 20px; }
+.form-logo__name { font-size: 1.05rem; font-weight: 700; color: var(--ic-primary); }
+
+/* Títulos */
+.form-title {
+  margin: 0 0 2px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--ic-on-surface);
+  letter-spacing: -0.4px;
+}
+.form-subtitle {
+  margin: 0 0 16px;
+  font-size: 0.8rem;
+  color: var(--ic-on-surface-variant);
+}
+
+/* Formulario compacto */
+.compact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Filas de 2 columnas */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+/* Reduce el tamaño vertical de los form-fields */
+.full-width { width: 100%; }
+
+/* Ícono prefijo más pequeño */
+.field-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--ic-outline);
+  margin-right: 2px;
+}
+
+/* Comprime el padding interno de Material */
+.compact-form .mat-mdc-form-field {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-filled-label-display: block;
+}
+
+/* Botón submit */
+.submit-btn {
+  width: 100%;
+  height: 46px !important;
+  margin-top: 8px;
+  border-radius: 12px !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  background: var(--ic-primary) !important;
+  color: #fff !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: box-shadow 0.2s, transform 0.15s !important;
+  letter-spacing: 0.2px;
+}
+.submit-btn:not([disabled]):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(36,56,156,.38) !important;
+}
+.btn-spinner {
+  --mdc-circular-progress-active-indicator-color: #fff;
+}
+
+/* Footer compacto */
+.form-footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--ic-on-surface-variant);
+}
+.footer-sep { color: var(--ic-outline-variant); margin: 0 4px; }
+.legal-link {
+  color: var(--ic-primary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+.legal-link:hover { text-decoration: underline; }
+.footer-link {
+  font-weight: 700;
+  color: var(--ic-primary);
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+.footer-link:hover { text-decoration: underline; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 860px) {
+  .registro-card  { grid-template-columns: 1fr; max-width: 500px; height: auto; }
+  .deco-panel     { display: none; }
+  .form-panel     { padding: 28px 24px; }
+  .registro-shell { height: auto; min-height: 100vh; overflow-y: auto; }
+}
+
+@media (max-width: 520px) {
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+}

@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════
+   Modal – Nuevo/Editar/Ver Usuario
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Header ──────────────────────────────────────────────── */
+.dialog-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid #e8eaf0;
+  margin: 0 !important;
+}
+
+.dialog-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #dde1ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-icon mat-icon {
+  color: #24389c;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1b22;
+  margin: 0 0 2px;
+}
+
+.dialog-subtitle {
+  font-size: 12px;
+  color: #9699aa;
+  margin: 0;
+}
+
+.dialog-close {
+  color: #9699aa !important;
+}
+
+/* ── Body ─────────────────────────────────────────────────── */
+.dialog-body {
+  padding: 20px 24px !important;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* ── Form layout ──────────────────────────────────────────── */
+.usuario-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .form-row-2 { grid-template-columns: 1fr; }
+}
+
+/* ── Dialog Actions (footer) ──────────────────────────────── */
+.dialog-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 14px 24px 18px !important;
+  border-top: 1px solid #e8eaf0;
+  margin: 0 !important;
+}
+
+.btn-cancelar {
+  color: #46464f !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+}
+
+.btn-guardar {
+  background: #24389c !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px !important;
+}
+
+.btn-guardar mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}

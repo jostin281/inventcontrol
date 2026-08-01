@@ -1,0 +1,401 @@
+<!-- ═══════════════════════════════════════════════════════
+     LISTA DE PRODUCTOS – InvenControl
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Encabezado de página -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Productos</h1>
+    <p class="page-subtitle">{{ productos().length }} productos en inventario</p>
+  </div>
+  <button mat-flat-button class="btn-nuevo" id="btn-nuevo-producto" (click)="abrirNuevoProducto()">
+    <mat-icon>add</mat-icon>
+    Nuevo producto
+  </button>
+</div>
+
+<!-- ── Barra de filtros ───────────────────────────────────── -->
+<div class="filter-bar">
+
+  <!-- Buscador -->
+  <div class="search-box">
+    <mat-icon class="search-icon-local">search</mat-icon>
+    <input
+      id="search-productos"
+      type="text"
+      class="search-input-local"
+      placeholder="Buscar por nombre, proveedor, categoría…"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)"
+    />
+    @if (busqueda()) {
+      <button mat-icon-button class="clear-btn" (click)="busqueda.set('')" id="btn-clear-search">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <!-- Filtro categoría -->
+  <div class="categoria-filter">
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Categoría</mat-label>
+      <mat-select
+        id="select-filter-categoria"
+        [ngModel]="categoriaFiltro()"
+        (ngModelChange)="categoriaFiltro.set($event)"
+      >
+        @for (cat of categorias(); track cat) {
+          <mat-option [value]="cat">{{ cat }}</mat-option>
+        }
+      </mat-select>
+      <mat-icon matPrefix>filter_list</mat-icon>
+    </mat-form-field>
+  </div>
+
+</div>
+
+<!-- ── Tabla ──────────────────────────────────────────────── -->
+<div class="table-card">
+  <table mat-table [dataSource]="productos()" class="productos-table">
+
+    <!-- Columna: Producto (imagen + nombre) -->
+    <ng-container matColumnDef="producto">
+      <th mat-header-cell *matHeaderCellDef>Producto</th>
+      <td mat-cell *matCellDef="let p">
+        <div class="product-cell">
+          <div class="product-thumb" [style.background]="p.categoriaColor">
+            <span class="product-initial">{{ getInitials(p.nombre) }}</span>
+          </div>
+          <div class="product-info">
+            <span class="product-name">{{ p.nombre }}</span>
+            <span class="product-id">#{{ p.id | number:'3.0-0' }}</span>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Categoría (chip) -->
+    <ng-container matColumnDef="categoria">
+      <th mat-header-cell *matHeaderCellDef>Categoría</th>
+      <td mat-cell *matCellDef="let p">
+        <div class="cat-chip" [style.background]="p.categoriaColor">
+          {{ p.categoria }}
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Stock (indicador visual) -->
+    <ng-container matColumnDef="stock">
+      <th mat-header-cell *matHeaderCellDef>Stock</th>
+      <td mat-cell *matCellDef="let p">
+        <div class="stock-cell">
+          <div class="stock-top">
+            <span
+              class="stock-number"
+              [class.stock-ok]="getStockLevel(p) === 'ok'"
+              [class.stock-low]="getStockLevel(p) === 'low'"
+              [class.stock-critical]="getStockLevel(p) === 'critical'"
+            >
+              {{ p.stock }}
+            </span>
+            <span class="stock-max">/ {{ p.stockMax }}</span>
+          </div>
+          <div class="stock-track">
+            <div
+              class="stock-fill"
+              [class.stock-fill--ok]="getStockLevel(p) === 'ok'"
+              [class.stock-fill--low]="getStockLevel(p) === 'low'"
+              [class.stock-fill--critical]="getStockLevel(p) === 'critical'"
+              [style.width]="getStockPorcentaje(p) + '%'"
+            ></div>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Precio -->
+    <ng-container matColumnDef="precio">
+      <th mat-header-cell *matHeaderCellDef>Precio</th>
+      <td mat-cell *matCellDef="let p">
+        <span class="price-val">${{ p.precio | number:'1.2-2' }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Proveedor -->
+    <ng-container matColumnDef="proveedor">
+      <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+      <td mat-cell *matCellDef="let p">
+        <span class="proveedor-text">{{ p.proveedor }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Última actualización -->
+    <ng-container matColumnDef="actualizado">
+      <th mat-header-cell *matHeaderCellDef>Actualizado</th>
+      <td mat-cell *matCellDef="let p">
+        <span class="updated-text">{{ p.ultimaActualizacion }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Columna: Acciones -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let p">
+        <div class="actions-cell">
+          <button
+            mat-icon-button
+            class="action-btn action-btn--view"
+            matTooltip="Ver detalle"
+            [id]="'btn-view-' + p.id"
+            (click)="abrirDetalle(p)"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn action-btn--edit"
+            matTooltip="Editar"
+            [id]="'btn-edit-' + p.id"
+            (click)="abrirEditar(p)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="action-btn action-btn--delete"
+            matTooltip="Eliminar"
+            [id]="'btn-delete-' + p.id"
+            (click)="abrirConfirmarEliminar(p)"
+          >
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Filas -->
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+    <!-- Empty state -->
+    <tr class="mat-row empty-row" *matNoDataRow>
+      <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+        <div class="empty-state">
+          <mat-icon>inventory_2</mat-icon>
+          <p>No se encontraron productos</p>
+          <span>Intenta con otros términos de búsqueda</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer de tabla -->
+  <div class="table-footer">
+    <span class="table-count">
+      Mostrando {{ productos().length }} de {{ productos().length }} productos
+    </span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL FLOTANTE – VER DETALLE (ojo)
+     ══════════════════════════════════════════════════════════ -->
+@if (productoViendo()) {
+  <div class="overlay" (click)="cerrarDetalle()"></div>
+  <aside class="side-panel" id="panel-detalle">
+    <div class="panel-header">
+      <h2 class="panel-title">Detalle del producto</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarDetalle()" id="btn-close-detalle">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Thumbnail grande -->
+      <div class="detail-thumb" [style.background]="productoViendo()!.categoriaColor">
+        <span class="detail-initial">{{ getInitials(productoViendo()!.nombre) }}</span>
+      </div>
+
+      <h3 class="detail-name">{{ productoViendo()!.nombre }}</h3>
+      @if (productoViendo()!.sku) {
+        <span class="detail-sku">SKU: {{ productoViendo()!.sku }}</span>
+      }
+
+      <div class="detail-chips-row">
+        <div class="cat-chip" [style.background]="productoViendo()!.categoriaColor">
+          {{ productoViendo()!.categoria }}
+        </div>
+        <div class="stock-badge"
+          [class.badge-ok]="getStockLevel(productoViendo()!) === 'ok'"
+          [class.badge-low]="getStockLevel(productoViendo()!) === 'low'"
+          [class.badge-critical]="getStockLevel(productoViendo()!) === 'critical'">
+          Stock: {{ productoViendo()!.stock }} / {{ productoViendo()!.stockMax }}
+        </div>
+      </div>
+
+      <!-- Barra de stock -->
+      <div class="stock-track" style="margin-bottom:20px">
+        <div class="stock-fill"
+          [class.stock-fill--ok]="getStockLevel(productoViendo()!) === 'ok'"
+          [class.stock-fill--low]="getStockLevel(productoViendo()!) === 'low'"
+          [class.stock-fill--critical]="getStockLevel(productoViendo()!) === 'critical'"
+          [style.width]="getStockPorcentaje(productoViendo()!) + '%'">
+        </div>
+      </div>
+
+      <!-- Grid de info -->
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-label">Precio</span>
+          <span class="detail-value price-val">${{ productoViendo()!.precio | number:'1.2-2' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Proveedor</span>
+          <span class="detail-value">{{ productoViendo()!.proveedor }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">Última actualización</span>
+          <span class="detail-value">{{ productoViendo()!.ultimaActualizacion }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-label">ID</span>
+          <span class="detail-value">#{{ productoViendo()!.id | number:'3.0-0' }}</span>
+        </div>
+      </div>
+
+      @if (productoViendo()!.descripcion) {
+        <div class="detail-desc-block">
+          <span class="detail-label">Descripción</span>
+          <p class="detail-desc">{{ productoViendo()!.descripcion }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarDetalle()">Cerrar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="cerrarDetalle(); abrirEditar(productoViendo()!)">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════
+     PANEL FLOTANTE – EDITAR (lápiz)
+     ══════════════════════════════════════════════════════════ -->
+@if (productoEditando()) {
+  <div class="overlay" (click)="cerrarEditar()"></div>
+  <aside class="side-panel" id="panel-editar">
+    <div class="panel-header">
+      <h2 class="panel-title">Editar producto</h2>
+      <button mat-icon-button class="panel-close-btn" (click)="cerrarEditar()" id="btn-close-editar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="panel-body" [formGroup]="editForm">
+
+      <div class="edit-thumb" [style.background]="productoEditando()!.categoriaColor">
+        <span class="detail-initial">{{ getInitials(productoEditando()!.nombre) }}</span>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Nombre del producto</mat-label>
+        <input matInput formControlName="nombre" id="edit-nombre">
+        @if (editForm.get('nombre')?.hasError('required') && editForm.get('nombre')?.touched) {
+          <mat-error>El nombre es obligatorio</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Categoría</mat-label>
+          <mat-select formControlName="categoria" id="edit-categoria">
+            @for (cat of categoriasForm(); track cat) {
+              <mat-option [value]="cat">{{ cat }}</mat-option>
+            }
+          </mat-select>
+          @if (editForm.get('categoria')?.hasError('required') && editForm.get('categoria')?.touched) {
+            <mat-error>Requerido</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Precio</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput type="number" formControlName="precio" id="edit-precio" min="0">
+        </mat-form-field>
+      </div>
+
+      <div class="edit-row">
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Stock actual</mat-label>
+          <input matInput type="number" formControlName="stock" id="edit-stock" min="0">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-field">
+          <mat-label>Stock máximo</mat-label>
+          <input matInput type="number" formControlName="stockMax" id="edit-stock-max" min="1">
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Proveedor</mat-label>
+        <mat-select formControlName="proveedor" id="edit-proveedor">
+          @for (prov of proveedores(); track prov) {
+            <mat-option [value]="prov">{{ prov }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>SKU</mat-label>
+        <input matInput formControlName="sku" id="edit-sku">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-field">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" id="edit-descripcion" rows="3"></textarea>
+      </mat-form-field>
+
+    </div>
+
+    <div class="panel-footer">
+      <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarEditar()" id="btn-cancelar-editar">Cancelar</button>
+      <button mat-flat-button class="btn-primary-panel" (click)="guardarEdicion()" id="btn-guardar-editar">
+        <mat-icon>save</mat-icon> Guardar cambios
+      </button>
+    </div>
+  </aside>
+}
+
+<!-- ══════════════════════════════════════════════════════════
+     DIALOG FLOTANTE – CONFIRMAR ELIMINAR (basurero)
+     ══════════════════════════════════════════════════════════ -->
+@if (productoEliminar()) {
+  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
+  <div class="confirm-dialog" id="dialog-confirmar-eliminar" role="alertdialog">
+    <div class="confirm-icon-wrap">
+      <mat-icon class="confirm-icon">delete_forever</mat-icon>
+    </div>
+    <h3 class="confirm-title">¿Eliminar producto?</h3>
+    <p class="confirm-msg">
+      Estás a punto de eliminar
+      <strong>{{ productoEliminar()!.nombre }}</strong>.
+      Esta acción no se puede deshacer.
+    </p>
+    <div class="confirm-actions">
+      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar">
+        Cancelar
+      </button>
+      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar"
+        [disabled]="eliminando()">
+        @if (eliminando()) {
+          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
+        } @else {
+          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
+        }
+      </button>
+    </div>
+  </div>
+}

@@ -1,0 +1,101 @@
+/* ── ESTILOS COMPARTIDOS para todos los modales de forgot-password ── */
+
+:host {
+  display: block;
+}
+
+.fp-dialog-container {
+  padding: 0;
+}
+
+/* Header */
+.fp-header {
+  text-align: center;
+  padding: 32px 32px 0;
+}
+
+.fp-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #24389c22, #3f51b522);
+  border: 2px solid #24389c33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.fp-header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #24389c;
+}
+
+.fp-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.fp-subtitle {
+  font-size: 0.875rem;
+  color: #5f6368;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Content */
+.fp-content {
+  padding: 24px 32px 8px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.fp-field {
+  width: 100%;
+}
+
+/* Actions */
+.fp-actions {
+  padding: 8px 32px 24px !important;
+  justify-content: flex-end !important;
+  gap: 12px;
+}
+
+.fp-btn-cancel {
+  color: #5f6368;
+  border-color: #dadce0;
+  border-radius: 8px;
+  height: 42px;
+}
+
+.fp-btn-primary {
+  background: linear-gradient(135deg, #24389c, #3f51b5);
+  color: white;
+  border-radius: 8px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.fp-btn-primary:disabled {
+  opacity: 0.55;
+}
+
+.btn-spinner {
+  display: inline-block;
+}
+
+/* Override MatDialog panel */
+::ng-deep .fp-dialog .mat-mdc-dialog-container {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(36, 56, 156, 0.18) !important;
+}

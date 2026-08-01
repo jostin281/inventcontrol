@@ -1,0 +1,130 @@
+:host { display: block; }
+
+.fp-dialog-container { padding: 0; }
+
+/* Header */
+.fp-header {
+  text-align: center;
+  padding: 32px 32px 0;
+}
+
+.fp-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #24389c22, #3f51b522);
+  border: 2px solid #24389c33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.fp-icon-wrap--key {
+  background: linear-gradient(135deg, #7c4dff22, #3f51b522);
+  border-color: #7c4dff44;
+}
+
+.fp-header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #24389c;
+}
+
+.fp-icon--key {
+  color: #7c4dff;
+}
+
+.fp-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.fp-subtitle {
+  font-size: 0.875rem;
+  color: #5f6368;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Content */
+.fp-content {
+  padding: 24px 32px 8px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.fp-field {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+/* Strength bar */
+.strength-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -8px 0 16px;
+}
+
+.strength-bar {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+}
+
+.strength-segment {
+  height: 5px;
+  flex: 1;
+  border-radius: 4px;
+  background: #e0e0e0;
+  transition: background 0.3s ease;
+}
+
+.strength-segment.active {
+  transition: background 0.3s ease;
+}
+
+.strength-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-width: 54px;
+  text-align: right;
+  transition: color 0.3s;
+}
+
+/* Actions */
+.fp-actions {
+  padding: 8px 32px 24px !important;
+  justify-content: flex-end !important;
+  gap: 12px;
+}
+
+.fp-btn-cancel {
+  color: #5f6368;
+  border-color: #dadce0;
+  border-radius: 8px;
+  height: 42px;
+}
+
+.fp-btn-primary {
+  background: linear-gradient(135deg, #24389c, #3f51b5);
+  color: white;
+  border-radius: 8px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.fp-btn-primary:disabled {
+  opacity: 0.55;
+}
+
+.btn-spinner { display: inline-block; }

@@ -1,0 +1,447 @@
+<!-- ══════════════════════════════════════════════════════════
+     CONFIGURACIÓN – Cuenta y Ajustes de la Plataforma
+     ══════════════════════════════════════════════════════════ -->
+
+<div class="cfg-root" #scrollContainer>
+
+  <!-- ── HEADER ──────────────────────────────────────────────── -->
+  <div class="cfg-page-header">
+    <div class="cfg-header-text">
+      <span class="cfg-eyebrow">Configuración del Sistema</span>
+      <h1 class="cfg-page-title">Cuenta y Ajustes de la Plataforma</h1>
+      <p class="cfg-page-desc">
+        Administra la información de tu negocio, notificaciones, seguridad y facturación.
+      </p>
+    </div>
+    <div class="cfg-header-actions">
+      <button mat-stroked-button class="cfg-btn-discard"
+        (click)="descartarCambios()" id="btn-descartar-cambios">
+        <mat-icon>undo</mat-icon> Descartar cambios
+      </button>
+      <button mat-flat-button class="cfg-btn-save"
+        [disabled]="!hayDirty()"
+        (click)="guardarTodo()" id="btn-guardar-todo">
+        <mat-icon>save</mat-icon> Guardar todos los cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- ── LAYOUT 12 COLS ───────────────────────────────────────── -->
+  <div class="cfg-layout">
+
+    <!-- ── Mini-nav lateral (3 cols) ──────────────────────────── -->
+    <nav class="cfg-sidenav" id="cfg-mini-nav">
+      <div class="cfg-sidenav-inner">
+        <p class="cfg-sidenav-label">SECCIONES</p>
+
+        <button class="cfg-nav-item" [class.active]="activeSection() === 'perfil'"
+          (click)="scrollTo('perfil')" id="nav-perfil">
+          <mat-icon>store</mat-icon>
+          <span>Perfil del negocio</span>
+          <div class="cfg-nav-indicator"></div>
+        </button>
+
+        <button class="cfg-nav-item" [class.active]="activeSection() === 'notif'"
+          (click)="scrollTo('notif')" id="nav-notif">
+          <mat-icon>notifications</mat-icon>
+          <span>Notificaciones</span>
+          <div class="cfg-nav-indicator"></div>
+        </button>
+
+        <button class="cfg-nav-item" [class.active]="activeSection() === 'seguridad'"
+          (click)="scrollTo('seguridad')" id="nav-seguridad">
+          <mat-icon>security</mat-icon>
+          <span>Seguridad y Acceso</span>
+          <div class="cfg-nav-indicator"></div>
+        </button>
+
+        <button class="cfg-nav-item" [class.active]="activeSection() === 'peligro'"
+          (click)="scrollTo('peligro')" id="nav-peligro">
+          <mat-icon>warning_amber</mat-icon>
+          <span>Zona de peligro</span>
+          <div class="cfg-nav-indicator"></div>
+        </button>
+
+        <!-- Info card -->
+        <div class="cfg-sidenav-info">
+          <mat-icon class="info-icon">info_outline</mat-icon>
+          <p>Los cambios se guardan solo al presionar <strong>Guardar todos los cambios</strong>.</p>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ── Contenido (9 cols) ──────────────────────────────────── -->
+    <div class="cfg-content">
+
+      <!-- ════════════════════════════════════
+           A) PERFIL DEL NEGOCIO
+           ════════════════════════════════════ -->
+      <section #secPerfil id="sec-perfil" class="cfg-section">
+        <mat-card class="cfg-card">
+          <mat-card-content>
+            <div class="cfg-card-header">
+              <div class="cfg-card-header-icon">
+                <mat-icon>store</mat-icon>
+              </div>
+              <div>
+                <h2 class="cfg-card-title">Perfil del negocio</h2>
+                <p class="cfg-card-subtitle">Información visible en reportes, facturas y comunicaciones</p>
+              </div>
+            </div>
+
+            <mat-divider class="cfg-divider"></mat-divider>
+
+            <!-- Logo upload -->
+            <div class="logo-section">
+              <div class="logo-upload-area" (click)="logoInput.click()"
+                matRipple matTooltip="Cambiar logo" id="btn-cambiar-logo">
+                @if (logoPreview()) {
+                  <img [src]="logoPreview()" alt="Logo del negocio" class="logo-img">
+                } @else {
+                  <div class="logo-placeholder">
+                    <mat-icon class="logo-placeholder-icon">storefront</mat-icon>
+                    <span class="logo-placeholder-initials">{{ businessInitials }}</span>
+                  </div>
+                }
+                <div class="logo-overlay">
+                  <mat-icon>photo_camera</mat-icon>
+                  <span>Cambiar logo</span>
+                </div>
+              </div>
+              <input #logoInput type="file" accept="image/*" class="logo-input-hidden"
+                (change)="onLogoChange($event)" id="input-logo-file">
+              <div class="logo-hint">
+                <p class="logo-hint-title">Logo de la empresa</p>
+                <p class="logo-hint-desc">PNG, JPG hasta 2 MB. Recomendado: 256 × 256 px.</p>
+              </div>
+            </div>
+
+            <!-- Formulario -->
+            <form [formGroup]="perfilForm" class="perfil-grid" id="form-perfil">
+
+              <mat-form-field appearance="outline" class="field-half">
+                <mat-label>Nombre del negocio</mat-label>
+                <mat-icon matPrefix>business</mat-icon>
+                <input matInput formControlName="nombre" id="input-nombre-negocio"
+                  placeholder="InvenControl S.A.">
+                @if (perfilForm.get('nombre')?.hasError('required') && perfilForm.get('nombre')?.touched) {
+                  <mat-error>El nombre es obligatorio</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-half">
+                <mat-label>Correo de operaciones</mat-label>
+                <mat-icon matPrefix>mail_outline</mat-icon>
+                <input matInput formControlName="correo" id="input-correo-operaciones"
+                  placeholder="operaciones@empresa.com" type="email">
+                @if (perfilForm.get('correo')?.hasError('email') && perfilForm.get('correo')?.touched) {
+                  <mat-error>Correo inválido</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-full">
+                <mat-label>Dirección</mat-label>
+                <mat-icon matPrefix>location_on</mat-icon>
+                <input matInput formControlName="direccion" id="input-direccion"
+                  placeholder="Calle, Número, Colonia, Ciudad">
+                @if (perfilForm.get('direccion')?.hasError('required') && perfilForm.get('direccion')?.touched) {
+                  <mat-error>La dirección es obligatoria</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-half">
+                <mat-label>Zona horaria</mat-label>
+                <mat-icon matPrefix>schedule</mat-icon>
+                <mat-select formControlName="zona" id="select-zona">
+                  @for (z of zonas; track z) {
+                    <mat-option [value]="z">{{ z }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-half">
+                <mat-label>Moneda</mat-label>
+                <mat-icon matPrefix>payments</mat-icon>
+                <mat-select formControlName="moneda" id="select-moneda">
+                  @for (m of monedas; track m.code) {
+                    <mat-option [value]="m.code">{{ m.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <!-- ════════════════════════════════════
+           B) NOTIFICACIONES
+           ════════════════════════════════════ -->
+      <section #secNotif id="sec-notif" class="cfg-section">
+        <mat-card class="cfg-card">
+          <mat-card-content>
+            <div class="cfg-card-header">
+              <div class="cfg-card-header-icon cfg-card-header-icon--secondary">
+                <mat-icon>notifications_active</mat-icon>
+              </div>
+              <div>
+                <h2 class="cfg-card-title">Notificaciones</h2>
+                <p class="cfg-card-subtitle">Controla qué eventos generan alertas en tu cuenta</p>
+              </div>
+            </div>
+
+            <mat-divider class="cfg-divider"></mat-divider>
+
+            <form [formGroup]="notifForm" id="form-notif">
+              <div class="notif-list">
+
+                <div class="notif-row">
+                  <div class="notif-info">
+                    <div class="notif-icon-wrap notif-icon--warning">
+                      <mat-icon>inventory</mat-icon>
+                    </div>
+                    <div>
+                      <p class="notif-title">Alertas de stock bajo</p>
+                      <p class="notif-desc">Recibe una notificación cuando un producto baje del umbral mínimo configurado</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle formControlName="stockBajo" id="toggle-stock-bajo"
+                    color="primary"></mat-slide-toggle>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <div class="notif-row">
+                  <div class="notif-info">
+                    <div class="notif-icon-wrap notif-icon--primary">
+                      <mat-icon>swap_horiz</mat-icon>
+                    </div>
+                    <div>
+                      <p class="notif-title">Movimientos de inventario</p>
+                      <p class="notif-desc">Resumen diario con entradas, salidas y ajustes del período enviado a tu correo</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle formControlName="movimientos" id="toggle-movimientos"
+                    color="primary"></mat-slide-toggle>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <div class="notif-row">
+                  <div class="notif-info">
+                    <div class="notif-icon-wrap notif-icon--error">
+                      <mat-icon>gpp_bad</mat-icon>
+                    </div>
+                    <div>
+                      <p class="notif-title">Reportes de seguridad</p>
+                      <p class="notif-desc">Alerta inmediata ante intentos de acceso sospechosos o cambios de credenciales</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle formControlName="seguridad" id="toggle-seguridad"
+                    color="primary"></mat-slide-toggle>
+                </div>
+
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <!-- ════════════════════════════════════
+           C) SEGURIDAD Y ACCESO
+           ════════════════════════════════════ -->
+      <section #secSeguridad id="sec-seguridad" class="cfg-section">
+        <mat-card class="cfg-card">
+          <mat-card-content>
+            <div class="cfg-card-header">
+              <div class="cfg-card-header-icon cfg-card-header-icon--success">
+                <mat-icon>lock</mat-icon>
+              </div>
+              <div>
+                <h2 class="cfg-card-title">Seguridad y Acceso</h2>
+                <p class="cfg-card-subtitle">Gestiona credenciales y dispositivos conectados a tu cuenta</p>
+              </div>
+            </div>
+
+            <mat-divider class="cfg-divider"></mat-divider>
+
+            <div class="seguridad-grid">
+
+              <!-- Cambiar contraseña -->
+              <div class="seguridad-col">
+                <h3 class="seguridad-col-title">
+                  <mat-icon>key</mat-icon> Cambiar contraseña
+                </h3>
+
+                <form [formGroup]="passForm" class="pass-form" id="form-pass">
+
+                  <mat-form-field appearance="outline" class="field-full">
+                    <mat-label>Contraseña actual</mat-label>
+                    <mat-icon matPrefix>lock_outline</mat-icon>
+                    <input matInput formControlName="actual" id="input-pass-actual"
+                      [type]="showActual() ? 'text' : 'password'">
+                    <button mat-icon-button matSuffix type="button"
+                      (click)="showActual.set(!showActual())" id="btn-toggle-actual">
+                      <mat-icon>{{ showActual() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (passForm.get('actual')?.hasError('required') && passForm.get('actual')?.touched) {
+                      <mat-error>Ingresa tu contraseña actual</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="field-full">
+                    <mat-label>Nueva contraseña</mat-label>
+                    <mat-icon matPrefix>lock</mat-icon>
+                    <input matInput formControlName="nueva" id="input-pass-nueva"
+                      [type]="showNueva() ? 'text' : 'password'">
+                    <button mat-icon-button matSuffix type="button"
+                      (click)="showNueva.set(!showNueva())" id="btn-toggle-nueva">
+                      <mat-icon>{{ showNueva() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    @if (passForm.get('nueva')?.hasError('minlength') && passForm.get('nueva')?.touched) {
+                      <mat-error>Mínimo 6 caracteres</mat-error>
+                    }
+                    @if (passForm.get('nueva')?.hasError('weakPassword') && passForm.get('nueva')?.touched) {
+                      <mat-error>Contraseña muy débil — agrega mayúsculas y números</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Indicador de fortaleza -->
+                  @if (passwordStrength() > 0) {
+                    <div class="strength-wrap">
+                      <div class="strength-bar">
+                        <div class="strength-segment"
+                          [class.filled]="passwordStrength() >= 1"
+                          [style.background]="passwordStrength() >= 1 ? strengthColor() : ''"></div>
+                        <div class="strength-segment"
+                          [class.filled]="passwordStrength() >= 2"
+                          [style.background]="passwordStrength() >= 2 ? strengthColor() : ''"></div>
+                        <div class="strength-segment"
+                          [class.filled]="passwordStrength() >= 3"
+                          [style.background]="passwordStrength() >= 3 ? strengthColor() : ''"></div>
+                      </div>
+                      <span class="strength-label" [style.color]="strengthColor()">
+                        {{ strengthLabel() }}
+                      </span>
+                    </div>
+                  }
+
+                  <button mat-flat-button class="cfg-btn-save btn-cred"
+                    (click)="actualizarCredenciales()" id="btn-actualizar-cred"
+                    [disabled]="passForm.invalid">
+                    <mat-icon>check_circle</mat-icon> Actualizar credenciales
+                  </button>
+                </form>
+              </div>
+
+              <!-- Sesiones activas -->
+              <div class="seguridad-col">
+                <h3 class="seguridad-col-title">
+                  <mat-icon>devices</mat-icon> Sesiones activas
+                </h3>
+
+                <div class="sesiones-list">
+                  @for (ses of sesiones(); track ses.id) {
+                    <div class="sesion-row" [class.sesion-actual]="ses.actual">
+                      <div class="sesion-icon-wrap">
+                        <mat-icon>{{ ses.icono }}</mat-icon>
+                      </div>
+                      <div class="sesion-info">
+                        <p class="sesion-device">{{ ses.dispositivo }}</p>
+                        <p class="sesion-location">
+                          <mat-icon class="sesion-location-icon">place</mat-icon>
+                          {{ ses.ubicacion }}
+                        </p>
+                      </div>
+                      @if (ses.actual) {
+                        <span class="sesion-badge-actual">Actual</span>
+                      } @else {
+                        <button mat-stroked-button class="btn-revocar"
+                          (click)="revocar(ses.id)"
+                          [id]="'btn-revocar-' + ses.id">
+                          Revocar
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <a href="javascript:void(0)" class="historial-link" id="link-historial-accesos">
+                  <mat-icon>history</mat-icon> Ver historial de accesos
+                </a>
+              </div>
+
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <!-- ════════════════════════════════════
+           D) ZONA DE PELIGRO
+           ════════════════════════════════════ -->
+      <section #secPeligro id="sec-peligro" class="cfg-section">
+        <mat-card class="cfg-card cfg-card--danger">
+          <mat-card-content>
+            <div class="cfg-card-header">
+              <div class="cfg-card-header-icon cfg-card-header-icon--danger">
+                <mat-icon>dangerous</mat-icon>
+              </div>
+              <div>
+                <h2 class="cfg-card-title cfg-card-title--danger">Zona de peligro</h2>
+                <p class="cfg-card-subtitle">
+                  Las acciones de esta sección son <strong>irreversibles</strong>. Procede con extrema precaución.
+                </p>
+              </div>
+            </div>
+
+            <mat-divider class="cfg-divider"></mat-divider>
+
+            <div class="peligro-actions">
+
+              <div class="peligro-action-row">
+                <div class="peligro-action-info">
+                  <div class="peligro-action-icon peligro-icon--archive">
+                    <mat-icon>archive</mat-icon>
+                  </div>
+                  <div>
+                    <p class="peligro-action-title">Archivar base de datos</p>
+                    <p class="peligro-action-desc">
+                      Genera un snapshot comprimido de todos los datos para respaldo externo.
+                    </p>
+                  </div>
+                </div>
+                <button mat-stroked-button class="btn-peligro-outline"
+                  (click)="archivarDB()" id="btn-archivar-db">
+                  <mat-icon>archive</mat-icon> Archivar base de datos
+                </button>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="peligro-action-row">
+                <div class="peligro-action-info">
+                  <div class="peligro-action-icon peligro-icon--delete">
+                    <mat-icon>delete_forever</mat-icon>
+                  </div>
+                  <div>
+                    <p class="peligro-action-title">Eliminar organización</p>
+                    <p class="peligro-action-desc">
+                      Elimina permanentemente todos los datos, usuarios y configuraciones de la plataforma.
+                    </p>
+                  </div>
+                </div>
+                <button mat-flat-button class="btn-peligro-filled"
+                  (click)="eliminarOrg()" id="btn-eliminar-org">
+                  <mat-icon>delete_forever</mat-icon> Eliminar organización
+                </button>
+              </div>
+
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+    </div><!-- /cfg-content -->
+  </div><!-- /cfg-layout -->
+
+</div><!-- /cfg-root -->

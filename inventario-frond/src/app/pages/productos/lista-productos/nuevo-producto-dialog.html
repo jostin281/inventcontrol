@@ -1,0 +1,155 @@
+<!-- ═══════════════════════════════════════════════════════
+     MODAL – Nuevo Producto
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Header del modal -->
+<div class="dialog-header" mat-dialog-title>
+  <div class="dialog-title-wrap">
+    <div class="dialog-icon">
+      <mat-icon>inventory_2</mat-icon>
+    </div>
+    <div>
+      <h2 class="dialog-title">Nuevo Producto</h2>
+      <p class="dialog-subtitle">Completa la información del producto</p>
+    </div>
+  </div>
+  <button mat-icon-button class="dialog-close" (click)="cancelar()" id="btn-close-dialog">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<!-- Cuerpo del modal -->
+<mat-dialog-content class="dialog-body">
+  <form [formGroup]="form" class="producto-form">
+
+    <!-- Zona de imagen -->
+    <div class="image-upload-zone">
+      <input
+        type="file"
+        id="imagen-input"
+        accept="image/*"
+        style="display:none"
+        (change)="onImagenChange($event)"
+      />
+      <label for="imagen-input" class="image-preview" matRipple matTooltip="Clic para subir imagen">
+        @if (imagenPreview) {
+          <img [src]="imagenPreview" alt="Preview del producto" class="preview-img" />
+        } @else {
+          <mat-icon class="upload-icon">add_photo_alternate</mat-icon>
+          <span class="upload-label">Foto</span>
+        }
+      </label>
+      <div class="image-hint">
+        <p class="hint-text">Clic para subir imagen<br><span>PNG, JPG hasta 5MB</span></p>
+      </div>
+    </div>
+
+    <!-- Nombre del producto (fila completa) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre del producto</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej. Laptop Dell XPS 15" id="input-nombre" />
+      <mat-icon matPrefix>label</mat-icon>
+      @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Categoría + SKU (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Categoría</mat-label>
+        <mat-select formControlName="categoria" id="select-categoria">
+          @for (cat of categorias(); track cat) {
+            <mat-option [value]="cat">{{ cat }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>category</mat-icon>
+        @if (form.get('categoria')?.hasError('required') && form.get('categoria')?.touched) {
+          <mat-error>Selecciona una categoría</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>SKU / Código</mat-label>
+        <input matInput formControlName="sku" placeholder="Ej. LAP-DELL-001" id="input-sku" />
+        <mat-icon matPrefix>qr_code</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Precio + Stock mínimo (2 columnas) -->
+    <div class="form-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Precio</mat-label>
+        <input matInput type="number" formControlName="precio" placeholder="0.00" id="input-precio" />
+        <mat-icon matPrefix>attach_money</mat-icon>
+        @if (form.get('precio')?.hasError('required') && form.get('precio')?.touched) {
+          <mat-error>El precio es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Stock mínimo</mat-label>
+        <input matInput type="number" formControlName="stockMinimo" placeholder="1" id="input-stock-min" />
+        <mat-icon matPrefix>production_quantity_limits</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Proveedor (fila completa) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Proveedor (opcional)</mat-label>
+      <mat-select formControlName="proveedor" id="select-proveedor">
+        <mat-option value="">Sin proveedor</mat-option>
+        @for (prov of proveedores(); track prov) {
+          <mat-option [value]="prov">{{ prov }}</mat-option>
+        }
+      </mat-select>
+      <mat-icon matPrefix>local_shipping</mat-icon>
+    </mat-form-field>
+
+    <!-- Descripción -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Descripción (opcional)</mat-label>
+      <textarea
+        matInput
+        formControlName="descripcion"
+        rows="2"
+        placeholder="Describe brevemente el producto…"
+        id="input-descripcion"
+      ></textarea>
+    </mat-form-field>
+
+    <!-- Chips de atributos -->
+    <div class="atributos-section">
+      <p class="atributos-label">Atributos</p>
+      <div class="atributos-chips">
+        @for (attr of atributos; track attr.key) {
+          <div
+            class="attr-chip"
+            [class.attr-chip--active]="atributosActivos[attr.key]"
+            (click)="toggleAtributo(attr.key)"
+            matRipple
+            [id]="'chip-' + attr.key"
+          >
+            <mat-icon class="attr-chip-icon">{{ attr.icon }}</mat-icon>
+            <span>{{ attr.label }}</span>
+            @if (atributosActivos[attr.key]) {
+              <mat-icon class="attr-chip-check">check</mat-icon>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<!-- Footer del modal -->
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button class="btn-cancelar" (click)="cancelar()" id="btn-cancelar">
+    Cancelar
+  </button>
+  <button mat-flat-button class="btn-guardar" (click)="guardar()" id="btn-guardar-producto">
+    <mat-icon>save</mat-icon>
+    Guardar producto
+  </button>
+</mat-dialog-actions>

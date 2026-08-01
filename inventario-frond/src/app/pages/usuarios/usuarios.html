@@ -1,0 +1,300 @@
+<div class="page-shell">
+  <div class="page-header">
+    <div>
+      <p class="page-eyebrow">Seguridad</p>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-subtitle">Administra los accesos del sistema y revisa los permisos de cada cuenta.</p>
+    </div>
+    <button mat-flat-button class="btn-nuevo" (click)="abrirNuevoUsuario()" id="btn-nuevo-usuario">
+      <mat-icon>person_add</mat-icon>
+      Nuevo usuario
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="filter-bar">
+    <div class="search-box">
+      <mat-icon class="search-icon-local">search</mat-icon>
+      <input
+        class="search-input-local"
+        [(ngModel)]="filtroStr"
+        placeholder="Buscar por nombre, correo o rol…"
+        id="input-buscar-usuario"
+      />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-card">
+    <table mat-table [dataSource]="usuariosFiltrados" class="usuarios-table">
+
+      <!-- Nombre / Correo -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Usuario</th>
+        <td mat-cell *matCellDef="let u">
+          <div class="user-cell">
+            <div class="user-avatar">{{ u.nombre.charAt(0).toUpperCase() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ u.nombre }}</span>
+              <span class="user-email">{{ u.correo }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Rol -->
+      <ng-container matColumnDef="rol">
+        <th mat-header-cell *matHeaderCellDef>Rol</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="rol-chip">{{ u.rol }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Estado -->
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="status-pill" [class.status-pill--inactive]="u.estado === 'Inactivo'">
+            {{ u.estado }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let u">
+          <div class="actions-cell">
+            <button mat-icon-button class="action-btn action-btn--view"
+                    matTooltip="Ver" (click)="abrirDetalle(u)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn action-btn--edit"
+                    matTooltip="Editar" (click)="abrirEditar(u)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="action-btn action-btn--delete"
+                    matTooltip="Eliminar" (click)="abrirConfirmarEliminar(u)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas" class="header-row"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas" class="table-row"></tr>
+
+      <!-- Empty state -->
+      <tr class="mat-row empty-row" *matNoDataRow>
+        <td class="mat-cell empty-cell" [attr.colspan]="columnas.length">
+          <div class="empty-state">
+            <mat-icon>manage_accounts</mat-icon>
+            <p>No se encontraron usuarios</p>
+            <span>Intenta con otro término o agrega un usuario nuevo.</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="table-footer">
+      <span class="table-count">{{ usuariosFiltrados.length }} usuario{{ usuariosFiltrados.length !== 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- PANEL VER DETALLE -->
+  @if (usuarioViendo()) {
+    <div class="overlay" (click)="cerrarDetalle()"></div>
+    <aside class="side-panel" id="panel-detalle-usuario">
+      <div class="panel-header">
+        <h2 class="panel-title">Detalle del usuario</h2>
+        <button mat-icon-button class="panel-close-btn" (click)="cerrarDetalle()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="detail-avatar">{{ usuarioViendo()!.nombre.charAt(0).toUpperCase() }}</div>
+        <h3 class="detail-name">{{ usuarioViendo()!.nombre }}</h3>
+        <span class="detail-email">{{ usuarioViendo()!.correo }}</span>
+        <div class="detail-chips-row">
+          <span class="rol-chip">{{ usuarioViendo()!.rol }}</span>
+          <span class="status-pill" [class.status-pill--inactive]="usuarioViendo()!.estado === 'Inactivo'">
+            {{ usuarioViendo()!.estado }}
+          </span>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-label">ID</span>
+            <span class="detail-value">#{{ usuarioViendo()!.id }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Rol</span>
+            <span class="detail-value">{{ usuarioViendo()!.rol }}</span>
+          </div>
+          <div class="detail-field" style="grid-column: 1 / -1;">
+            <span class="detail-label">Correo electrónico</span>
+            <span class="detail-value">{{ usuarioViendo()!.correo }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarDetalle()">Cerrar</button>
+        <button mat-flat-button class="btn-primary-panel"
+                (click)="cerrarDetalle(); abrirEditar(usuarioViendo()!)">
+          <mat-icon>edit</mat-icon> Editar
+        </button>
+      </div>
+    </aside>
+  }
+
+  <!-- PANEL EDITAR -->
+  @if (usuarioEditando()) {
+    <div class="overlay" (click)="cerrarEditar()"></div>
+    <aside class="side-panel" id="panel-editar-usuario">
+      <div class="panel-header">
+        <h2 class="panel-title">Editar usuario</h2>
+        <button mat-icon-button class="panel-close-btn" (click)="cerrarEditar()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="panel-body" [formGroup]="editForm">
+
+        <!-- ── Información básica ── -->
+        <p class="section-group-label">Información básica</p>
+
+        <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" />
+          <mat-icon matPrefix>person</mat-icon>
+          @if (editForm.get('nombre')?.hasError('required') && editForm.get('nombre')?.touched) {
+            <mat-error>El nombre es requerido</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-field">
+          <mat-label>Correo</mat-label>
+          <input matInput formControlName="correo" />
+          <mat-icon matPrefix>email</mat-icon>
+          @if (editForm.get('correo')?.hasError('email') && editForm.get('correo')?.touched) {
+            <mat-error>Correo no válido</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="edit-row">
+          <mat-form-field appearance="outline" class="half-field">
+            <mat-label>Rol</mat-label>
+            <mat-select formControlName="rol">
+              <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>badge</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-field">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="estado">
+              <mat-option value="Activo">Activo</mat-option>
+              <mat-option value="Inactivo">Inactivo</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>toggle_on</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- ── Cambio de contraseña (toggle) ── -->
+        <div class="password-section">
+          <button
+            type="button"
+            class="password-toggle-btn"
+            [class.password-toggle-btn--active]="mostrarCambioPassword()"
+            (click)="toggleCambioPassword()"
+          >
+            <mat-icon>{{ mostrarCambioPassword() ? 'lock_open' : 'lock' }}</mat-icon>
+            <span>{{ mostrarCambioPassword() ? 'Cancelar cambio de contraseña' : 'Cambiar contraseña' }}</span>
+            <mat-icon class="toggle-arrow">{{ mostrarCambioPassword() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+
+          @if (mostrarCambioPassword()) {
+            <div class="password-fields">
+
+              <!-- Mensaje de error global -->
+              @if (errorPassword()) {
+                <div class="password-error-banner">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ errorPassword() }}</span>
+                </div>
+              }
+
+              <mat-form-field appearance="outline" class="full-field">
+                <mat-label>Nueva contraseña</mat-label>
+                <input
+                  matInput
+                  [type]="mostrarNuevoPass() ? 'text' : 'password'"
+                  formControlName="nuevaPassword"
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <mat-icon matPrefix>lock</mat-icon>
+                <button mat-icon-button matSuffix type="button"
+                        (click)="toggleVerNuevoPass()"
+                        [attr.aria-label]="mostrarNuevoPass() ? 'Ocultar contraseña' : 'Ver contraseña'">
+                  <mat-icon>{{ mostrarNuevoPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-field">
+                <mat-label>Confirmar contraseña</mat-label>
+                <input
+                  matInput
+                  [type]="mostrarConfirmPass() ? 'text' : 'password'"
+                  formControlName="confirmarPassword"
+                  placeholder="Repite la nueva contraseña"
+                />
+                <mat-icon matPrefix>lock_reset</mat-icon>
+                <button mat-icon-button matSuffix type="button"
+                        (click)="toggleVerConfirmPass()"
+                        [attr.aria-label]="mostrarConfirmPass() ? 'Ocultar contraseña' : 'Ver contraseña'">
+                  <mat-icon>{{ mostrarConfirmPass() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+            </div>
+          }
+        </div>
+
+      </div>
+      <div class="panel-footer">
+        <button mat-stroked-button class="btn-cancel-panel" (click)="cerrarEditar()">Cancelar</button>
+        <button mat-flat-button class="btn-primary-panel" (click)="guardarEdicion()">
+          <mat-icon>save</mat-icon> Guardar cambios
+        </button>
+      </div>
+    </aside>
+  }
+
+
+  <!-- CONFIRMAR ELIMINAR -->
+  @if (usuarioEliminar()) {
+    <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
+    <div class="confirm-dialog" role="alertdialog">
+      <div class="confirm-icon-wrap">
+        <mat-icon class="confirm-icon">delete_forever</mat-icon>
+      </div>
+      <h3 class="confirm-title">¿Eliminar usuario?</h3>
+      <p class="confirm-msg">
+        Estás a punto de eliminar a <strong>{{ usuarioEliminar()!.nombre }}</strong>.
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="confirm-actions">
+        <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()">Cancelar</button>
+        <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" [disabled]="eliminando()">
+          <ng-container>
+            @if (eliminando()) {
+              <mat-icon class="spin-icon">sync</mat-icon>
+              <span>Eliminando…</span>
+            } @else {
+              <mat-icon>delete</mat-icon>
+              <span>Sí, eliminar</span>
+            }
+          </ng-container>
+        </button>
+      </div>
+    </div>
+  }
+</div>

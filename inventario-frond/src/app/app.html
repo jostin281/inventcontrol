@@ -1,0 +1,234 @@
+<!-- Rutas de AUTH: solo el router-outlet sin sidenav -->
+@if (isAuthRoute$ | async) {
+  <router-outlet />
+} @else {
+  <!-- ═══════════════ SHELL PRINCIPAL ═══════════════ -->
+  <div class="app-shell">
+
+    <!-- ╔══════════════ SIDEBAR ══════════════╗ -->
+    <aside class="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <mat-icon>inventory</mat-icon>
+        </div>
+        <span class="logo-text">InvenControl</span>
+      </div>
+
+      <!-- Separador -->
+      <div class="sidebar-divider"></div>
+
+      <!-- Navegación principal -->
+      <nav class="sidebar-nav">
+        <p class="nav-section-label">PRINCIPAL</p>
+        @for (item of mainMenu; track item.link) {
+          <a
+            class="nav-pill"
+            [routerLink]="item.link"
+            routerLinkActive="nav-pill--active"
+            matRipple
+          >
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+
+      @if (isAdmin()) {
+        <nav class="sidebar-nav">
+          <p class="nav-section-label">ADMINISTRACIÓN</p>
+          @for (item of adminMenu; track item.link) {
+            <a
+              class="nav-pill"
+              [routerLink]="item.link"
+              routerLinkActive="nav-pill--active"
+              matRipple
+            >
+              <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          }
+        </nav>
+      }
+
+      <!-- Spacer -->
+      <div class="sidebar-spacer"></div>
+
+      <!-- Configuración al final -->
+      <nav class="sidebar-nav sidebar-nav--bottom">
+        <div class="sidebar-divider"></div>
+        @for (item of configMenu; track item.link) {
+          <a
+            class="nav-pill"
+            [routerLink]="item.link"
+            routerLinkActive="nav-pill--active"
+            matRipple
+          >
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+
+      <!-- Avatar de usuario abajo -->
+      <div class="sidebar-user">
+        <div class="user-avatar">{{ userInitials }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ userDisplayName }}</span>
+          <span class="user-role">{{ userRoleLabel }}</span>
+        </div>
+        <button mat-icon-button matTooltip="Cerrar sesión" (click)="logout()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    </aside>
+    <!-- ╚══════════════════════════════════════╝ -->
+
+    <!-- ╔══════════════ CONTENIDO PRINCIPAL ══════════════╗ -->
+    <div class="main-area">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <!-- Buscador global -->
+        <div class="topbar-search">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input
+            id="global-search"
+            type="text"
+            class="search-input"
+            placeholder="Buscar productos, movimientos, proveedores…"
+          />
+        </div>
+
+        <!-- Acciones derecha -->
+        <div class="topbar-actions">
+
+          <!-- ── Botón Notificaciones ── -->
+          <div class="notif-wrapper">
+            <button
+              mat-icon-button
+              class="notif-btn"
+              id="btn-notifications"
+              [matTooltip]="notifCount() > 0 ? notifCount() + ' notificaciones sin leer' : 'Sin notificaciones nuevas'"
+              [matBadge]="notifCountStr()"
+              [matBadgeHidden]="notifCount() === 0"
+              matBadgeColor="warn"
+              matBadgeSize="small"
+              (click)="toggleNotifPanel($event)"
+              [class.notif-btn--active]="showNotifPanel()"
+            >
+              <mat-icon>{{ showNotifPanel() ? 'notifications' : 'notifications_none' }}</mat-icon>
+            </button>
+
+            <!-- ── Panel de Notificaciones ── -->
+            @if (showNotifPanel()) {
+              <div class="notif-panel" role="dialog" aria-label="Notificaciones">
+
+                <!-- Header del panel -->
+                <div class="notif-panel-header">
+                  <div class="notif-panel-title">
+                    <mat-icon class="notif-panel-icon">notifications</mat-icon>
+                    <span>Notificaciones</span>
+                    @if (notifCount() > 0) {
+                      <span class="notif-badge-count">{{ notifCount() }}</span>
+                    }
+                  </div>
+                  <div class="notif-panel-actions">
+                    @if (notifCount() > 0) {
+                      <button class="notif-action-btn" (click)="marcarTodasLeidas()" matTooltip="Marcar todas como leídas">
+                        <mat-icon>done_all</mat-icon>
+                      </button>
+                    }
+                    @if (notificaciones().length > 0) {
+                      <button class="notif-action-btn notif-action-btn--danger" (click)="limpiarTodas()" matTooltip="Limpiar todas">
+                        <mat-icon>delete_sweep</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Lista de notificaciones -->
+                <div class="notif-list">
+                  @if (notificaciones().length === 0) {
+                    <div class="notif-empty">
+                      <mat-icon class="notif-empty-icon">notifications_off</mat-icon>
+                      <p>¡Todo al día! Sin notificaciones.</p>
+                    </div>
+                  } @else {
+                    @for (notif of notificaciones(); track notif.id) {
+                      <div
+                        class="notif-item"
+                        [class.notif-item--unread]="!notif.leida"
+                        [class.notif-item--warning]="notif.tipo === 'warning'"
+                        [class.notif-item--info]="notif.tipo === 'info'"
+                        [class.notif-item--success]="notif.tipo === 'success'"
+                        [class.notif-item--error]="notif.tipo === 'error'"
+                        (click)="marcarLeida(notif)"
+                        matRipple
+                        [matRippleColor]="'rgba(36,56,156,0.06)'"
+                      >
+                        <!-- Punto de no leída -->
+                        @if (!notif.leida) {
+                          <span class="notif-unread-dot"></span>
+                        }
+
+                        <!-- Icono -->
+                        <div class="notif-icon-wrap" [class]="'notif-icon-wrap--' + notif.tipo">
+                          <mat-icon>{{ notif.icono }}</mat-icon>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="notif-content">
+                          <p class="notif-titulo">{{ notif.titulo }}</p>
+                          <p class="notif-desc">{{ notif.descripcion }}</p>
+                          <span class="notif-time">{{ tiempoRelativo(notif.hora) }}</span>
+                        </div>
+
+                        <!-- Botón cerrar -->
+                        <button
+                          class="notif-close-btn"
+                          (click)="eliminarNotif($event, notif.id)"
+                          matTooltip="Descartar"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  }
+                </div>
+
+                <!-- Footer -->
+                @if (notificaciones().length > 0) {
+                  <div class="notif-panel-footer">
+                    <span class="notif-footer-text">
+                      {{ notificaciones().length }} notificación{{ notificaciones().length !== 1 ? 'es' : '' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <!-- ── /Notificaciones ── -->
+
+          <div class="topbar-divider"></div>
+
+          <a class="topbar-user" routerLink="/configuracion"
+            matTooltip="Ver perfil y configuración" id="topbar-user-link">
+            <div class="topbar-avatar">{{ userInitials }}</div>
+            <div class="topbar-user-info">
+              <span class="topbar-user-name">{{ userDisplayName }}</span>
+              <span class="topbar-user-role">{{ userRoleLabel }}</span>
+            </div>
+          </a>
+        </div>
+      </header>
+
+      <!-- Contenido de la página -->
+      <main class="page-content">
+        <router-outlet />
+      </main>
+    </div>
+    <!-- ╚══════════════════════════════════════════════════╝ -->
+
+  </div>
+}

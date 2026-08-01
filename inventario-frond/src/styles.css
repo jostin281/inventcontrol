@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════════════
+   InvenControl – Tema Angular Material 3 personalizado
+   Paleta: primary #24389c | secondary #006b5c | surface #fbf8ff
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts ─────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── Variables CSS globales (design tokens) ───────────────────── */
+:root {
+  /* Primary */
+  --ic-primary:            #24389c;
+  --ic-primary-dark:       #1a2870;
+  --ic-primary-light:      #3f51b5;
+  --ic-on-primary:         #ffffff;
+  --ic-primary-container:  #dde1ff;
+  --ic-on-primary-container: #001258;
+
+  /* Secondary */
+  --ic-secondary:          #006b5c;
+  --ic-secondary-light:    #68fadd;
+  --ic-on-secondary:       #ffffff;
+  --ic-secondary-container:#7ef8e0;
+  --ic-on-secondary-container: #00201a;
+
+  /* Error */
+  --ic-error:              #ba1a1a;
+  --ic-on-error:           #ffffff;
+
+  /* Surface */
+  --ic-surface:            #fbf8ff;
+  --ic-surface-variant:    #e3e1ec;
+  --ic-on-surface:         #1a1b22;
+  --ic-on-surface-variant: #46464f;
+  --ic-outline:            #757684;
+  --ic-outline-variant:    #c6c5d0;
+
+  /* Shadow */
+  --ic-shadow-sm:  0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+  --ic-shadow-md:  0 4px 12px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.08);
+  --ic-shadow-lg:  0 10px 40px rgba(0,0,0,.16), 0 4px 12px rgba(0,0,0,.1);
+  --ic-shadow-xl:  0 20px 60px rgba(0,0,0,.2),  0 8px 20px rgba(0,0,0,.12);
+
+  /* Radius */
+  --ic-radius-sm: 8px;
+  --ic-radius-md: 16px;
+  --ic-radius-lg: 24px;
+  --ic-radius-xl: 32px;
+}
+
+/* ── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+  background-color: var(--ic-surface);
+  color: var(--ic-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Override Angular Material con nuestra paleta ─────────────── */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-fab.mat-primary {
+  --mdc-filled-button-container-color: var(--ic-primary) !important;
+  --mdc-filled-button-label-text-color: var(--ic-on-primary) !important;
+}
+
+.mat-mdc-outlined-text-field.mat-primary .mdc-notched-outline__leading,
+.mat-mdc-outlined-text-field.mat-primary .mdc-notched-outline__notch,
+.mat-mdc-outlined-text-field.mat-primary .mdc-notched-outline__trailing {
+  border-color: var(--ic-outline) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--ic-primary) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: var(--ic-primary) !important;
+}
+
+.mat-mdc-checkbox.mat-primary {
+  --mdc-checkbox-selected-checkmark-color: #fff;
+  --mdc-checkbox-selected-focus-icon-color: var(--ic-primary);
+  --mdc-checkbox-selected-hover-icon-color: var(--ic-primary);
+  --mdc-checkbox-selected-icon-color: var(--ic-primary);
+  --mdc-checkbox-selected-pressed-icon-color: var(--ic-primary);
+}
+
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected {
+  color: var(--ic-primary) !important;
+}
+
+/* ── Utilities globales ───────────────────────────────────────── */
+.page-container { padding: 0; }
+
+.text-primary    { color: var(--ic-primary); }
+.text-secondary  { color: var(--ic-secondary); }
+.text-muted      { color: var(--ic-on-surface-variant); }
+.fw-600          { font-weight: 600; }
+.fw-700          { font-weight: 700; }
+
+/* ── Mat Dialog global override ──────────────────────────────── */
+.producto-dialog-panel .mat-mdc-dialog-container {
+  border-radius: 20px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(36, 56, 156, 0.2), 0 8px 20px rgba(0,0,0,.12) !important;
+}
+
+.producto-dialog-panel .mdc-dialog__surface {
+  border-radius: 20px !important;
+  padding: 0 !important;
+}
+
+/* Movimientos dialog */
+.movimiento-dialog-panel .mat-mdc-dialog-container,
+.proveedor-dialog-panel .mat-mdc-dialog-container {
+  border-radius: 20px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(36, 56, 156, 0.2), 0 8px 20px rgba(0,0,0,.12) !important;
+}
+
+.movimiento-dialog-panel .mdc-dialog__surface,
+.proveedor-dialog-panel .mdc-dialog__surface {
+  border-radius: 20px !important;
+  padding: 0 !important;
+}
+
+/* ── Asistente IA — global button-toggle overrides ───────────────── */
+.mat-button-toggle-group.plan-toggle {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid #c6c5d0 !important;
+  box-shadow: none !important;
+}
+
+.mat-button-toggle-group.plan-toggle .mat-button-toggle {
+  border: none !important;
+}
+
+.mat-button-toggle-group.plan-toggle .mat-button-toggle-checked {
+  background-color: var(--ic-primary, #24389c) !important;
+  color: #fff !important;
+}
+
+.mat-button-toggle-group.plan-toggle .mat-button-toggle-checked .mat-button-toggle-label-content {
+  color: #fff !important;
+}
+
+.mat-button-toggle-group.plan-toggle .mat-button-toggle-label-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 14px;
+  font-family: 'Inter', sans-serif;
+  line-height: 36px;
+}
+
+/* ── Forgot-password dialog panel ────────────────────────────────── */
+.fp-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(36, 56, 156, 0.18) !important;
+}
+
+/* ── Snackbar de éxito ───────────────────────────────────────────── */
+.snack-success .mdc-snackbar__surface {
+  background-color: #006b5c !important;
+  color: #fff !important;
+}
+.snack-success .mat-mdc-snack-bar-action {
+  color: #68fadd !important;
+}

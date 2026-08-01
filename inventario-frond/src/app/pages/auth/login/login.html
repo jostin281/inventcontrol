@@ -1,0 +1,157 @@
+<div class="login-shell">
+
+  <!-- ══════════════ COLUMNA IZQUIERDA – Carrusel ══════════════ -->
+  <aside class="carousel-panel" aria-hidden="true">
+
+    <!-- Slides -->
+    @for (slide of slides; track $index) {
+      <div
+        class="carousel-slide"
+        [class.active]="activeSlide() === $index"
+        [style.background-image]="'url(' + slide.url + ')'"
+      ></div>
+    }
+
+    <!-- Overlay degradado -->
+    <div class="carousel-overlay"></div>
+
+    <!-- Contenido sobre el carrusel -->
+    <div class="carousel-content">
+      <!-- Logo -->
+      <div class="carousel-logo">
+        <mat-icon>inventory_2</mat-icon>
+        <span>InvenControl</span>
+      </div>
+
+      <!-- Cita -->
+      <div class="carousel-quote">
+        @for (slide of slides; track $index) {
+          @if (activeSlide() === $index) {
+            <div class="quote-text" style="white-space: pre-line">{{ slide.quote }}</div>
+            <div class="quote-sub">{{ slide.sub }}</div>
+          }
+        }
+      </div>
+
+      <!-- Dots de navegación -->
+      <div class="carousel-dots" role="tablist" aria-label="Diapositivas del carrusel">
+        @for (slide of slides; track $index) {
+          <button
+            class="dot"
+            [class.dot--active]="activeSlide() === $index"
+            role="tab"
+            [attr.aria-selected]="activeSlide() === $index"
+            [attr.aria-label]="'Diapositiva ' + ($index + 1)"
+            (click)="goToSlide($index)"
+          ></button>
+        }
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════ COLUMNA DERECHA – Formulario ══════════════ -->
+  <main class="form-panel">
+    <div class="form-wrapper">
+
+      <!-- Logo (mobile + desktop) -->
+      <div class="form-logo">
+        <div class="form-logo__icon">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <span class="form-logo__name">InvenControl</span>
+      </div>
+
+      <h1 class="form-title">Bienvenido de nuevo</h1>
+      <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
+
+      <!-- Formulario -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+
+        <!-- Correo -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo electrónico</mat-label>
+          <mat-icon matPrefix class="field-icon">email</mat-icon>
+          <input
+            matInput
+            id="login-correo"
+            type="email"
+            formControlName="correo"
+            placeholder="usuario@ejemplo.com"
+            autocomplete="email"
+          />
+          @if (correo.hasError('required') && correo.touched) {
+            <mat-error>El correo es obligatorio.</mat-error>
+          } @else if (correo.hasError('email') && correo.touched) {
+            <mat-error>Introduce un correo válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Contraseña -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <mat-icon matPrefix class="field-icon">lock</mat-icon>
+          <input
+            matInput
+            id="login-contrasena"
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="contrasena"
+            placeholder="Mínimo 6 caracteres"
+            autocomplete="current-password"
+          />
+          <button
+            matSuffix
+            mat-icon-button
+            type="button"
+            class="visibility-btn"
+            [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            (click)="togglePassword()"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (contrasena.hasError('required') && contrasena.touched) {
+            <mat-error>La contraseña es obligatoria.</mat-error>
+          } @else if (contrasena.hasError('minlength') && contrasena.touched) {
+            <mat-error>Mínimo 6 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Recordarme + Olvidaste contraseña -->
+        <div class="form-options">
+          <mat-checkbox
+            formControlName="recordarme"
+            color="primary"
+            id="login-recordarme"
+            class="remember-check"
+          >
+            Recordarme
+          </mat-checkbox>
+          <button type="button" class="forgot-link" id="link-forgot" (click)="abrirOlvideContrasena()">¿Olvidaste tu contraseña?</button>
+        </div>
+
+        <!-- Botón submit -->
+        <button
+          mat-raised-button
+          class="submit-btn"
+          type="submit"
+          id="login-submit"
+          [disabled]="form.invalid"
+        >
+          Iniciar sesión
+          <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <span>¿No tienes cuenta?</span>
+        <a [routerLink]="['/registro']" id="link-registro" class="footer-link">
+          Crear cuenta gratis
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+</div>
