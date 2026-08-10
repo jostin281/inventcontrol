@@ -6,6 +6,8 @@ import { ProveedoresService } from './proveedores.service';
 import { MovimientosService } from './movimientos.service';
 import { CategoriasService } from './categorias.service';
 import { GeminiConfigService } from './gemini-config.service';
+import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface AiContext {
   proveedoresCount: number;
@@ -85,6 +87,7 @@ IMPORTANTE: Eres el asistente más capaz del sistema. Muestra proactividad: si v
 export class GeminiFreeProvider implements AiProvider {
   nombre = 'Gemini Flash (Plan Gratis)';
   private geminiConfig = inject(GeminiConfigService);
+  private authService = inject(AuthService);
 
   private readonly GEMINI_MODEL = 'gemini-3.1-flash-lite';
   private readonly GEMINI_API_URL =
@@ -124,9 +127,12 @@ export class GeminiFreeProvider implements AiProvider {
     historial: ConversationTurn[],
     userMsg: string
   ): Promise<string> {
-    const response = await fetch('http://localhost:3000/api/ai/chat', {
+    const response = await fetch(`${environment.apiUrl}/ai/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.authService.getToken()}`,
+      },
       body: JSON.stringify({
         provider: 'gemini',
         apiKey,
@@ -160,6 +166,7 @@ export class GeminiFreeProvider implements AiProvider {
 export class OpenAiProProvider implements AiProvider {
   nombre = 'OpenAI GPT (Plan Pro)';
   private geminiConfig = inject(GeminiConfigService);
+  private authService = inject(AuthService);
 
   private readonly OPENAI_MODEL = 'gpt-4o-mini';
 
@@ -197,9 +204,12 @@ export class OpenAiProProvider implements AiProvider {
     historial: ConversationTurn[],
     userMsg: string
   ): Promise<string> {
-    const response = await fetch('http://localhost:3000/api/ai/chat', {
+    const response = await fetch(`${environment.apiUrl}/ai/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.authService.getToken()}`,
+      },
       body: JSON.stringify({
         provider: 'openai',
         apiKey,

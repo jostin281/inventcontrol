@@ -112,7 +112,8 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   animation: fadeIn 0.4s ease;
 }
 
@@ -123,6 +124,7 @@
 
 .productos-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
 }
 
@@ -664,4 +666,21 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .detail-grid { grid-template-columns: 1fr; }
+
+  /* La barra de filtros se apila en columna: evita que la etiqueta
+     flotante del <mat-select> se monte encima del buscador cuando
+     ambos intentaban compartir la misma fila angosta. */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .search-box    { min-width: 0; width: 100%; }
+  .filter-select { min-width: 0; width: 100%; }
 }

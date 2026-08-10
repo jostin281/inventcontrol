@@ -1,16 +1,13 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MatDialog }          from '@angular/material/dialog';
 
 import { MatFormFieldModule }  from '@angular/material/form-field';
 import { MatInputModule }      from '@angular/material/input';
 import { MatButtonModule }     from '@angular/material/button';
 import { MatCheckboxModule }   from '@angular/material/checkbox';
 import { MatIconModule }       from '@angular/material/icon';
-import { MatDialogModule }     from '@angular/material/dialog';
 
-import { Step1EmailComponent } from './forgot-password/step1-email/step1-email';
 import { AuthService } from '../../../core/services/auth.service';
 
 // ─── Imágenes del carrusel (Unsplash – warehouses / inventario) ──────────────
@@ -43,7 +40,6 @@ const CAROUSEL_SLIDES = [
     MatButtonModule,
     MatCheckboxModule,
     MatIconModule,
-    MatDialogModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css'
@@ -51,7 +47,6 @@ const CAROUSEL_SLIDES = [
 export class Login implements OnInit, OnDestroy {
   private fb     = inject(FormBuilder);
   private router = inject(Router);
-  private dialog = inject(MatDialog);
   private authService = inject(AuthService);
 
   /* ── Carrusel ──────────────────────────────────────────────────────── */
@@ -122,14 +117,5 @@ export class Login implements OnInit, OnDestroy {
 
   togglePassword(): void {
     this.hidePassword.update(v => !v);
-  }
-
-  abrirOlvideContrasena(): void {
-    this.dialog.open(Step1EmailComponent, {
-      width: '460px',
-      maxWidth: '95vw',
-      disableClose: true,
-      panelClass: 'fp-dialog',
-    });
   }
 }

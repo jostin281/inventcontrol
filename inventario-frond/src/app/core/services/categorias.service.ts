@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Categoria {
   id: number;
@@ -14,7 +15,7 @@ export interface Categoria {
   stockBajo?: number;
 }
 
-const API = 'http://localhost:3000/api/categorias';
+const API = `${environment.apiUrl}/categorias`;
 
 @Injectable({ providedIn: 'root' })
 export class CategoriasService {

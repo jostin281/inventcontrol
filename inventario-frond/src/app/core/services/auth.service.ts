@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type UserRole = 'admin' | 'usuario';
 
@@ -14,7 +15,7 @@ export interface UserSession {
   nombreNegocio?: string;
 }
 
-const API = 'http://localhost:3000/api';
+const API = environment.apiUrl;
 const STORAGE_KEY = 'invencontrol-token';
 const USER_KEY    = 'invencontrol-user';
 

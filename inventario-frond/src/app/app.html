@@ -5,8 +5,13 @@
   <!-- ═══════════════ SHELL PRINCIPAL ═══════════════ -->
   <div class="app-shell">
 
+    <!-- Fondo oscuro al abrir el sidebar en móvil -->
+    @if (sidebarOpen()) {
+      <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+    }
+
     <!-- ╔══════════════ SIDEBAR ══════════════╗ -->
-    <aside class="sidebar">
+    <aside class="sidebar" [class.sidebar--open]="sidebarOpen()">
       <!-- Logo -->
       <div class="sidebar-logo">
         <div class="logo-icon">
@@ -27,6 +32,7 @@
             [routerLink]="item.link"
             routerLinkActive="nav-pill--active"
             matRipple
+            (click)="closeSidebar()"
           >
             <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
             <span class="nav-label">{{ item.label }}</span>
@@ -43,6 +49,7 @@
               [routerLink]="item.link"
               routerLinkActive="nav-pill--active"
               matRipple
+              (click)="closeSidebar()"
             >
               <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
               <span class="nav-label">{{ item.label }}</span>
@@ -63,6 +70,7 @@
             [routerLink]="item.link"
             routerLinkActive="nav-pill--active"
             matRipple
+            (click)="closeSidebar()"
           >
             <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
             <span class="nav-label">{{ item.label }}</span>
@@ -89,6 +97,17 @@
 
       <!-- TOPBAR -->
       <header class="topbar">
+        <!-- Botón hamburguesa (solo visible en móvil) -->
+        <button
+          mat-icon-button
+          class="menu-toggle-btn"
+          id="btn-menu-toggle"
+          matTooltip="Menú"
+          (click)="toggleSidebar()"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+
         <!-- Buscador global -->
         <div class="topbar-search">
           <mat-icon class="search-icon">search</mat-icon>

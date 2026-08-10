@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-inventario}
+    ports:
+      # Expuesto al host para poder correr el backend en modo local
+      # (npm run start:dev) contra este mismo Postgres durante desarrollo.
+      # En un servidor de producción real conviene quitar esta línea para
+      # no exponer la base de datos a internet.
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - invencontrol
+
+  backend:
+    build:
+      context: ./inventario-back
+    restart: unless-stopped
+    env_file:
+      - ./inventario-back/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - invencontrol
+
+  frontend:
+    build:
+      context: ./inventario-frond
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - invencontrol
+
+networks:
+  invencontrol:
+
+volumes:
+  postgres_data:

@@ -46,6 +46,10 @@ lerna-debug.log*
 .temp
 .tmp
 
+# SQLite (ya no se usa en producción, solo quedó como artefacto de dev)
+*.db
+*.sqlite
+
 # Runtime data
 pids
 *.pid

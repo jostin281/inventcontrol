@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor } from './proveedor.entity';
+import { sanitizeUpdate } from '../common/sanitize-update';
 
 @Injectable()
 export class ProveedoresService {
@@ -42,7 +43,7 @@ export class ProveedoresService {
 
   async update(id: number, data: any, companyId: number) {
     await this.findOne(id, companyId); // verifica pertenencia
-    const update: any = { ...data };
+    const update: any = sanitizeUpdate(data);
     if (data.productos !== undefined) {
       update.productosJson = JSON.stringify(data.productos);
       delete update.productos;

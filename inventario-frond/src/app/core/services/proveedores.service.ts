@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Proveedor {
   id: number;
@@ -20,7 +21,7 @@ export interface Proveedor {
   iniciales: string;
 }
 
-const API = 'http://localhost:3000/api/proveedores';
+const API = `${environment.apiUrl}/proveedores`;
 
 @Injectable({ providedIn: 'root' })
 export class ProveedoresService {

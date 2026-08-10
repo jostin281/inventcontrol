@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UsuarioBackend {
   id: number;
@@ -13,7 +14,7 @@ export interface UsuarioBackend {
   creadoEn?: string;
 }
 
-const API = 'http://localhost:3000/api/usuarios';
+const API = `${environment.apiUrl}/usuarios`;
 
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Usuario } from './usuario.entity';
+import { sanitizeUpdate } from '../common/sanitize-update';
 
 @Injectable()
 export class UsuariosService {
@@ -39,7 +40,7 @@ export class UsuariosService {
     const usuario = await this.repo.findOne({ where: { id, companyId } });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    const update: any = { ...data };
+    const update: any = sanitizeUpdate(data);
     if (data.correo) update.correo = data.correo.toLowerCase();
     if (data.contrasena) {
       update.contrasena = await bcrypt.hash(data.contrasena, 10);

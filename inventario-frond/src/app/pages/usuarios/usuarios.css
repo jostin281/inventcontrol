@@ -108,7 +108,8 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   animation: fadeIn 0.4s ease;
 }
 
@@ -119,6 +120,7 @@
 
 .usuarios-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
 }
 
@@ -675,4 +677,5 @@
 @media (max-width: 768px) {
   .page-header { flex-direction: column; align-items: flex-start; }
   .search-box  { min-width: 0; width: 100%; }
+  .detail-grid { grid-template-columns: 1fr; }
 }

@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type TipoMovimiento = 'Entrada' | 'Salida' | 'Ajuste';
 
@@ -16,7 +17,7 @@ export interface Movimiento {
   colorProducto: string;
 }
 
-const API = 'http://localhost:3000/api/movimientos';
+const API = `${environment.apiUrl}/movimientos`;
 
 @Injectable({ providedIn: 'root' })
 export class MovimientosService {

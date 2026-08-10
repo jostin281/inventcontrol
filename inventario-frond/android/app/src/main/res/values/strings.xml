@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">InvenControl</string>
+    <string name="title_activity_main">InvenControl</string>
+    <string name="package_name">com.invencontrol.app</string>
+    <string name="custom_url_scheme">com.invencontrol.app</string>
+</resources>

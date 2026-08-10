@@ -40,10 +40,10 @@ export class Proveedor {
   @Column({ default: 90 })
   confiabilidad: number;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   ultimaAuditoria?: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   proximaAuditoria?: Date;
 
   @Column({ length: 200, default: 'linear-gradient(135deg, #24389c, #3f51b5)' })

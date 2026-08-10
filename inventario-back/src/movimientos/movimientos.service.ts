@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movimiento } from './movimiento.entity';
+import { sanitizeUpdate } from '../common/sanitize-update';
 
 @Injectable()
 export class MovimientosService {
@@ -26,7 +27,7 @@ export class MovimientosService {
 
   async update(id: number, data: Partial<Movimiento>, companyId: number): Promise<Movimiento> {
     await this.findOne(id, companyId); // verifica pertenencia
-    await this.repo.update(id, data);
+    await this.repo.update(id, sanitizeUpdate(data));
     return this.findOne(id, companyId);
   }
 

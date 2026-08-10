@@ -116,7 +116,10 @@
           }
         </mat-form-field>
 
-        <!-- Recordarme + Olvidaste contraseña -->
+        <!-- Recordarme -->
+        <!-- "¿Olvidaste tu contraseña?" se ocultó temporalmente: el flujo
+             de recuperación aún es una simulación de UI, no está conectado
+             al backend. Reactivar cuando exista el endpoint real. -->
         <div class="form-options">
           <mat-checkbox
             formControlName="recordarme"
@@ -126,7 +129,6 @@
           >
             Recordarme
           </mat-checkbox>
-          <button type="button" class="forgot-link" id="link-forgot" (click)="abrirOlvideContrasena()">¿Olvidaste tu contraseña?</button>
         </div>
 
         <!-- Botón submit -->

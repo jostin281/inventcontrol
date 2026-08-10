@@ -58,6 +58,17 @@ export class App {
     startWith(AUTH_ROUTES.some(r => this.router.url.startsWith(r)))
   );
 
+  // ── Sidebar móvil ────────────────────────────────────────────────────────
+  sidebarOpen = signal(false);
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update(v => !v);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
+
   // ── Panel de notificaciones ───────────────────────────────────────────────
   showNotifPanel = signal(false);
 

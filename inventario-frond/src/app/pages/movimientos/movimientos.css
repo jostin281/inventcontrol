@@ -220,7 +220,8 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   animation: kpiFadeIn 0.4s ease 0.3s both;
 }
 
@@ -239,7 +240,7 @@
   font-size: 12px; color: #9699aa;
 }
 
-.mov-table { width: 100%; }
+.mov-table { width: 100%; min-width: 680px; }
 
 .mov-table th.mat-mdc-header-cell {
   background: #f7f7fb;
@@ -624,4 +625,20 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .detail-grid { grid-template-columns: 1fr; }
+
+  /* Apila buscador + filtro para que la etiqueta flotante del
+     <mat-select> no se monte encima del buscador. */
+  .filter-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .search-box    { min-width: 0; width: 100%; }
+  .filter-select { min-width: 0; width: 100%; }
 }
