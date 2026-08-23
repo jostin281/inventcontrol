@@ -41,11 +41,26 @@ export class NuevoVentaDialog implements OnInit {
     this.productosSvc.cargar().subscribe();
   }
 
+  /** Stock disponible del producto seleccionado (para validar y mostrarlo en el form). */
+  stockDisponible: number | null = null;
+
   onProductoChange(): void {
     const id = this.form.get('productoId')?.value as number | null;
-    if (!id) return;
+    const cantidadCtrl = this.form.get('cantidad')!;
+    if (!id) {
+      this.stockDisponible = null;
+      cantidadCtrl.setValidators([Validators.required, Validators.min(1)]);
+      cantidadCtrl.updateValueAndValidity();
+      return;
+    }
     const p = this.productos().find(x => x.id === id);
-    if (p) this.form.patchValue({ precio: Math.round(p.precio * 100) / 100 });
+    if (p) {
+      this.form.patchValue({ precio: Math.round(p.precio * 100) / 100 });
+      this.stockDisponible = p.stock;
+      // No se puede vender más unidades de las que hay en stock.
+      cantidadCtrl.setValidators([Validators.required, Validators.min(1), Validators.max(p.stock)]);
+      cantidadCtrl.updateValueAndValidity();
+    }
   }
 
   cancelar(): void {
@@ -59,10 +74,13 @@ export class NuevoVentaDialog implements OnInit {
     }
     const v = this.form.value;
     const producto = this.productos().find(x => x.id === v.productoId);
-    const total = (v.precio ?? 0) * (v.cantidad ?? 1);
+    const cantidad = v.cantidad ?? 1;
+    const total = (v.precio ?? 0) * cantidad;
     this.dialogRef.close({
       cliente: v.cliente,
       producto: producto ? producto.nombre : 'Producto',
+      productoId: v.productoId,
+      cantidad,
       total,
       fecha: v.fecha,
       estado: v.estado,

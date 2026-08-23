@@ -25,21 +25,6 @@
   margin: 0;
 }
 
-.btn-export {
-  background: #24389c !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  gap: 6px;
-  height: 42px;
-}
-
-.btn-export mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
 /* ══════════════════════════════════════════════════════════
    KPI CARDS GRID
    ══════════════════════════════════════════════════════════ */

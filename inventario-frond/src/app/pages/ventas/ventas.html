@@ -11,6 +11,17 @@
     </button>
   </div>
 
+  <!-- Aviso de error (p. ej. stock insuficiente al registrar/editar una venta) -->
+  @if (errorMsg()) {
+    <div class="venta-error-banner" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMsg() }}</span>
+      <button mat-icon-button (click)="errorMsg.set(null)" matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+
   <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card">
@@ -239,27 +250,13 @@
 
   <!-- CONFIRMAR ELIMINAR -->
   @if (ventaEliminar()) {
-    <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
-    <div class="confirm-dialog" role="alertdialog">
-      <div class="confirm-icon-wrap">
-        <mat-icon class="confirm-icon">delete_forever</mat-icon>
-      </div>
-      <h3 class="confirm-title">¿Eliminar venta?</h3>
-      <p class="confirm-msg">
-        Estás a punto de eliminar la venta de <strong>{{ ventaEliminar()!.cliente }}</strong>.
-        Esta acción no se puede deshacer.
-      </p>
-      <div class="confirm-actions">
-        <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()">Cancelar</button>
-        <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" [disabled]="eliminando()">
-          <ng-container *ngIf="eliminando(); else normalEliminar">
-            <mat-icon class="spin-icon">sync</mat-icon> Eliminando…
-          </ng-container>
-          <ng-template #normalEliminar>
-            <mat-icon>delete</mat-icon> Sí, eliminar
-          </ng-template>
-        </button>
-      </div>
-    </div>
+    <app-confirm-dialog
+      titulo="¿Eliminar venta?"
+      [cargando]="eliminando()"
+      (cancelar)="cancelarEliminar()"
+      (confirmar)="confirmarEliminar()">
+      Estás a punto de eliminar la venta de <strong>{{ ventaEliminar()!.cliente }}</strong>.
+      Esta acción no se puede deshacer.
+    </app-confirm-dialog>
   }
 </div>

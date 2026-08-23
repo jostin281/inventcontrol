@@ -7,6 +7,8 @@ export interface Venta {
   id: number;
   cliente: string;
   producto: string;
+  productoId?: number | null;
+  cantidad: number;
   total: number;
   fecha: string;
   estado: string;

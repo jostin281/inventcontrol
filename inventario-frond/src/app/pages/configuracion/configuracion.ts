@@ -20,7 +20,8 @@ import { MatSnackBar }           from '@angular/material/snack-bar';
 import { MatDividerModule }      from '@angular/material/divider';
 import { MatRippleModule }       from '@angular/material/core';
 import { Subscription }          from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService, SesionActiva } from '../../core/services/auth.service';
+import { NotificacionPreferenciasService } from '../../core/services/notificacion-preferencias.service';
 
 // ── Validador de fortaleza ────────────────────────────────────────
 export function passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
@@ -43,11 +44,15 @@ export function getPasswordStrength(v: string): 0 | 1 | 2 | 3 {
 // ── Dialog confirmación ───────────────────────────────────────────
 import { Component as DComp, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
 
 @DComp({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, CommonModule],
+  imports: [
+    MatDialogModule, MatButtonModule, MatIconModule, CommonModule,
+    FormsModule, MatFormFieldModule, MatInputModule,
+  ],
   template: `
     <div class="dlg-wrap">
       <div class="dlg-icon-wrap" [class]="data.danger ? 'dlg-icon--danger' : 'dlg-icon--warn'">
@@ -55,9 +60,19 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       </div>
       <h2 class="dlg-title">{{ data.title }}</h2>
       <p class="dlg-desc">{{ data.message }}</p>
+
+      @if (data.requierePassword) {
+        <mat-form-field appearance="outline" class="dlg-pass-field">
+          <mat-label>Tu contraseña</mat-label>
+          <input matInput type="password" [(ngModel)]="password"
+            name="dlgPassword" autocomplete="current-password">
+        </mat-form-field>
+      }
+
       <div class="dlg-actions">
-        <button mat-stroked-button [mat-dialog-close]="false" class="dlg-btn-cancel">Cancelar</button>
-        <button mat-flat-button [mat-dialog-close]="true"
+        <button mat-stroked-button [mat-dialog-close]="null" class="dlg-btn-cancel">Cancelar</button>
+        <button mat-flat-button (click)="confirmar()"
+          [disabled]="data.requierePassword && !password"
           [class]="data.danger ? 'dlg-btn-danger' : 'dlg-btn-primary'">
           {{ data.confirmLabel }}
         </button>
@@ -73,6 +88,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     .dlg-icon--warn   { background: #fff3cd; mat-icon { color: #d97706; } }
     .dlg-title { font-size: 20px; font-weight: 700; color: #1a1b22; margin: 0 0 10px; }
     .dlg-desc  { font-size: 14px; color: #46464f; line-height: 1.6; margin: 0 0 24px; }
+    .dlg-pass-field { width: 100%; text-align: left; margin-bottom: 4px; }
     .dlg-actions { display: flex; gap: 12px; justify-content: center; }
     .dlg-btn-cancel  { border-color: #c6c5d0 !important; color: #46464f !important; padding: 0 24px; }
     .dlg-btn-danger  { background: #ba1a1a !important; color: #fff !important; padding: 0 24px; }
@@ -82,22 +98,26 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export class ConfirmDialogComponent {
   data = inject(MAT_DIALOG_DATA);
   ref  = inject(MatDialogRef);
+  password = '';
+
+  confirmar(): void {
+    if (this.data.requierePassword) {
+      this.ref.close({ password: this.password });
+    } else {
+      this.ref.close(true);
+    }
+  }
 }
 
-// ── Mock Data ─────────────────────────────────────────────────────
-const MOCK_PERFIL = {
-  nombre:    'InvenControl S.A.',
-  correo:    'operaciones@invencontrol.mx',
-  direccion: 'Av. Insurgentes Sur 1234, Col. Nápoles, CDMX, México',
-  zona:      'America/Mexico_City',
-  moneda:    'MXN'
+// ── Valores por defecto de "Perfil del negocio" mientras carga el real ──
+// (se pisan de inmediato en ngOnInit con los datos guardados de verdad).
+const PERFIL_POR_DEFECTO = {
+  nombre:    '',
+  correo:    '',
+  direccion: '',
+  zona:      'America/Guayaquil',
+  moneda:    'USD'
 };
-
-const MOCK_SESIONES = [
-  { id: 1, dispositivo: 'Chrome · Windows 11',  icono: 'computer',      ubicacion: 'CDMX, México',    actual: true  },
-  { id: 2, dispositivo: 'Safari · iPhone 14',   icono: 'smartphone',    ubicacion: 'Monterrey, México', actual: false },
-  { id: 3, dispositivo: 'Firefox · macOS',       icono: 'laptop_mac',    ubicacion: 'Guadalajara, México', actual: false },
-];
 
 // ── Main Component ────────────────────────────────────────────────
 @Component({
@@ -117,6 +137,7 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
   private dialog = inject(MatDialog);
   private snack  = inject(MatSnackBar);
   private cdr    = inject(ChangeDetectorRef);
+  private notifPrefs = inject(NotificacionPreferenciasService);
 
   // ── Sección activa (scroll-spy) ───────────────────────────────
   activeSection = signal<string>('perfil');
@@ -124,23 +145,33 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
   // ── Logo preview ──────────────────────────────────────────────
   logoPreview = signal<string | null>(null);
 
-  // ── Sesiones activas ──────────────────────────────────────────
-  sesiones = signal([...MOCK_SESIONES]);
+  // ── Sesiones activas (reales: web y app móvil) ─────────────────
+  sesiones = signal<SesionActiva[]>([]);
+  sesionesCargando = signal(true);
+  sesionesError = signal<string | null>(null);
 
   // ── Formulario: Perfil del negocio ────────────────────────────
+  // "direccion" es opcional a propósito: exigirla bloqueaba en silencio el
+  // guardado de TODO (incluidas las cuentas ya existentes, que nunca la
+  // llenaron) sin ningún aviso visible si el usuario estaba scrolleado
+  // más abajo en la pantalla.
   perfilForm: FormGroup = this.fb.group({
-    nombre:    [MOCK_PERFIL.nombre,    Validators.required],
-    correo:    [MOCK_PERFIL.correo,    [Validators.required, Validators.email]],
-    direccion: [MOCK_PERFIL.direccion, Validators.required],
-    zona:      [MOCK_PERFIL.zona,      Validators.required],
-    moneda:    [MOCK_PERFIL.moneda,    Validators.required],
+    nombre:    [PERFIL_POR_DEFECTO.nombre,    Validators.required],
+    correo:    [PERFIL_POR_DEFECTO.correo,    [Validators.required, Validators.email]],
+    direccion: [PERFIL_POR_DEFECTO.direccion],
+    zona:      [PERFIL_POR_DEFECTO.zona,      Validators.required],
+    moneda:    [PERFIL_POR_DEFECTO.moneda,    Validators.required],
   });
 
-  // ── Formulario: Notificaciones ────────────────────────────────
+  // ── Formulario: Notificaciones ──────────────────────────────────
+  // "stockBajo" y "seguridad" hacen algo real: prenden/apagan, respectivamente,
+  // la alerta de stock (campana + modal de login) y la alerta de "inicio de
+  // sesión desde un dispositivo nuevo" (campana). "movimientos" todavía es
+  // solo maqueta visual — el backend no tiene resumen por correo.
   notifForm: FormGroup = this.fb.group({
-    stockBajo:   [true],
+    stockBajo:   [this.notifPrefs.alertasStockActivas()],
     movimientos: [true],
-    seguridad:   [false],
+    seguridad:   [this.notifPrefs.alertasSeguridadActivas()],
   });
 
   // ── Formulario: Cambiar contraseña ────────────────────────────
@@ -163,21 +194,25 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
   hayDirty = computed(() => this._dirty());
   private _dirty = signal(false);
 
-  // ── Opciones para selects ─────────────────────────────────────
+  // ── Opciones para selects (app exclusiva para Ecuador) ─────────
+  // Ecuador continental usa un solo huso horario (UTC-5, sin horario de
+  // verano); Galápagos usa el suyo propio (UTC-6).
   zonas = [
-    'America/Mexico_City', 'America/Cancun', 'America/Monterrey',
-    'America/New_York', 'America/Los_Angeles', 'Europe/Madrid', 'UTC'
+    { value: 'America/Guayaquil', label: 'Ecuador continental (GMT-5)' },
+    { value: 'Pacific/Galapagos', label: 'Galápagos (GMT-6)' },
   ];
+  // Ecuador usa el dólar estadounidense como moneda oficial desde 2000.
   monedas = [
-    { code: 'MXN', label: 'MXN – Peso Mexicano' },
     { code: 'USD', label: 'USD – Dólar Estadounidense' },
-    { code: 'EUR', label: 'EUR – Euro' },
-    { code: 'COP', label: 'COP – Peso Colombiano' },
   ];
 
   // ── Mostrar/ocultar contraseña ────────────────────────────────
   showActual = signal(false);
   showNueva  = signal(false);
+
+  // ── Estado del cambio de contraseña ───────────────────────────
+  credGuardando = signal(false);
+  credError     = signal<string | null>(null);
 
   // ── Refs a las secciones para scroll-spy ─────────────────────
   @ViewChild('secPerfil')       secPerfil!: ElementRef;
@@ -186,22 +221,29 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('secPeligro')      secPeligro!: ElementRef;
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
+  // ── Estado del guardado de Perfil del negocio ──────────────────
+  guardandoPerfil = signal(false);
+
   private authService = inject(AuthService);
   private subs = new Subscription();
   private observer!: IntersectionObserver;
 
-  ngOnInit(): void {
-    // Cargar perfil dinámico desde el usuario autenticado
+  /** Carga en el formulario y en `logoPreview` los datos reales guardados del negocio. */
+  private _cargarPerfilDesdeUsuario(): void {
     const user = this.authService.currentUser() as any;
-    if (user) {
-      this.perfilForm.patchValue({
-        nombre: user.nombreNegocio || user.nombre || 'Mi Negocio',
-        correo: user.correo || '',
-        direccion: 'Dirección por registrar',
-        zona: 'America/Mexico_City',
-        moneda: 'MXN'
-      });
-    }
+    if (!user) return;
+    this.perfilForm.patchValue({
+      nombre:    user.nombreNegocio || user.nombre || 'Mi Negocio',
+      correo:    user.correoOperaciones || user.correo || '',
+      direccion: user.direccion || '',
+      zona:      user.zona || 'America/Guayaquil',
+      moneda:    user.moneda || 'USD',
+    });
+    this.logoPreview.set(user.logo || null);
+  }
+
+  ngOnInit(): void {
+    this._cargarPerfilDesdeUsuario();
 
     // Trackear cambios de formularios
     const trackDirty = () => this._dirty.set(
@@ -216,6 +258,15 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
       this.passForm.get('nueva')!.valueChanges.subscribe(v =>
         this.passwordStrength.set(getPasswordStrength(v || ''))
       )
+    );
+
+    this.cargarSesiones();
+
+    // Limpiar el error de "contraseña actual incorrecta" al volver a escribir
+    this.subs.add(
+      this.passForm.valueChanges.subscribe(() => {
+        if (this.credError()) this.credError.set(null);
+      })
     );
   }
 
@@ -262,8 +313,16 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Logo ──────────────────────────────────────────────────────
   onLogoChange(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      this.snack.open('El logo no puede superar 2 MB', 'OK', { duration: 3500, panelClass: ['snack-error'] });
+      input.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => this.logoPreview.set(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -272,56 +331,151 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
 
   // ── Guardar todos los cambios ─────────────────────────────────
   guardarTodo(): void {
-    if (this.perfilForm.invalid) { this.perfilForm.markAllAsTouched(); return; }
-    // Simular guardado
-    setTimeout(() => {
-      this.perfilForm.markAsPristine();
-      this.notifForm.markAsPristine();
-      this.passForm.markAsPristine();
-      this._dirty.set(false);
-      this.snack.open('✓ Cambios guardados correctamente', 'OK', {
-        duration: 3500, panelClass: ['snack-success']
-      });
-    }, 600);
+    if (this.guardandoPerfil()) return;
+
+    // "stockBajo" y "seguridad" son reales y no dependen del perfil del
+    // negocio: se guardan siempre, aunque el formulario de perfil tenga
+    // campos inválidos pendientes (si no, un error ahí abajo bloqueaba en
+    // silencio TODO el guardado, incluidos estos toggles).
+    this.notifPrefs.setAlertasStockActivas(!!this.notifForm.value.stockBajo);
+    this.notifPrefs.setAlertasSeguridadActivas(!!this.notifForm.value.seguridad);
+    this.notifForm.markAsPristine();
+
+    if (this.perfilForm.invalid) {
+      this.perfilForm.markAllAsTouched();
+      this.scrollTo('perfil');
+      this.snack.open(
+        'Revisa el Perfil del negocio: hay campos obligatorios sin completar (el resto ya se guardó)',
+        'OK', { duration: 5000, panelClass: ['snack-error'] }
+      );
+      this._dirty.set(this.perfilForm.dirty || this.passForm.dirty);
+      return;
+    }
+
+    const { nombre, correo, direccion, zona, moneda } = this.perfilForm.value;
+    this.guardandoPerfil.set(true);
+
+    this.authService.actualizarPerfilNegocio({
+      nombreNegocio: nombre || undefined,
+      correoOperaciones: correo || undefined,
+      direccion: direccion || undefined,
+      zona: zona || undefined,
+      moneda: moneda || undefined,
+      logo: this.logoPreview(),
+    }).subscribe({
+      next: () => {
+        this.guardandoPerfil.set(false);
+        this.perfilForm.markAsPristine();
+        this.notifForm.markAsPristine();
+        this.passForm.markAsPristine();
+        this._dirty.set(false);
+        this.snack.open('✓ Cambios guardados correctamente', 'OK', {
+          duration: 3500, panelClass: ['snack-success']
+        });
+      },
+      error: (err) => {
+        this.guardandoPerfil.set(false);
+        const msg = err?.error?.message || 'No se pudo guardar el perfil del negocio';
+        this.snack.open('✕ ' + msg, 'OK', { duration: 4500, panelClass: ['snack-error'] });
+      }
+    });
   }
 
   // ── Descartar ─────────────────────────────────────────────────
   descartarCambios(): void {
-    this.perfilForm.reset(MOCK_PERFIL);
-    this.notifForm.reset({ stockBajo: true, movimientos: true, seguridad: false });
+    this._cargarPerfilDesdeUsuario();
+    this.perfilForm.markAsPristine();
+    this.notifForm.reset({
+      stockBajo: this.notifPrefs.alertasStockActivas(),
+      movimientos: true,
+      seguridad: this.notifPrefs.alertasSeguridadActivas(),
+    });
     this.passForm.reset();
     this.passwordStrength.set(0);
-    this.logoPreview.set(null);
+    this.credError.set(null);
     this._dirty.set(false);
   }
 
   // ── Seguridad: Actualizar contraseña ─────────────────────────
   actualizarCredenciales(): void {
     if (this.passForm.invalid) { this.passForm.markAllAsTouched(); return; }
-    setTimeout(() => {
-      this.passForm.reset();
-      this.passwordStrength.set(0);
-      this.snack.open('✓ Contraseña actualizada', 'OK', { duration: 3000 });
-    }, 500);
+
+    const { actual, nueva } = this.passForm.value;
+    this.credError.set(null);
+    this.credGuardando.set(true);
+
+    this.authService.cambiarContrasena(actual, nueva).subscribe({
+      next: () => {
+        this.credGuardando.set(false);
+        this.passForm.reset();
+        this.passwordStrength.set(0);
+        this.snack.open('✓ Contraseña actualizada', 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        this.credGuardando.set(false);
+        this.credError.set(
+          err?.error?.message || 'No se pudo actualizar la contraseña'
+        );
+      }
+    });
   }
 
-  // ── Sesiones: Revocar ─────────────────────────────────────────
+  // ── Sesiones: cargar y revocar (reales) ────────────────────────
+  cargarSesiones(): void {
+    this.sesionesCargando.set(true);
+    this.sesionesError.set(null);
+    this.authService.obtenerSesiones().subscribe({
+      next: (lista) => {
+        this.sesionesCargando.set(false);
+        this.sesiones.set(lista);
+      },
+      error: () => {
+        this.sesionesCargando.set(false);
+        this.sesionesError.set('No se pudieron cargar las sesiones activas');
+      }
+    });
+  }
+
   revocar(id: number): void {
-    this.sesiones.update(list => list.filter(s => s.id !== id));
-    this.snack.open('Sesión revocada', 'OK', { duration: 2500 });
+    this.authService.revocarSesion(id).subscribe({
+      next: () => {
+        this.sesiones.update(list => list.filter(s => s.id !== id));
+        this.snack.open('Sesión revocada', 'OK', { duration: 2500 });
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'No se pudo revocar la sesión';
+        this.snack.open(msg, 'OK', { duration: 3500, panelClass: ['snack-error'] });
+      }
+    });
   }
 
   // ── Zona de peligro ───────────────────────────────────────────
+  backupGenerando = signal(false);
+  orgEliminando    = signal(false);
+
   archivarDB(): void {
     this.dialog.open(ConfirmDialogComponent, {
       data: {
         icon: 'archive', danger: false,
         title: '¿Archivar base de datos?',
-        message: 'Se creará un archivo comprimido de todos los datos actuales. Esta operación puede tardar varios minutos.',
+        message: 'Se descargará un archivo comprimido (.json.gz) con todos los productos, categorías, proveedores, movimientos, ventas y usuarios de tu empresa.',
         confirmLabel: 'Sí, archivar'
       }, panelClass: 'custom-dialog'
     }).afterClosed().subscribe(ok => {
-      if (ok) this.snack.open('Archivado iniciado — recibirás un correo al terminar', 'OK', { duration: 5000 });
+      if (!ok) return;
+      this.backupGenerando.set(true);
+      this.authService.generarBackup().subscribe({
+        next: (blob) => {
+          this.backupGenerando.set(false);
+          const fecha = new Date().toISOString().slice(0, 10);
+          this._descargarBlob(blob, `invencontrol-backup-${fecha}.json.gz`);
+          this.snack.open('✓ Backup descargado', 'OK', { duration: 3500 });
+        },
+        error: () => {
+          this.backupGenerando.set(false);
+          this.snack.open('No se pudo generar el backup', 'OK', { duration: 3500, panelClass: ['snack-error'] });
+        }
+      });
     });
   }
 
@@ -329,13 +483,37 @@ export class Configuracion implements OnInit, AfterViewInit, OnDestroy {
     const orgNombre = this.perfilForm.get('nombre')?.value || 'la organización';
     this.dialog.open(ConfirmDialogComponent, {
       data: {
-        icon: 'delete_forever', danger: true,
+        icon: 'delete_forever', danger: true, requierePassword: true,
         title: '¿Eliminar organización?',
-        message: `Esta acción es IRREVERSIBLE. Se eliminarán todos los datos, usuarios y configuraciones de "${orgNombre}" permanentemente.`,
+        message: `Esta acción es IRREVERSIBLE. Se eliminarán todos los datos, usuarios y configuraciones de "${orgNombre}" permanentemente. Confirma con tu contraseña.`,
         confirmLabel: 'Eliminar permanentemente'
       }, panelClass: 'custom-dialog'
-    }).afterClosed().subscribe(ok => {
-      if (ok) this.snack.open('Organización eliminada', 'OK', { duration: 4000, panelClass: ['snack-error'] });
+    }).afterClosed().subscribe((res: { password: string } | null) => {
+      if (!res?.password) return;
+      this.orgEliminando.set(true);
+      this.authService.eliminarOrganizacion(res.password).subscribe({
+        next: () => {
+          this.snack.open('Organización eliminada', 'OK', { duration: 4000, panelClass: ['snack-error'] });
+          // La cuenta ya no existe en el backend: cerrar sesión solo localmente.
+          this.authService.forzarLogoutLocal();
+        },
+        error: (err) => {
+          this.orgEliminando.set(false);
+          const msg = err?.error?.message || 'No se pudo eliminar la organización';
+          this.snack.open(msg, 'OK', { duration: 4000, panelClass: ['snack-error'] });
+        }
+      });
     });
+  }
+
+  private _descargarBlob(blob: Blob, nombreArchivo: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 }

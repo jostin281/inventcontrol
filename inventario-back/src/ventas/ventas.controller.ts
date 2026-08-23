@@ -21,7 +21,7 @@ export class VentasController {
 
   @Post()
   create(@Body() data: any, @Req() req: any) {
-    return this.service.create(data, req.user.companyId);
+    return this.service.create(data, req.user.companyId, req.user.nombre);
   }
 
   @Patch(':id')

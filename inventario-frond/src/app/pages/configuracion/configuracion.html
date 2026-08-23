@@ -19,9 +19,9 @@
         <mat-icon>undo</mat-icon> Descartar cambios
       </button>
       <button mat-flat-button class="cfg-btn-save"
-        [disabled]="!hayDirty()"
+        [disabled]="!hayDirty() || guardandoPerfil()"
         (click)="guardarTodo()" id="btn-guardar-todo">
-        <mat-icon>save</mat-icon> Guardar todos los cambios
+        <mat-icon>save</mat-icon> {{ guardandoPerfil() ? 'Guardando…' : 'Guardar todos los cambios' }}
       </button>
     </div>
   </div>
@@ -140,21 +140,18 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="field-full">
-                <mat-label>Dirección</mat-label>
+                <mat-label>Dirección (opcional)</mat-label>
                 <mat-icon matPrefix>location_on</mat-icon>
                 <input matInput formControlName="direccion" id="input-direccion"
-                  placeholder="Calle, Número, Colonia, Ciudad">
-                @if (perfilForm.get('direccion')?.hasError('required') && perfilForm.get('direccion')?.touched) {
-                  <mat-error>La dirección es obligatoria</mat-error>
-                }
+                  placeholder="Av., Calle, Número, Sector, Ciudad">
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="field-half">
                 <mat-label>Zona horaria</mat-label>
                 <mat-icon matPrefix>schedule</mat-icon>
                 <mat-select formControlName="zona" id="select-zona">
-                  @for (z of zonas; track z) {
-                    <mat-option [value]="z">{{ z }}</mat-option>
+                  @for (z of zonas; track z.value) {
+                    <mat-option [value]="z.value">{{ z.label }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
@@ -202,7 +199,7 @@
                     </div>
                     <div>
                       <p class="notif-title">Alertas de stock bajo</p>
-                      <p class="notif-desc">Recibe una notificación cuando un producto baje del umbral mínimo configurado</p>
+                      <p class="notif-desc">Muestra el aviso de productos agotados/con poco stock en la campana y al iniciar sesión</p>
                     </div>
                   </div>
                   <mat-slide-toggle formControlName="stockBajo" id="toggle-stock-bajo"
@@ -234,7 +231,7 @@
                     </div>
                     <div>
                       <p class="notif-title">Reportes de seguridad</p>
-                      <p class="notif-desc">Alerta inmediata ante intentos de acceso sospechosos o cambios de credenciales</p>
+                      <p class="notif-desc">Alerta en la campana cuando se inicia sesión en tu cuenta desde un dispositivo que no habías usado antes</p>
                     </div>
                   </div>
                   <mat-slide-toggle formControlName="seguridad" id="toggle-seguridad"
@@ -289,6 +286,12 @@
                     }
                   </mat-form-field>
 
+                  @if (credError()) {
+                    <p class="cred-error">
+                      <mat-icon>error_outline</mat-icon> {{ credError() }}
+                    </p>
+                  }
+
                   <mat-form-field appearance="outline" class="field-full">
                     <mat-label>Nueva contraseña</mat-label>
                     <mat-icon matPrefix>lock</mat-icon>
@@ -328,8 +331,9 @@
 
                   <button mat-flat-button class="cfg-btn-save btn-cred"
                     (click)="actualizarCredenciales()" id="btn-actualizar-cred"
-                    [disabled]="passForm.invalid">
-                    <mat-icon>check_circle</mat-icon> Actualizar credenciales
+                    [disabled]="passForm.invalid || credGuardando()">
+                    <mat-icon>check_circle</mat-icon>
+                    {{ credGuardando() ? 'Actualizando…' : 'Actualizar credenciales' }}
                   </button>
                 </form>
               </div>
@@ -341,34 +345,38 @@
                 </h3>
 
                 <div class="sesiones-list">
-                  @for (ses of sesiones(); track ses.id) {
-                    <div class="sesion-row" [class.sesion-actual]="ses.actual">
-                      <div class="sesion-icon-wrap">
-                        <mat-icon>{{ ses.icono }}</mat-icon>
+                  @if (sesionesCargando()) {
+                    <p class="sesiones-estado">Cargando sesiones…</p>
+                  } @else if (sesionesError()) {
+                    <p class="sesiones-estado sesiones-estado-error">{{ sesionesError() }}</p>
+                  } @else if (sesiones().length === 0) {
+                    <p class="sesiones-estado">No hay sesiones activas</p>
+                  } @else {
+                    @for (ses of sesiones(); track ses.id) {
+                      <div class="sesion-row" [class.sesion-actual]="ses.actual">
+                        <div class="sesion-icon-wrap">
+                          <mat-icon>{{ ses.tipo === 'movil' ? 'smartphone' : 'computer' }}</mat-icon>
+                        </div>
+                        <div class="sesion-info">
+                          <p class="sesion-device">{{ ses.dispositivo }}</p>
+                          <p class="sesion-location">
+                            <mat-icon class="sesion-location-icon">lan</mat-icon>
+                            {{ ses.ip || 'IP no disponible' }}
+                          </p>
+                        </div>
+                        @if (ses.actual) {
+                          <span class="sesion-badge-actual">Actual</span>
+                        } @else {
+                          <button mat-stroked-button class="btn-revocar"
+                            (click)="revocar(ses.id)"
+                            [id]="'btn-revocar-' + ses.id">
+                            Revocar
+                          </button>
+                        }
                       </div>
-                      <div class="sesion-info">
-                        <p class="sesion-device">{{ ses.dispositivo }}</p>
-                        <p class="sesion-location">
-                          <mat-icon class="sesion-location-icon">place</mat-icon>
-                          {{ ses.ubicacion }}
-                        </p>
-                      </div>
-                      @if (ses.actual) {
-                        <span class="sesion-badge-actual">Actual</span>
-                      } @else {
-                        <button mat-stroked-button class="btn-revocar"
-                          (click)="revocar(ses.id)"
-                          [id]="'btn-revocar-' + ses.id">
-                          Revocar
-                        </button>
-                      }
-                    </div>
+                    }
                   }
                 </div>
-
-                <a href="javascript:void(0)" class="historial-link" id="link-historial-accesos">
-                  <mat-icon>history</mat-icon> Ver historial de accesos
-                </a>
               </div>
 
             </div>
@@ -411,8 +419,10 @@
                   </div>
                 </div>
                 <button mat-stroked-button class="btn-peligro-outline"
-                  (click)="archivarDB()" id="btn-archivar-db">
-                  <mat-icon>archive</mat-icon> Archivar base de datos
+                  (click)="archivarDB()" id="btn-archivar-db"
+                  [disabled]="backupGenerando()">
+                  <mat-icon>archive</mat-icon>
+                  {{ backupGenerando() ? 'Generando…' : 'Archivar base de datos' }}
                 </button>
               </div>
 
@@ -431,8 +441,10 @@
                   </div>
                 </div>
                 <button mat-flat-button class="btn-peligro-filled"
-                  (click)="eliminarOrg()" id="btn-eliminar-org">
-                  <mat-icon>delete_forever</mat-icon> Eliminar organización
+                  (click)="eliminarOrg()" id="btn-eliminar-org"
+                  [disabled]="orgEliminando()">
+                  <mat-icon>delete_forever</mat-icon>
+                  {{ orgEliminando() ? 'Eliminando…' : 'Eliminar organización' }}
                 </button>
               </div>
 

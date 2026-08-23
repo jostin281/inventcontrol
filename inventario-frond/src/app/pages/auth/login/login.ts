@@ -10,6 +10,12 @@ import { MatIconModule }       from '@angular/material/icon';
 
 import { AuthService } from '../../../core/services/auth.service';
 
+// "Recordarme" acá NO tiene nada que ver con la duración de la sesión —
+// solo recuerda el correo (y el propio estado del checkbox) para la
+// próxima vez que se abra esta pantalla, en localStorage.
+const REMEMBER_KEY     = 'invencontrol-recordarme';
+const REMEMBER_EMAIL_KEY = 'invencontrol-correo-guardado';
+
 // ─── Imágenes del carrusel (Unsplash – warehouses / inventario) ──────────────
 const CAROUSEL_SLIDES = [
   {
@@ -56,6 +62,16 @@ export class Login implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.startAutoplay();
+    this._cargarCorreoRecordado();
+  }
+
+  /** Si la vez anterior se guardó "Recordarme", precarga el correo y deja el checkbox marcado. */
+  private _cargarCorreoRecordado(): void {
+    if (typeof localStorage === 'undefined') return;
+    const recordado = localStorage.getItem(REMEMBER_KEY) === '1';
+    if (!recordado) return;
+    const correoGuardado = localStorage.getItem(REMEMBER_EMAIL_KEY) || '';
+    this.form.patchValue({ correo: correoGuardado, recordarme: true });
   }
 
   ngOnDestroy(): void {
@@ -100,6 +116,9 @@ export class Login implements OnInit, OnDestroy {
 
     const correo     = this.form.value.correo ?? '';
     const contrasena = this.form.value.contrasena ?? '';
+    const recordarme = this.form.value.recordarme ?? false;
+
+    this._guardarCorreoRecordado(recordarme, correo);
 
     this.isLoading.set(true);
 
@@ -117,5 +136,16 @@ export class Login implements OnInit, OnDestroy {
 
   togglePassword(): void {
     this.hidePassword.update(v => !v);
+  }
+
+  private _guardarCorreoRecordado(recordarme: boolean, correo: string): void {
+    if (typeof localStorage === 'undefined') return;
+    if (recordarme) {
+      localStorage.setItem(REMEMBER_KEY, '1');
+      localStorage.setItem(REMEMBER_EMAIL_KEY, correo);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+      localStorage.removeItem(REMEMBER_EMAIL_KEY);
+    }
   }
 }

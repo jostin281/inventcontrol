@@ -1,17 +1,20 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-inventario}
     ports:
-      # Expuesto al host para poder correr el backend en modo local
-      # (npm run start:dev) contra este mismo Postgres durante desarrollo.
-      # En un servidor de producción real conviene quitar esta línea para
-      # no exponer la base de datos a internet.
-      - "5432:5432"
+      # Puerto 5433 en el host (no 5432) para no chocar con un Postgres
+      # local ya instalado. Esto NO afecta la conexión backend->postgres
+      # dentro de Docker (siempre usa postgres:5432, ver DB_PORT abajo);
+      # solo importa si quieres conectarte desde el host (ej. con un
+      # cliente SQL, o corriendo el backend local con `npm run start:dev`
+      # apuntando a este mismo Postgres — en ese caso usa DB_PORT=5433
+      # en inventario-back/.env).
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

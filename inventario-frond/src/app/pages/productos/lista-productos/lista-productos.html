@@ -373,29 +373,13 @@
      DIALOG FLOTANTE – CONFIRMAR ELIMINAR (basurero)
      ══════════════════════════════════════════════════════════ -->
 @if (productoEliminar()) {
-  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
-  <div class="confirm-dialog" id="dialog-confirmar-eliminar" role="alertdialog">
-    <div class="confirm-icon-wrap">
-      <mat-icon class="confirm-icon">delete_forever</mat-icon>
-    </div>
-    <h3 class="confirm-title">¿Eliminar producto?</h3>
-    <p class="confirm-msg">
-      Estás a punto de eliminar
-      <strong>{{ productoEliminar()!.nombre }}</strong>.
-      Esta acción no se puede deshacer.
-    </p>
-    <div class="confirm-actions">
-      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar">
-        Cancelar
-      </button>
-      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar"
-        [disabled]="eliminando()">
-        @if (eliminando()) {
-          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
-        } @else {
-          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
-        }
-      </button>
-    </div>
-  </div>
+  <app-confirm-dialog
+    titulo="¿Eliminar producto?"
+    [cargando]="eliminando()"
+    (cancelar)="cancelarEliminar()"
+    (confirmar)="confirmarEliminar()">
+    Estás a punto de eliminar
+    <strong>{{ productoEliminar()!.nombre }}</strong>.
+    Esta acción no se puede deshacer.
+  </app-confirm-dialog>
 }

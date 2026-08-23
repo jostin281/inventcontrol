@@ -18,6 +18,7 @@ import { NuevoProductoDialog } from './nuevo-producto-dialog';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { ProveedoresService } from '../../../core/services/proveedores.service';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-lista-productos',
@@ -28,7 +29,7 @@ import { ProveedoresService } from '../../../core/services/proveedores.service';
     MatButtonModule, MatIconModule, MatInputModule,
     MatFormFieldModule, MatSelectModule, MatTooltipModule,
     MatBadgeModule, MatDialogModule, MatRippleModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule, ConfirmDialog,
   ],
   templateUrl: './lista-productos.html',
   styleUrl: './lista-productos.css'

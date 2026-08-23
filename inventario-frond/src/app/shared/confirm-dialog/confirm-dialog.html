@@ -1,0 +1,26 @@
+<div class="cd-overlay" (click)="cancelar.emit()"></div>
+
+<div class="cd-dialog" role="alertdialog" aria-modal="true">
+  <div class="cd-icon-wrap">
+    <mat-icon class="cd-icon">{{ icono() }}</mat-icon>
+  </div>
+
+  <h3 class="cd-title">{{ titulo() }}</h3>
+
+  <p class="cd-msg">
+    <ng-content></ng-content>
+  </p>
+
+  <div class="cd-actions">
+    <button mat-stroked-button class="cd-btn-cancel" (click)="cancelar.emit()">
+      {{ textoCancelar() }}
+    </button>
+    <button mat-flat-button class="cd-btn-danger" (click)="confirmar.emit()" [disabled]="cargando()">
+      @if (cargando()) {
+        <ng-container><mat-icon class="cd-spin">sync</mat-icon> {{ textoCargando() }}</ng-container>
+      } @else {
+        <ng-container><mat-icon>{{ iconoConfirmar() }}</mat-icon> {{ textoConfirmar() }}</ng-container>
+      }
+    </button>
+  </div>
+</div>

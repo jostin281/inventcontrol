@@ -203,10 +203,10 @@ export class Reportes implements OnInit, AfterViewInit, OnDestroy {
     this.exportandoPdf.set(true);
 
     // Pequeño delay para que el spinner se muestre antes de bloquear el hilo
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
         const rango = this.getRangoLabel();
-        this.expSvc.exportarPdf(
+        await this.expSvc.exportarPdf(
           { columnas: d.columnas, filas: d.filas },
           d.titulo,
           d.insight,
@@ -230,9 +230,9 @@ export class Reportes implements OnInit, AfterViewInit, OnDestroy {
 
     this.exportandoExcel.set(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        this.expSvc.exportarExcel(
+        await this.expSvc.exportarExcel(
           { columnas: d.columnas, filas: d.filas },
           d.titulo,
           d.insight,

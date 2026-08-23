@@ -226,10 +226,6 @@
   <div class="overlay" (click)="cerrarCrear(); cerrarEditar(); cerrarDetalle()"></div>
 }
 
-@if (proveedorEliminar()) {
-  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
-}
-
 
 <!-- ══════════════════════════════════════════════════════════
      PANEL LATERAL – CREAR PROVEEDOR
@@ -572,32 +568,17 @@
      DIALOG – CONFIRMAR ELIMINAR
      ══════════════════════════════════════════════════════════ -->
 @if (proveedorEliminar()) {
-  <div class="confirm-dialog" id="dialog-eliminar-prov" role="alertdialog">
-    <div class="confirm-icon-wrap">
-      <mat-icon class="confirm-icon">delete_forever</mat-icon>
-    </div>
-    <h3 class="confirm-title">¿Eliminar proveedor?</h3>
-    <p class="confirm-msg">
-      Estás a punto de eliminar <strong>{{ proveedorEliminar()!.nombre }}</strong>.
-      @if (proveedorEliminar()!.productos.length > 0) {
-        <span class="confirm-warn-note">
-          <mat-icon class="warn-inline-icon">warning</mat-icon>
-          Este proveedor tiene <strong>{{ proveedorEliminar()!.productos.length }} productos</strong> asociados.
-        </span>
-      }
-    </p>
-    <div class="confirm-actions">
-      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar-prov">
-        Cancelar
-      </button>
-      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar-prov"
-        [disabled]="eliminando()">
-        @if (eliminando()) {
-          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
-        } @else {
-          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
-        }
-      </button>
-    </div>
-  </div>
+  <app-confirm-dialog
+    titulo="¿Eliminar proveedor?"
+    [cargando]="eliminando()"
+    (cancelar)="cancelarEliminar()"
+    (confirmar)="confirmarEliminar()">
+    Estás a punto de eliminar <strong>{{ proveedorEliminar()!.nombre }}</strong>.
+    @if (proveedorEliminar()!.productos.length > 0) {
+      <span class="confirm-warn-note">
+        <mat-icon class="warn-inline-icon">warning</mat-icon>
+        Este proveedor tiene <strong>{{ proveedorEliminar()!.productos.length }} productos</strong> asociados.
+      </span>
+    }
+  </app-confirm-dialog>
 }

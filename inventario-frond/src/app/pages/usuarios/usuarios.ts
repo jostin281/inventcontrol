@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NuevoUsuarioDialog } from './nuevo-usuario-dialog';
 import { UsuariosService, UsuarioBackend } from '../../core/services/usuarios.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 export interface UsuarioResumen {
   id: number;
@@ -30,7 +31,7 @@ export interface UsuarioResumen {
     MatCardModule, MatButtonModule, MatIconModule,
     MatTableModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatTooltipModule, MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule, ConfirmDialog,
   ],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'

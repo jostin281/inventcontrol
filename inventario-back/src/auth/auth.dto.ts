@@ -27,3 +27,11 @@ export class LoginDto {
   @IsString() @MinLength(6)
   contrasena: string;
 }
+
+export class CambiarContrasenaDto {
+  @IsString() @MinLength(1)
+  contrasenaActual: string;
+
+  @IsString() @MinLength(6)
+  contrasenaNueva: string;
+}

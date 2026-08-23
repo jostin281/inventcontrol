@@ -238,8 +238,6 @@
   box-shadow: 0 12px 32px rgba(36,56,156,0.14);
 }
 
-.prov-card:hover .prov-card-actions { opacity: 1; }
-
 /* Cabecera con gradiente */
 .prov-card-header {
   padding: 20px;
@@ -250,12 +248,13 @@
   justify-content: flex-end;
 }
 
+/* Antes ocultos con opacity:0 y solo visibles en :hover de la card; con
+   los botones tan juntos su "touch target" invisible se solapaba y
+   desaparecían justo al acercar el mouse. Ahora quedan siempre visibles. */
 .prov-card-actions {
   position: absolute;
   top: 10px; right: 10px;
-  display: flex; gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
+  display: flex; gap: 6px;
 }
 
 .prov-action-btn {
@@ -435,8 +434,6 @@
   z-index: 200;
   animation: fadeOverlay 0.2s ease;
 }
-
-.overlay--dark { background: rgba(10,10,30,.55); }
 
 @keyframes fadeOverlay {
   from { opacity: 0; }
@@ -645,81 +642,8 @@
 .audit-chip--ok   { background: #d4f4e9; color: #006b3c; }
 .audit-chip--warn { background: #fff0e6; color: #e65100; }
 
-/* ══════════════════════════════════════════════════════════
-   DIALOG ELIMINAR
-   ══════════════════════════════════════════════════════════ */
-.confirm-dialog {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  z-index: 202;
-  width: 400px; max-width: 92vw;
-  padding: 32px 28px 24px;
-  text-align: center;
-  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes popIn {
-  from { transform: translate(-50%,-50%) scale(0.85); opacity: 0; }
-  to   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
-}
-
-.confirm-icon-wrap {
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  background: #fde8e8;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-}
-
-.confirm-icon { font-size: 32px; width: 32px; height: 32px; color: #ba1a1a; }
-
-.confirm-title { font-size: 20px; font-weight: 700; color: #1a1b22; margin: 0 0 10px; }
-
-.confirm-msg {
-  font-size: 14px; color: #46464f;
-  line-height: 1.5; margin: 0 0 10px;
-}
-
-.confirm-msg strong { color: #1a1b22; }
-
-.confirm-warn-note {
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  font-size: 12px; color: #e65100; margin-top: 8px;
-}
-
-.warn-inline-icon { font-size: 14px; width: 14px; height: 14px; }
-
-.confirm-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-
-.btn-cancel-dialog {
-  flex: 1;
-  border-color: #e8eaf0 !important;
-  color: #46464f !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-}
-
-.btn-danger-dialog {
-  flex: 1;
-  background: #ba1a1a !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-}
-
-.btn-danger-dialog[disabled] { opacity: 0.7 !important; }
-
-.spin-icon { animation: spin 1s linear infinite; }
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+/* El diálogo de confirmar-eliminar ahora es el componente compartido
+   <app-confirm-dialog> (src/app/shared/confirm-dialog). */
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {

@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NuevoVentaDialog } from './nuevo-venta-dialog';
 import { ProductosService } from '../../core/services/productos.service';
 import { VentasService, Venta } from '../../core/services/ventas.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-ventas',
@@ -23,7 +24,7 @@ import { VentasService, Venta } from '../../core/services/ventas.service';
     MatCardModule, MatButtonModule, MatIconModule,
     MatTableModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatTooltipModule, MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule, ConfirmDialog,
   ],
   templateUrl: './ventas.html',
   styleUrl: './ventas.css'
@@ -37,6 +38,8 @@ export class Ventas implements OnInit {
   columnas = ['cliente', 'producto', 'total', 'fecha', 'estado', 'acciones'];
   filtroStr = '';
   isLoading = signal(true);
+  /** Mensaje de error de la última operación (p. ej. "stock insuficiente"). */
+  errorMsg = signal<string | null>(null);
 
   ngOnInit(): void {
     this.productosSvc.cargar().subscribe();
@@ -68,14 +71,27 @@ export class Ventas implements OnInit {
     const ref = this.dialog.open(NuevoVentaDialog);
     ref.afterClosed().subscribe((res: any) => {
       if (!res) return;
+      this.errorMsg.set(null);
       this.ventasSvc.create({
         cliente: res.cliente,
         producto: res.producto,
+        productoId: res.productoId,
+        cantidad: res.cantidad ?? 1,
         total: Math.round((res.total ?? 0) * 100) / 100,
         fecha: res.fecha,
         estado: res.estado,
-      }).subscribe();
+      }).subscribe({
+        // La venta descuenta stock en el backend: refrescamos productos
+        // para que el resto de la app (alertas de stock, dashboard, lista
+        // de productos) refleje el nuevo stock de inmediato.
+        next: () => this.productosSvc.cargar().subscribe(),
+        error: (err) => this.errorMsg.set(this._mensajeError(err)),
+      });
     });
+  }
+
+  private _mensajeError(err: any): string {
+    return err?.error?.message ?? 'No se pudo completar la operación. Intenta de nuevo.';
   }
 
   // ── Estado estilo Productos (ver / editar / eliminar)
@@ -111,6 +127,7 @@ export class Ventas implements OnInit {
     if (!editando) return;
 
     const v = this.editForm.value as { cliente?: string; producto?: string; total?: number; fecha?: string; estado?: string };
+    this.errorMsg.set(null);
     this.ventasSvc.update(editando.id, {
       cliente: v.cliente,
       producto: v.producto,
@@ -118,7 +135,11 @@ export class Ventas implements OnInit {
       fecha: v.fecha,
       estado: v.estado,
     }).subscribe({
-      next: () => this.cerrarEditar()
+      next: () => {
+        this.cerrarEditar();
+        this.productosSvc.cargar().subscribe();
+      },
+      error: (err) => this.errorMsg.set(this._mensajeError(err)),
     });
   }
 
@@ -134,6 +155,7 @@ export class Ventas implements OnInit {
       next: () => {
         this.eliminando.set(false);
         this.ventaEliminar.set(null);
+        this.productosSvc.cargar().subscribe();
       },
       error: () => this.eliminando.set(false)
     });

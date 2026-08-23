@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { ProveedoresService, Proveedor } from '../../core/services/proveedores.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 const GRADIENTES_DISPONIBLES = [
   'linear-gradient(135deg, #24389c, #3f51b5)',
@@ -33,7 +34,8 @@ const GRADIENTES_DISPONIBLES = [
     CommonModule, FormsModule, ReactiveFormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatInputModule, MatFormFieldModule, MatSelectModule,
-    MatTooltipModule, MatChipsModule, MatProgressSpinnerModule, MatSnackBarModule
+    MatTooltipModule, MatChipsModule, MatProgressSpinnerModule, MatSnackBarModule,
+    ConfirmDialog,
   ],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.css'

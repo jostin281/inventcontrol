@@ -10,6 +10,24 @@
   padding: 8px 4px 24px;
 }
 
+/* ── Aviso de error (stock insuficiente, etc.) ──────────────── */
+.venta-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fdecea;
+  border: 1px solid #f5b5b0;
+  color: #ba1a1a;
+  border-radius: 12px;
+  padding: 10px 12px 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.venta-error-banner span { flex: 1; }
+
+.venta-error-banner mat-icon:first-child { color: #ba1a1a; }
+
 /* ── Page header ─────────────────────────────────────────── */
 .page-header {
   display: flex;
@@ -275,16 +293,13 @@
 .status-pill--canceled { background: #fde8e8; color: #ba1a1a; }
 
 /* ── Actions cell ────────────────────────────────────────── */
+/* Antes ocultos con opacity:0 y solo visibles en :hover de la fila; con
+   los botones tan juntos su "touch target" invisible se solapaba y
+   desaparecían justo al acercar el mouse. Ahora quedan siempre visibles. */
 .actions-cell {
   display: flex;
   align-items: center;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.table-row:hover .actions-cell {
-  opacity: 1;
+  gap: 6px;
 }
 
 .action-btn {
@@ -358,10 +373,6 @@
   backdrop-filter: blur(2px);
   z-index: 200;
   animation: fadeOverlay 0.2s ease;
-}
-
-.overlay--dark {
-  background: rgba(10, 10, 30, 0.55);
 }
 
 @keyframes fadeOverlay {
@@ -512,98 +523,8 @@
   gap: 4px;
 }
 
-/* ══════════════════════════════════════════════════════════
-   CONFIRM DIALOG – ELIMINAR
-   ══════════════════════════════════════════════════════════ */
-.confirm-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  z-index: 202;
-  width: 380px;
-  max-width: 92vw;
-  padding: 32px 28px 24px;
-  text-align: center;
-  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes popIn {
-  from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
-  to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
-}
-
-.confirm-icon-wrap {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: #fde8e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-}
-
-.confirm-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  color: #ba1a1a;
-}
-
-.confirm-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1b22;
-  margin: 0 0 10px;
-}
-
-.confirm-msg {
-  font-size: 14px;
-  color: #46464f;
-  line-height: 1.5;
-  margin: 0 0 24px;
-}
-
-.confirm-msg strong { color: #1a1b22; }
-
-.confirm-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.btn-cancel-dialog {
-  flex: 1;
-  border-color: #e8eaf0 !important;
-  color: #46464f !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-}
-
-.btn-danger-dialog {
-  flex: 1;
-  background: #ba1a1a !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.btn-danger-dialog[disabled] { opacity: 0.7 !important; }
-
-.spin-icon { animation: spin 1s linear infinite; }
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+/* El diálogo de confirmar-eliminar ahora es el componente compartido
+   <app-confirm-dialog> (src/app/shared/confirm-dialog). */
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {

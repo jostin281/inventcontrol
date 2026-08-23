@@ -502,6 +502,26 @@
 
 .pass-form mat-form-field { width: 100%; }
 
+.cred-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ba1a1a;
+  background: #ffdad6;
+  border-radius: 8px;
+}
+
+.cred-error mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .btn-cred {
   margin-top: 4px !important;
   border-radius: 12px !important;
@@ -585,6 +605,14 @@
   border-radius: 999px;
   white-space: nowrap;
 }
+
+.sesiones-estado {
+  font-size: 13px;
+  color: #757684;
+  padding: 10px 4px;
+  margin: 0;
+}
+.sesiones-estado-error { color: #ba1a1a; }
 
 .btn-revocar {
   border-color: #ffdad6 !important;

@@ -21,6 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MovimientosService, Movimiento, TipoMovimiento } from '../../core/services/movimientos.service';
 import { ProductosService } from '../../core/services/productos.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 export interface ProductoItem {
   nombre: string;
@@ -36,7 +37,8 @@ export interface ProductoItem {
     MatTableModule, MatCardModule, MatButtonModule, MatIconModule,
     MatInputModule, MatFormFieldModule, MatSelectModule, MatTooltipModule,
     MatChipsModule, MatButtonToggleModule, MatAutocompleteModule,
-    MatDatepickerModule, MatNativeDateModule, MatProgressSpinnerModule
+    MatDatepickerModule, MatNativeDateModule, MatProgressSpinnerModule,
+    ConfirmDialog,
   ],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.css'

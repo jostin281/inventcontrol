@@ -18,15 +18,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: number; correo: string; rol: string; companyId: number }) {
+  async validate(payload: { sub: number; correo: string; rol: string; companyId: number; jti?: string }) {
     const usuario = await this.authService.validarUsuario(payload.sub);
     if (!usuario) return null;
+
+    // Tokens emitidos antes de que existiera el control de sesiones no
+    // tienen "jti" — se aceptan igual (evita invalidar sesiones viejas de
+    // golpe); los que sí lo tienen deben corresponder a una sesión activa.
+    if (payload.jti && !(await this.authService.sesionActiva(payload.jti))) {
+      return null;
+    }
+
     return {
       id: usuario.id,
       correo: usuario.correo,
       rol: usuario.rol,
       nombre: usuario.nombre,
       companyId: payload.companyId ?? usuario.companyId ?? usuario.id,
+      jti: payload.jti,
     };
   }
 }

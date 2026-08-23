@@ -29,6 +29,19 @@ export class ProductosService {
   readonly totalProductos = computed(() => this._productos().length);
   readonly stockTotal = computed(() => this._productos().reduce((s, p) => s + p.stock, 0));
 
+  // ── Alertas de stock (mismo criterio que el dashboard y el backend:
+  //    ≤25% del stockMax se considera "bajo"; 0 unidades es "agotado") ──
+  readonly productosSinStock = computed(() =>
+    this._productos().filter(p => p.stock === 0)
+  );
+  readonly productosStockBajo = computed(() =>
+    this._productos().filter(p => p.stock > 0 && p.stock <= p.stockMax * 0.25)
+  );
+  /** true si hay algún producto agotado o con stock bajo (para saber si hay "novedad"). */
+  readonly hayAlertasStock = computed(() =>
+    this.productosSinStock().length > 0 || this.productosStockBajo().length > 0
+  );
+
   // ── Carga inicial desde el backend ───────────────────────────────────
   cargar(): Observable<Producto[]> {
     return this.http.get<Producto[]>(API).pipe(

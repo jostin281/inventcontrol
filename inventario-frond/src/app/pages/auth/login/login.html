@@ -19,7 +19,7 @@
     <div class="carousel-content">
       <!-- Logo -->
       <div class="carousel-logo">
-        <mat-icon>inventory_2</mat-icon>
+        <img src="assets/logo.png" alt="InvenControl">
         <span>InvenControl</span>
       </div>
 
@@ -56,9 +56,7 @@
 
       <!-- Logo (mobile + desktop) -->
       <div class="form-logo">
-        <div class="form-logo__icon">
-          <mat-icon>inventory_2</mat-icon>
-        </div>
+        <img src="assets/logo.png" alt="InvenControl" class="form-logo__icon">
         <span class="form-logo__name">InvenControl</span>
       </div>
 
@@ -113,6 +111,8 @@
             <mat-error>La contraseña es obligatoria.</mat-error>
           } @else if (contrasena.hasError('minlength') && contrasena.touched) {
             <mat-error>Mínimo 6 caracteres.</mat-error>
+          } @else if (contrasena.hasError('invalidCredentials')) {
+            <mat-error>Correo o contraseña incorrectos.</mat-error>
           }
         </mat-form-field>
 

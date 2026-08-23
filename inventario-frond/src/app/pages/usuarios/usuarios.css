@@ -221,16 +221,16 @@
 }
 
 /* ── Actions cell ────────────────────────────────────────── */
+/* Antes se ocultaban con opacity:0 y solo aparecían con :hover de la fila.
+   Con los mat-icon-button tan juntos, el área invisible de "touch target"
+   de cada botón (más grande que el ícono visible) se solapaba con la de
+   al lado, así que al acercar el mouse para hacer clic la fila perdía el
+   hover justo a tiempo y los íconos desaparecían. Ahora quedan siempre
+   visibles — más simple y sin ese problema. */
 .actions-cell {
   display: flex;
   align-items: center;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.table-row:hover .actions-cell {
-  opacity: 1;
+  gap: 6px;
 }
 
 .action-btn {
@@ -419,10 +419,6 @@
   animation: fadeOverlay 0.2s ease;
 }
 
-.overlay--dark {
-  background: rgba(10, 10, 30, 0.55);
-}
-
 @keyframes fadeOverlay {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -580,98 +576,8 @@
   gap: 4px;
 }
 
-/* ══════════════════════════════════════════════════════════
-   CONFIRM DIALOG – ELIMINAR
-   ══════════════════════════════════════════════════════════ */
-.confirm-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.22);
-  z-index: 202;
-  width: 380px;
-  max-width: 92vw;
-  padding: 32px 28px 24px;
-  text-align: center;
-  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes popIn {
-  from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
-  to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
-}
-
-.confirm-icon-wrap {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: #fde8e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-}
-
-.confirm-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  color: #ba1a1a;
-}
-
-.confirm-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1b22;
-  margin: 0 0 10px;
-}
-
-.confirm-msg {
-  font-size: 14px;
-  color: #46464f;
-  line-height: 1.5;
-  margin: 0 0 24px;
-}
-
-.confirm-msg strong { color: #1a1b22; }
-
-.confirm-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.btn-cancel-dialog {
-  flex: 1;
-  border-color: #e8eaf0 !important;
-  color: #46464f !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-}
-
-.btn-danger-dialog {
-  flex: 1;
-  background: #ba1a1a !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.btn-danger-dialog[disabled] { opacity: 0.7 !important; }
-
-.spin-icon { animation: spin 1s linear infinite; }
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+/* El diálogo de confirmar-eliminar ahora es el componente compartido
+   <app-confirm-dialog> (src/app/shared/confirm-dialog). */
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {

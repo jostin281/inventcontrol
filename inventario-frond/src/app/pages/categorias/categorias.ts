@@ -10,6 +10,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoriasService, Categoria } from '../../core/services/categorias.service';
+import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 // Re-export Categoria for backwards compatibility
 export type { Categoria };
@@ -22,7 +23,7 @@ export type { Categoria };
     MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule,
     MatTooltipModule, MatRippleModule, MatChipsModule,
-    MatSelectModule
+    MatSelectModule, ConfirmDialog,
   ],
   templateUrl: './categorias.html',
   styleUrl: './categorias.css'

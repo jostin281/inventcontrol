@@ -253,10 +253,6 @@
   <div class="overlay" (click)="cerrarCrear(); cerrarEditar(); cerrarDetalle()"></div>
 }
 
-@if (movimientoEliminar()) {
-  <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
-}
-
 
 <!-- ══════════════════════════════════════════════════════════
      PANEL LATERAL – CREAR MOVIMIENTO
@@ -523,29 +519,14 @@
      DIALOG – CONFIRMAR ELIMINAR
      ══════════════════════════════════════════════════════════ -->
 @if (movimientoEliminar()) {
-  <div class="confirm-dialog" id="dialog-eliminar-mov" role="alertdialog">
-    <div class="confirm-icon-wrap">
-      <mat-icon class="confirm-icon">delete_forever</mat-icon>
-    </div>
-    <h3 class="confirm-title">¿Eliminar movimiento?</h3>
-    <p class="confirm-msg">
-      Se eliminará el registro de
-      <strong>{{ movimientoEliminar()!.tipo }}</strong> de
-      <strong>{{ movimientoEliminar()!.producto }}</strong>.
-      Podrás deshacerlo con la opción en la notificación.
-    </p>
-    <div class="confirm-actions">
-      <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()" id="btn-cancelar-eliminar-mov">
-        Cancelar
-      </button>
-      <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" id="btn-confirmar-eliminar-mov"
-        [disabled]="eliminando()">
-        @if (eliminando()) {
-          <ng-container><mat-icon class="spin-icon">sync</mat-icon> Eliminando…</ng-container>
-        } @else {
-          <ng-container><mat-icon>delete</mat-icon> Sí, eliminar</ng-container>
-        }
-      </button>
-    </div>
-  </div>
+  <app-confirm-dialog
+    titulo="¿Eliminar movimiento?"
+    [cargando]="eliminando()"
+    (cancelar)="cancelarEliminar()"
+    (confirmar)="confirmarEliminar()">
+    Se eliminará el registro de
+    <strong>{{ movimientoEliminar()!.tipo }}</strong> de
+    <strong>{{ movimientoEliminar()!.producto }}</strong>.
+    Podrás deshacerlo con la opción en la notificación.
+  </app-confirm-dialog>
 }

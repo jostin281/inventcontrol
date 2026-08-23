@@ -271,30 +271,13 @@
 
   <!-- CONFIRMAR ELIMINAR -->
   @if (usuarioEliminar()) {
-    <div class="overlay overlay--dark" (click)="cancelarEliminar()"></div>
-    <div class="confirm-dialog" role="alertdialog">
-      <div class="confirm-icon-wrap">
-        <mat-icon class="confirm-icon">delete_forever</mat-icon>
-      </div>
-      <h3 class="confirm-title">¿Eliminar usuario?</h3>
-      <p class="confirm-msg">
-        Estás a punto de eliminar a <strong>{{ usuarioEliminar()!.nombre }}</strong>.
-        Esta acción no se puede deshacer.
-      </p>
-      <div class="confirm-actions">
-        <button mat-stroked-button class="btn-cancel-dialog" (click)="cancelarEliminar()">Cancelar</button>
-        <button mat-flat-button class="btn-danger-dialog" (click)="confirmarEliminar()" [disabled]="eliminando()">
-          <ng-container>
-            @if (eliminando()) {
-              <mat-icon class="spin-icon">sync</mat-icon>
-              <span>Eliminando…</span>
-            } @else {
-              <mat-icon>delete</mat-icon>
-              <span>Sí, eliminar</span>
-            }
-          </ng-container>
-        </button>
-      </div>
-    </div>
+    <app-confirm-dialog
+      titulo="¿Eliminar usuario?"
+      [cargando]="eliminando()"
+      (cancelar)="cancelarEliminar()"
+      (confirmar)="confirmarEliminar()">
+      Estás a punto de eliminar a <strong>{{ usuarioEliminar()!.nombre }}</strong>.
+      Esta acción no se puede deshacer.
+    </app-confirm-dialog>
   }
 </div>

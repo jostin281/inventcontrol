@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { FilaTabla, ColumnaTabla } from './reportes.service';
 
 export interface DatosExport {
@@ -18,7 +21,7 @@ export class ReportesExportService {
    * @param nombre  Nombre base del archivo (sin extensión ni fecha)
    * @param resumen Texto del insight (se incluye como fila de encabezado)
    */
-  exportarExcel(datos: DatosExport, nombre: string, resumen?: string): void {
+  async exportarExcel(datos: DatosExport, nombre: string, resumen?: string): Promise<void> {
     // Construir cabeceras legibles
     const headers = datos.columnas.map(c => c.label);
 
@@ -52,7 +55,16 @@ export class ReportesExportService {
     const fecha     = this.fechaHoy();
     const nombreArch = `reporte-${this.slugify(nombre)}-${fecha}.xlsx`;
 
-    XLSX.writeFile(wb, nombreArch);
+    if (Capacitor.isNativePlatform()) {
+      // En Android (WebView de Capacitor) no existe el mecanismo de descarga
+      // de un navegador de escritorio: XLSX.writeFile() simula un <a download>
+      // que el WebView ignora en silencio. Hay que escribir el archivo en el
+      // sistema de archivos del dispositivo y abrir la hoja "Compartir/Guardar".
+      const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' }) as string;
+      await this.guardarYCompartir(base64, nombreArch);
+    } else {
+      XLSX.writeFile(wb, nombreArch);
+    }
   }
 
   /**
@@ -62,12 +74,12 @@ export class ReportesExportService {
    * @param resumen Insight clave para incluir al pie
    * @param rango   Rango de fechas descriptivo (opcional)
    */
-  exportarPdf(
+  async exportarPdf(
     datos: DatosExport,
     nombre: string,
     resumen?: string,
     rango?: string,
-  ): void {
+  ): Promise<void> {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
 
@@ -153,7 +165,39 @@ export class ReportesExportService {
     }
 
     const nombreArch = `reporte-${this.slugify(nombre)}-${fecha}.pdf`;
-    doc.save(nombreArch);
+
+    if (Capacitor.isNativePlatform()) {
+      // Mismo problema que en Excel: doc.save() depende del <a download>
+      // del navegador, que el WebView de Android no soporta.
+      const base64 = doc.output('datauristring').split(',').pop() as string;
+      await this.guardarYCompartir(base64, nombreArch);
+    } else {
+      doc.save(nombreArch);
+    }
+  }
+
+  // ── Guardado nativo (Android/iOS) ───────────────────────────────
+  /**
+   * Escribe el archivo en el caché de la app y abre la hoja nativa de
+   * "Compartir/Guardar" para que el usuario lo guarde en Descargas,
+   * Drive, lo envíe por WhatsApp, etc. Requiere @capacitor/filesystem
+   * y @capacitor/share (ver instrucciones de instalación).
+   */
+  private async guardarYCompartir(
+    base64: string,
+    nombreArch: string,
+  ): Promise<void> {
+    const archivo = await Filesystem.writeFile({
+      path: nombreArch,
+      data: base64,
+      directory: Directory.Cache,
+    });
+
+    await Share.share({
+      title: nombreArch,
+      url: archivo.uri,
+      dialogTitle: 'Guardar o compartir reporte',
+    });
   }
 
   // ── Helpers ──────────────────────────────────────────────────────

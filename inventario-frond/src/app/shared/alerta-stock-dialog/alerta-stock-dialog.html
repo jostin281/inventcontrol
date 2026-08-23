@@ -1,0 +1,54 @@
+<div class="asd-overlay" (click)="cerrar.emit()"></div>
+
+<div class="asd-dialog" role="alertdialog" aria-modal="true" aria-label="Alerta de stock bajo">
+  <div class="asd-icon-wrap">
+    <mat-icon class="asd-icon">warning</mat-icon>
+  </div>
+
+  <h3 class="asd-title">Tienes productos con poco stock</h3>
+  <p class="asd-subtitle">
+    Revisa el inventario antes de que se agoten por completo.
+  </p>
+
+  <div class="asd-lista">
+    @if (agotados().length > 0) {
+      <div class="asd-grupo">
+        <p class="asd-grupo-titulo asd-grupo-titulo--critico">
+          <mat-icon>remove_shopping_cart</mat-icon>
+          Agotados ({{ agotados().length }})
+        </p>
+        @for (p of agotados(); track p.id) {
+          <div class="asd-item">
+            <span class="asd-item-nombre">{{ p.nombre }}</span>
+            <span class="asd-item-stock asd-item-stock--critico">0 unidades</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (bajos().length > 0) {
+      <div class="asd-grupo">
+        <p class="asd-grupo-titulo asd-grupo-titulo--bajo">
+          <mat-icon>warning</mat-icon>
+          Stock bajo ({{ bajos().length }})
+        </p>
+        @for (p of bajos(); track p.id) {
+          <div class="asd-item">
+            <span class="asd-item-nombre">{{ p.nombre }}</span>
+            <span class="asd-item-stock asd-item-stock--bajo">{{ p.stock }} de {{ p.stockMax }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="asd-actions">
+    <button mat-stroked-button class="asd-btn-cerrar" (click)="cerrar.emit()">
+      Cerrar
+    </button>
+    <button mat-flat-button class="asd-btn-ver" (click)="verProductos.emit()">
+      <mat-icon>inventory_2</mat-icon>
+      Ver productos
+    </button>
+  </div>
+</div>
