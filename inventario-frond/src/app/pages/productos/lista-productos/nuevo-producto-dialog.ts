@@ -45,12 +45,14 @@ export class NuevoProductoDialog {
 
   // Imagen preview
   imagenPreview: string | null = null;
+  imagenError: string | null = null;
 
   form = this.fb.group({
     nombre:       ['', [Validators.required, Validators.minLength(2)]],
     categoria:    ['', Validators.required],
     descripcion:  [''],
     precio:       [null as number | null, [Validators.required, Validators.min(0)]],
+    stock:        [0, [Validators.required, Validators.min(0)]],
     stockMinimo:  [1, [Validators.required, Validators.min(0)]],
     proveedor:    [''],
     sku:          [''],
@@ -62,13 +64,22 @@ export class NuevoProductoDialog {
 
   onImagenChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.imagenPreview = e.target?.result as string;
-      };
-      reader.readAsDataURL(input.files[0]);
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.imagenError = null;
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.imagenError = 'La imagen no puede superar 5 MB';
+      input.value = '';
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.imagenPreview = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   cancelar(): void {

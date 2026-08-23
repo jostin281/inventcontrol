@@ -247,5 +247,14 @@
     </div>
     <!-- ╚══════════════════════════════════════════════════╝ -->
 
+    <!-- Modal de alerta de stock bajo/agotado (una sola vez por sesión) -->
+    @if (mostrarAlertaLogin()) {
+      <app-alerta-stock-dialog
+        [productos]="productosAlertaLogin()"
+        (cerrar)="cerrarAlertaLogin()"
+        (verProductos)="irAProductosDesdeAlerta()"
+      />
+    }
+
   </div>
 }

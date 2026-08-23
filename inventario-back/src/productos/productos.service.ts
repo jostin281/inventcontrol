@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Producto } from './producto.entity';
@@ -22,14 +22,26 @@ export class ProductosService {
   }
 
   create(data: Partial<Producto>, companyId: number): Promise<Producto> {
+    this._validarImagen(data.imagen);
     const producto = this.repo.create({ ...data, companyId });
     return this.repo.save(producto);
   }
 
   async update(id: number, data: Partial<Producto>, companyId: number): Promise<Producto> {
+    this._validarImagen(data.imagen);
     await this.findOne(id, companyId); // verifica pertenencia
     await this.repo.update(id, sanitizeUpdate(data));
     return this.findOne(id, companyId);
+  }
+
+  /** Mismo límite que ya anuncia el formulario ("PNG, JPG hasta 5MB"). */
+  private _validarImagen(imagen: string | undefined): void {
+    if (!imagen) return;
+    const base64 = imagen.split(',')[1] ?? imagen;
+    const bytesAprox = (base64.length * 3) / 4;
+    if (bytesAprox > 5 * 1024 * 1024) {
+      throw new BadRequestException('La imagen no puede superar 5 MB');
+    }
   }
 
   async remove(id: number, companyId: number): Promise<{ eliminado: boolean }> {

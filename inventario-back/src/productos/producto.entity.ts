@@ -34,7 +34,11 @@ export class Producto {
   @Column({ type: 'text', default: '' })
   descripcion: string;
 
-  @Column({ length: 255, default: '' })
+  // Data URL completa del producto (ej. "data:image/png;base64,...."). Antes
+  // era varchar(255) — cualquier foto real (base64 siempre pasa de miles de
+  // caracteres) hacía fallar el guardado completo con un error de Postgres
+  // ("value too long"), por eso "Nuevo Producto" con imagen nunca funcionaba.
+  @Column({ type: 'text', default: '' })
   imagen: string;
 
   @Column({ length: 20, default: '#f0f0f7' })

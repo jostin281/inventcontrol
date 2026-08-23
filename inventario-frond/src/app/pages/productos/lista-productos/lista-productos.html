@@ -64,7 +64,11 @@
       <td mat-cell *matCellDef="let p">
         <div class="product-cell">
           <div class="product-thumb" [style.background]="p.categoriaColor">
-            <span class="product-initial">{{ getInitials(p.nombre) }}</span>
+            @if (p.imagen) {
+              <img [src]="p.imagen" [alt]="p.nombre" class="product-thumb-img">
+            } @else {
+              <span class="product-initial">{{ getInitials(p.nombre) }}</span>
+            }
           </div>
           <div class="product-info">
             <span class="product-name">{{ p.nombre }}</span>
@@ -213,7 +217,11 @@
     <div class="panel-body">
       <!-- Thumbnail grande -->
       <div class="detail-thumb" [style.background]="productoViendo()!.categoriaColor">
-        <span class="detail-initial">{{ getInitials(productoViendo()!.nombre) }}</span>
+        @if (productoViendo()!.imagen) {
+          <img [src]="productoViendo()!.imagen" [alt]="productoViendo()!.nombre" class="detail-thumb-img">
+        } @else {
+          <span class="detail-initial">{{ getInitials(productoViendo()!.nombre) }}</span>
+        }
       </div>
 
       <h3 class="detail-name">{{ productoViendo()!.nombre }}</h3>
@@ -296,7 +304,11 @@
     <div class="panel-body" [formGroup]="editForm">
 
       <div class="edit-thumb" [style.background]="productoEditando()!.categoriaColor">
-        <span class="detail-initial">{{ getInitials(productoEditando()!.nombre) }}</span>
+        @if (productoEditando()!.imagen) {
+          <img [src]="productoEditando()!.imagen" [alt]="productoEditando()!.nombre" class="detail-thumb-img">
+        } @else {
+          <span class="detail-initial">{{ getInitials(productoEditando()!.nombre) }}</span>
+        }
       </div>
 
       <mat-form-field appearance="outline" class="full-field">

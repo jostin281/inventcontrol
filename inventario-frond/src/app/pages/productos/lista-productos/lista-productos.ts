@@ -14,6 +14,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatRippleModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NuevoProductoDialog } from './nuevo-producto-dialog';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
@@ -37,6 +38,7 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 export class ListaProductos implements OnInit {
   private dialog = inject(MatDialog);
   private fb     = inject(FormBuilder);
+  private snack  = inject(MatSnackBar);
   private productosService  = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proveedoresService= inject(ProveedoresService);
@@ -129,18 +131,28 @@ export class ListaProductos implements OnInit {
 
     ref.afterClosed().subscribe(resultado => {
       if (!resultado) return;
+      const stockInicial = resultado.stock ?? 0;
       this.productosService.create({
         imagen:        resultado.imagen ?? '',
         nombre:        resultado.nombre,
         categoria:     resultado.categoria,
-        stock:         0,
-        stockMax:      resultado.stockMinimo * 10 || 20,
+        stock:         stockInicial,
+        // El stock máximo (referencia para la barra y la alerta de "stock
+        // bajo") tiene que quedar por encima del stock inicial que
+        // acabas de ingresar, si no la barra se ve "desbordada" desde el
+        // primer momento (ej. 50/25).
+        stockMax:      Math.max(20, (resultado.stockMinimo || 0) * 10, stockInicial * 2),
         precio:        resultado.precio ?? 0,
         proveedor:     resultado.proveedor || 'Sin proveedor',
         sku:           resultado.sku ?? '',
         descripcion:   resultado.descripcion ?? '',
         categoriaColor: '#f0f0f7',
-      }).subscribe();
+      }).subscribe({
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar el producto';
+          this.snack.open('✕ ' + msg, 'OK', { duration: 4500, panelClass: ['snack-error'] });
+        }
+      });
     });
   }
 
@@ -194,7 +206,12 @@ export class ListaProductos implements OnInit {
       proveedor:   v.proveedor || 'Sin proveedor',
       sku:         v.sku ?? '',
       descripcion: v.descripcion ?? '',
-    }).subscribe();
+    }).subscribe({
+      error: (err) => {
+        const msg = err?.error?.message || 'No se pudo guardar los cambios';
+        this.snack.open('✕ ' + msg, 'OK', { duration: 4500, panelClass: ['snack-error'] });
+      }
+    });
     this.cerrarEditar();
   }
 

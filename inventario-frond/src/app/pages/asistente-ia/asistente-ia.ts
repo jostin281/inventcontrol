@@ -276,6 +276,22 @@ export class AsistenteIa {
       return;
     }
 
+    // Aunque el plan sea Pro, ejecutar crear/editar/eliminar/generar reporte
+    // requiere tener una API key real activa: el reconocimiento de estas
+    // órdenes es local (IntentParserService, sin llamar a ninguna IA), así
+    // que sin este chequeo el asistente "creaba" cosas de verdad sin que
+    // ninguna clave estuviera configurada.
+    if (this.intentParser.isWriteAction(intent.action) && this.plan() === 'pro' && !this.hasApiKey()) {
+      this._scheduleAssistant(() => {
+        this._pushAssistantMessage(
+          '🔑 **Configura tu API key de OpenAI** para que el Plan Pro pueda ejecutar acciones reales sobre el sistema.\n\n' +
+          'Haz clic en el ícono de **configuración (⚙️)** en la esquina superior derecha para ingresar tu clave de [OpenAI Platform](https://platform.openai.com/api-keys).',
+          'error'
+        );
+      });
+      return;
+    }
+
     // Destructive actions require confirmation
     if (this.intentParser.isDestructiveAction(intent.action) && this.plan() === 'pro') {
       const nombreEntidad = intent.nombre ? `"${intent.nombre}"` : 'este elemento';

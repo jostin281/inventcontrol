@@ -41,6 +41,9 @@
       </label>
       <div class="image-hint">
         <p class="hint-text">Clic para subir imagen<br><span>PNG, JPG hasta 5MB</span></p>
+        @if (imagenError) {
+          <p class="hint-text" style="color:#ba1a1a">{{ imagenError }}</p>
+        }
       </div>
     </div>
 
@@ -76,14 +79,23 @@
       </mat-form-field>
     </div>
 
-    <!-- Precio + Stock mínimo (2 columnas) -->
-    <div class="form-row-2">
+    <!-- Precio + Stock inicial + Stock mínimo (3 columnas) -->
+    <div class="form-row-3">
       <mat-form-field appearance="outline">
         <mat-label>Precio</mat-label>
         <input matInput type="number" formControlName="precio" placeholder="0.00" id="input-precio" />
         <mat-icon matPrefix>attach_money</mat-icon>
         @if (form.get('precio')?.hasError('required') && form.get('precio')?.touched) {
           <mat-error>El precio es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Stock inicial</mat-label>
+        <input matInput type="number" formControlName="stock" placeholder="0" id="input-stock" />
+        <mat-icon matPrefix>inventory_2</mat-icon>
+        @if (form.get('stock')?.hasError('required') && form.get('stock')?.touched) {
+          <mat-error>Indica cuánto stock tienes</mat-error>
         }
       </mat-form-field>
 
