@@ -28,6 +28,18 @@ async function bootstrap() {
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
+  // TEMPORAL (debug): loguea cada petición entrante y su respuesta, para
+  // diagnosticar por qué el registro desde la app móvil no completaba.
+  // Se puede borrar este bloque una vez resuelto.
+  app.use((req: any, res: any, next: any) => {
+    const inicio = Date.now();
+    console.log(`--> ${req.method} ${req.originalUrl} desde origin=${req.headers.origin ?? '(sin origin)'}`);
+    res.on('finish', () => {
+      console.log(`<-- ${req.method} ${req.originalUrl} status=${res.statusCode} (${Date.now() - inicio}ms)`);
+    });
+    next();
+  });
+
   // Orígenes permitidos por CORS. En producción, el frontend se sirve
   // normalmente desde el mismo dominio (proxy de nginx), así que CORS no
   // debería ni activarse; aun así se deja configurable vía FRONTEND_URL

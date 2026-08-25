@@ -103,6 +103,8 @@
               <mat-error>Campo obligatorio.</mat-error>
             } @else if (correo.hasError('email') && correo.touched) {
               <mat-error>Correo inválido.</mat-error>
+            } @else if (correo.hasError('emailTaken')) {
+              <mat-error>Ese correo ya está registrado.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -149,6 +151,10 @@
             }
           </mat-form-field>
         </div>
+
+        @if (form.hasError('serverError')) {
+          <p class="server-error-msg">No se pudo crear la cuenta. Verificá tu conexión e intentá de nuevo.</p>
+        }
 
         <!-- Botón submit -->
         <button mat-raised-button class="submit-btn" type="submit"

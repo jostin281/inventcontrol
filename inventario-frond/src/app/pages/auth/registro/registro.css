@@ -268,3 +268,11 @@
 @media (max-width: 520px) {
   .form-row { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* ── Error de servidor (registro fallido) ────────────────── */
+.server-error-msg {
+  color: #c62828;
+  font-size: 0.8rem;
+  margin: -4px 0 8px;
+  text-align: center;
+}
