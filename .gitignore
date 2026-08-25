@@ -1,8 +1,9 @@
-# Node and package lock files
+# Node modules (los lockfiles SI se versionan a proposito: npm ci
+# los necesita para builds reproducibles, incluido el build de Docker
+# en Render, que clona desde GitHub y no tiene tu node_modules local).
 node_modules/
 pnpm-lock.yaml
 yarn.lock
-package-lock.json
 
 # Build output
 dist/
