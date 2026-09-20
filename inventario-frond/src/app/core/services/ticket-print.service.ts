@@ -28,6 +28,8 @@ export interface PosTicketData {
   fecha?: string | Date;
   items: TicketItem[];
   total: number;
+  montoRecibido?: number;
+  cambio?: number;
   paperWidth?: '58mm' | '80mm';
   nombreNegocio?: string;
 }
@@ -203,6 +205,10 @@ export class TicketPrintService {
 
           <div class="total-section">
             <div>TOTAL COBRADO: $${data.total.toFixed(2)}</div>
+            ${data.montoRecibido !== undefined && data.montoRecibido !== null && data.montoRecibido > 0 ? `
+              <div style="font-size: 10px; font-weight: normal; margin-top: 2px;">RECIBIDO: $${data.montoRecibido.toFixed(2)}</div>
+              <div style="font-size: 11px; margin-top: 1px;">CAMBIO: $${(data.cambio || 0).toFixed(2)}</div>
+            ` : ''}
           </div>
 
           <div class="footer-section">

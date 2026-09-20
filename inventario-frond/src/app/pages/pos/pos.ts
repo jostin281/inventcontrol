@@ -62,12 +62,20 @@ export class PosComponent implements OnInit {
   metodoPago = 'Efectivo';
   anchoPapel: '58mm' | '80mm' = '80mm';
 
+  // Escaneo directo de código
+  codigoDirectoInput = signal('');
+
+  // Calculadora de Vuelto / Cambio en Efectivo
+  dineroRecibido = signal<number | null>(null);
+
   // Carrito de compras
   cart = signal<CartItem[]>([]);
   procesandoCobro = signal(false);
 
   // Modal de confirmación tras finalizar la venta
   ultimaVentaExitosa = signal<PosCheckoutResponse | null>(null);
+  ultimoMontoRecibido = signal<number | null>(null);
+  ultimoVuelto = signal<number>(0);
 
   // Listas computadas de catálogo
   categorias = computed(() => ['Todas', ...this.categoriasSvc.categorias().map(c => c.nombre)]);
@@ -94,6 +102,22 @@ export class PosComponent implements OnInit {
     return Math.round(this.cart().reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0) * 100) / 100;
   });
 
+  // Vuelto computado a entregar
+  vuelto = computed(() => {
+    const rec = this.dineroRecibido();
+    const total = this.totalVenta();
+    if (rec === null || rec === undefined || isNaN(rec) || rec <= 0) return 0;
+    return Math.max(0, Math.round((rec - total) * 100) / 100);
+  });
+
+  // Faltante computado en caso de monto insuficiente
+  faltante = computed(() => {
+    const rec = this.dineroRecibido();
+    const total = this.totalVenta();
+    if (rec === null || rec === undefined || isNaN(rec) || rec <= 0) return 0;
+    return Math.max(0, Math.round((total - rec) * 100) / 100);
+  });
+
   ngOnInit(): void {
     this.cargarDatos();
   }
@@ -105,6 +129,24 @@ export class PosComponent implements OnInit {
       next: () => this.isLoading.set(false),
       error: () => this.isLoading.set(false),
     });
+  }
+
+  // ── Escaneo Rápido Directo ("de una") ──────────────────────
+  procesarCodigoDirecto(): void {
+    const code = this.codigoDirectoInput().trim();
+    if (!code) return;
+    this.procesarEscaneoCodigo(code);
+    this.codigoDirectoInput.set('');
+
+    // Reenfocar automáticamente para seguir escaneando sin usar el mouse
+    setTimeout(() => {
+      const el = document.getElementById('input-codigo-directo') as HTMLInputElement;
+      if (el) el.focus();
+    }, 60);
+  }
+
+  fijarDineroRecibido(monto: number): void {
+    this.dineroRecibido.set(monto);
   }
 
   // ── Lógica del Carrito ─────────────────────────────────────
@@ -182,11 +224,12 @@ export class PosComponent implements OnInit {
 
   vaciarCarrito(): void {
     this.cart.set([]);
+    this.dineroRecibido.set(null);
   }
 
-  // ── Escáner de Código de Barras ────────────────────────────
+  // ── Escáner de Código de Barras Modal ──────────────────────
   abrirEscaner(): void {
-    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '92vw', maxWidth: '460px' });
     ref.afterClosed().subscribe((codigo: string | null) => {
       if (codigo) {
         this.procesarEscaneoCodigo(codigo);
@@ -218,8 +261,24 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    // Validación de Dinero Recibido si es pago en Efectivo
+    if (this.metodoPago === 'Efectivo' && this.dineroRecibido() !== null && this.dineroRecibido()! > 0) {
+      if (this.dineroRecibido()! < this.totalVenta()) {
+        this.snack.open(`✕ El dinero recibido ($${this.dineroRecibido()!.toFixed(2)}) es menor al total. Faltan $${this.faltante().toFixed(2)}`, 'Entendido', {
+          duration: 4000,
+          panelClass: ['snack-error'],
+        });
+        return;
+      }
+    }
+
     if (this.procesandoCobro()) return; // Protección contra doble clic
     this.procesandoCobro.set(true);
+
+    const rec = this.metodoPago === 'Efectivo' ? (this.dineroRecibido() || this.totalVenta()) : null;
+    const vue = this.metodoPago === 'Efectivo' ? this.vuelto() : 0;
+    this.ultimoMontoRecibido.set(rec);
+    this.ultimoVuelto.set(vue);
 
     const payload = {
       cliente: this.clienteNombre || 'Cliente Mostrador',
@@ -235,7 +294,7 @@ export class PosComponent implements OnInit {
         this.procesandoCobro.set(false);
         this.ultimaVentaExitosa.set(response);
 
-        // Imprimir ticket automáticamente
+        // Imprimir ticket automáticamente con vuelto y dinero recibido
         this.imprimirTicketRespuesta(response);
 
         // Refrescar inventario en toda la app
@@ -273,6 +332,8 @@ export class PosComponent implements OnInit {
       metodoPago: res.metodoPago,
       items: itemsTicket,
       total: res.total,
+      montoRecibido: this.ultimoMontoRecibido() || undefined,
+      cambio: this.ultimoVuelto(),
       paperWidth: this.anchoPapel,
       nombreNegocio: 'INVENTCONTROL - POS',
     });
@@ -280,6 +341,8 @@ export class PosComponent implements OnInit {
 
   cerrarModalExito(): void {
     this.ultimaVentaExitosa.set(null);
+    this.ultimoMontoRecibido.set(null);
+    this.ultimoVuelto.set(0);
   }
 
   getInitials(nombre: string): string {

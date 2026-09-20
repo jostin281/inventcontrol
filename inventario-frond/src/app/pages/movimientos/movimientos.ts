@@ -180,7 +180,7 @@ export class Movimientos implements OnInit, AfterViewInit {
 
   // ── Escaneo de Códigos ────────────────────────────────────────
   abrirEscaneoFiltro(): void {
-    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '92vw', maxWidth: '460px' });
     ref.afterClosed().subscribe((codigo: string | null) => {
       if (codigo) {
         this.busqueda.set(codigo);
@@ -190,7 +190,7 @@ export class Movimientos implements OnInit, AfterViewInit {
   }
 
   abrirEscaneoProducto(): void {
-    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '92vw', maxWidth: '460px' });
     ref.afterClosed().subscribe((codigo: string | null) => {
       if (codigo) {
         const clean = codigo.trim().toLowerCase();

@@ -13,23 +13,50 @@
     <div class="header-actions">
       <button mat-flat-button color="primary" class="btn-scan-header" (click)="abrirEscaner()" id="btn-scan-header">
         <mat-icon>qr_code_scanner</mat-icon>
-        Escanear Código
+        Escanear con Cámara
       </button>
     </div>
   </header>
 
-  <!-- Layout Principal de 2 Columnas (Adaptable a pantallas táctiles y móviles) -->
+  <!-- Layout Principal de 2 Columnas -->
   <div class="pos-grid">
-    <!-- COLUMNA IZQUIERDA: Catálogo y Búsqueda -->
+    <!-- COLUMNA IZQUIERDA: Catálogo, Escáner Rápido y Búsqueda -->
     <section class="catalog-section">
-      <!-- Buscador e icono de cámara -->
+
+      <!-- ZONA DE ESCANEO RÁPIDO "DE UNA" (Lector Físico / Teclado) -->
+      <div class="fast-scan-box">
+        <mat-icon class="fast-scan-icon">barcode_reader</mat-icon>
+        <input
+          type="text"
+          class="fast-scan-input"
+          placeholder="Ingresa o escanea un código / SKU (de una)..."
+          [ngModel]="codigoDirectoInput()"
+          (ngModelChange)="codigoDirectoInput.set($event)"
+          (keyup.enter)="procesarCodigoDirecto()"
+          id="input-codigo-directo"
+          autofocus
+        />
+        <button
+          mat-flat-button
+          color="primary"
+          class="btn-fast-add"
+          [disabled]="!codigoDirectoInput().trim()"
+          (click)="procesarCodigoDirecto()"
+          id="btn-fast-add"
+        >
+          <mat-icon>add_shopping_cart</mat-icon>
+          <span class="fast-btn-text">Agregar</span>
+        </button>
+      </div>
+
+      <!-- Buscador y Botón de Cámara -->
       <div class="search-bar-row">
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
           <input
             type="text"
             class="search-input"
-            placeholder="Buscar por nombre, SKU o código de barras…"
+            placeholder="Buscar por nombre, SKU o categoría…"
             [ngModel]="busquedaStr()"
             (ngModelChange)="busquedaStr.set($event)"
             id="input-pos-search"
@@ -49,7 +76,7 @@
           mat-stroked-button
           class="btn-scan-action"
           (click)="abrirEscaner()"
-          matTooltip="Activar cámara escáner de código de barras"
+          matTooltip="Activar cámara escáner"
           id="btn-pos-scan-cam"
         >
           <mat-icon color="primary">qr_code_scanner</mat-icon>
@@ -129,7 +156,7 @@
       </div>
     </section>
 
-    <!-- COLUMNA DERECHA: Carrito de Venta y Cobro -->
+    <!-- COLUMNA DERECHA: Carrito de Venta, Calculadora de Vuelto y Cobro -->
     <aside class="cart-section">
       <div class="cart-card">
         <div class="cart-header">
@@ -153,14 +180,14 @@
 
         <!-- Datos del Cliente y Método de Pago -->
         <div class="cart-inputs-group">
-          <mat-form-field appearance="outline" class="input-full">
+          <mat-form-field appearance="outline" class="input-full compact-field">
             <mat-label>Cliente</mat-label>
             <input matInput [(ngModel)]="clienteNombre" placeholder="Cliente Mostrador" id="input-pos-cliente" />
             <mat-icon matPrefix>person</mat-icon>
           </mat-form-field>
 
           <div class="inputs-row">
-            <mat-form-field appearance="outline" class="input-half">
+            <mat-form-field appearance="outline" class="input-half compact-field">
               <mat-label>Método de Pago</mat-label>
               <mat-select [(ngModel)]="metodoPago" id="select-pos-pago">
                 <mat-option value="Efectivo">Efectivo</mat-option>
@@ -171,14 +198,66 @@
               <mat-icon matPrefix>payments</mat-icon>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="input-half">
+            <mat-form-field appearance="outline" class="input-half compact-field">
               <mat-label>Papel Ticket</mat-label>
               <mat-select [(ngModel)]="anchoPapel" id="select-pos-papel">
-                <mat-option value="80mm">80 mm (Térmica Estándar)</mat-option>
-                <mat-option value="58mm">58 mm (Térmica Móvil)</mat-option>
+                <mat-option value="80mm">80 mm (Estándar)</mat-option>
+                <mat-option value="58mm">58 mm (Móvil)</mat-option>
               </mat-select>
               <mat-icon matPrefix>print</mat-icon>
             </mat-form-field>
+          </div>
+        </div>
+
+        <!-- CALCULADORA DE VUELTO / CAMBIO (Solo en Pago con Efectivo) -->
+        <div *ngIf="metodoPago === 'Efectivo' && cart().length > 0" class="cash-calc-wrapper">
+          <div class="cash-input-row">
+            <mat-form-field appearance="outline" class="input-full compact-field">
+              <mat-label>Dinero Recibido ($)</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="0.01"
+                [ngModel]="dineroRecibido()"
+                (ngModelChange)="dineroRecibido.set($event)"
+                placeholder="Ej: 20.00"
+                id="input-dinero-recibido"
+              />
+              <mat-icon matPrefix>attach_money</mat-icon>
+              <button
+                *ngIf="dineroRecibido()"
+                matSuffix
+                mat-icon-button
+                aria-label="Limpiar"
+                (click)="dineroRecibido.set(null)"
+                type="button"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+          </div>
+
+          <!-- Montos rápidos en tap -->
+          <div class="quick-cash-chips">
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(totalVenta())">Exacto</button>
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(5)">$5</button>
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(10)">$10</button>
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(20)">$20</button>
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(50)">$50</button>
+            <button type="button" class="cash-chip" (click)="fijarDineroRecibido(100)">$100</button>
+          </div>
+
+          <!-- Display de Vuelto -->
+          <div *ngIf="dineroRecibido() !== null && dineroRecibido()! > 0" class="change-card" [class.insufficient]="dineroRecibido()! < totalVenta()">
+            <div *ngIf="dineroRecibido()! >= totalVenta()" class="change-content">
+              <span class="change-title">CAMBIO / VUELTO A ENTREGAR:</span>
+              <span class="change-val">${{ vuelto() | number:'1.2-2' }}</span>
+            </div>
+            <div *ngIf="dineroRecibido()! < totalVenta()" class="insufficient-content">
+              <span class="insufficient-title">MONTO INSUFICIENTE:</span>
+              <span class="insufficient-val">Faltan ${{ faltante() | number:'1.2-2' }}</span>
+            </div>
           </div>
         </div>
 
@@ -244,7 +323,7 @@
             <div class="empty-cart-box">
               <mat-icon class="cart-empty-icon">remove_shopping_cart</mat-icon>
               <p>El carrito está vacío</p>
-              <span>Haz clic en un producto o escanea un código para comenzar la venta</span>
+              <span>Escanea o ingresa un código de barras para comenzar la venta</span>
             </div>
           }
         </div>
@@ -264,7 +343,7 @@
             mat-flat-button
             color="primary"
             class="btn-checkout"
-            [disabled]="cart().length === 0 || procesandoCobro()"
+            [disabled]="cart().length === 0 || procesandoCobro() || (metodoPago === 'Efectivo' && dineroRecibido() !== null && dineroRecibido()! > 0 && dineroRecibido()! < totalVenta())"
             (click)="finalizarVenta()"
             id="btn-checkout-pos"
           >
@@ -286,7 +365,7 @@
   </div>
 </div>
 
-<!-- Modal de Confirmación de Venta Exitosa -->
+<!-- Modal de Confirmación de Venta Exitosa con Cambio -->
 @if (ultimaVentaExitosa()) {
   <div class="modal-overlay">
     <div class="success-card">
@@ -308,6 +387,15 @@
         <div class="detail-row highlight-row">
           <span>Total Cobrado:</span>
           <strong class="success-total">${{ ultimaVentaExitosa()!.total | number:'1.2-2' }}</strong>
+        </div>
+
+        <div *ngIf="ultimoMontoRecibido() && ultimoMontoRecibido()! > 0" class="detail-row">
+          <span>Dinero Recibido:</span>
+          <strong>${{ ultimoMontoRecibido()! | number:'1.2-2' }}</strong>
+        </div>
+        <div *ngIf="ultimoMontoRecibido() && ultimoMontoRecibido()! > 0" class="detail-row highlight-vuelto">
+          <span>Cambio / Vuelto:</span>
+          <strong class="vuelto-total">${{ ultimoVuelto() | number:'1.2-2' }}</strong>
         </div>
       </div>
 

@@ -67,7 +67,7 @@ export class NuevoVentaDialog implements OnInit {
   }
 
   abrirEscaneoBarcode(): void {
-    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '92vw', maxWidth: '460px' });
     ref.afterClosed().subscribe((codigo: string | null) => {
       if (codigo) {
         this.procesarCodigoEscaneado(codigo);

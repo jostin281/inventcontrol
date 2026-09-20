@@ -124,7 +124,7 @@ export class ListaProductos implements OnInit {
 
   // ── Escaneo e Impresión de Etiquetas ───────────────────────
   abrirEscaneoFiltro(): void {
-    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '92vw', maxWidth: '460px' });
     ref.afterClosed().subscribe((codigo: string | null) => {
       if (codigo) {
         this.busqueda.set(codigo);

@@ -7,6 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 @Component({
   selector: 'app-barcode-scanner-modal',
@@ -20,13 +22,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
+    MatSelectModule,
   ],
   template: `
     <div class="scanner-container">
       <div class="scanner-header">
         <h2 mat-dialog-title>
           <mat-icon color="primary">qr_code_scanner</mat-icon>
-          Escanear Código (Laptop / Móvil)
+          Escanear Código
         </h2>
         <div class="header-actions">
           <button
@@ -46,9 +49,22 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       </div>
 
       <mat-dialog-content class="dialog-content">
+        <!-- Selector de Cámara si hay múltiples -->
+        <div *ngIf="availableCameras.length > 1" class="camera-select-row">
+          <mat-form-field appearance="outline" class="full-width compact-field">
+            <mat-label>Seleccionar Cámara</mat-label>
+            <mat-select [ngModel]="selectedCameraId" (ngModelChange)="onSelectCamera($event)">
+              <mat-option *ngFor="let cam of availableCameras" [value]="cam.deviceId">
+                {{ cam.label || 'Cámara (' + cam.deviceId.substring(0, 6) + '...)' }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>videocam</mat-icon>
+          </mat-form-field>
+        </div>
+
         <!-- Vista previa de cámara (funciona en Laptop y Teléfonos) -->
         <div class="video-wrapper">
-          <video #videoElement autoplay playsinline muted class="camera-video" [class.hidden]="!cameraActive()"></video>
+          <video #videoElement playsinline muted class="camera-video" [class.hidden]="!cameraActive()"></video>
 
           <div *ngIf="cameraActive()" class="scan-overlay">
             <div class="scan-box">
@@ -59,15 +75,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
               <div class="laser-line"></div>
             </div>
             <p class="scan-hint">
-              {{ isMobile ? 'Apunta la cámara de tu teléfono al código' : 'Apunta la cámara de la laptop al código' }}
+              {{ isMobile ? 'Apunta la cámara del teléfono al código de barras' : 'Apunta el código de barras a la cámara' }}
             </p>
           </div>
 
           <div *ngIf="!cameraActive()" class="no-camera-box">
             <mat-icon class="large-icon">videocam_off</mat-icon>
-            <p>{{ cameraStatus() }}</p>
-            <button mat-stroked-button color="primary" (click)="iniciarCamara()">
-              <mat-icon>videocam</mat-icon> Reintentar Cámara
+            <p class="status-msg">{{ cameraStatus() }}</p>
+            <button mat-flat-button color="primary" (click)="iniciarCamara()">
+              <mat-icon>videocam</mat-icon> Activar Cámara
             </button>
           </div>
         </div>
@@ -75,7 +91,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         <!-- Entrada manual / Lector físico USB o Bluetooth -->
         <div class="manual-input-section">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Código de barras / SKU manual o lector USB</mat-label>
+            <mat-label>Código manual o lector USB/Bluetooth</mat-label>
             <input
               matInput
               #manualInput
@@ -101,9 +117,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+    }
     .scanner-container {
-      padding: 8px;
-      max-width: 480px;
+      padding: 8px 12px;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .scanner-header {
       display: flex;
@@ -114,33 +136,43 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     .scanner-header h2 {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       margin: 0;
-      font-size: 1.15rem;
-      font-weight: 600;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
     }
     .header-actions {
       display: flex;
       align-items: center;
       gap: 4px;
+      flex-shrink: 0;
     }
     .dialog-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding: 0 4px !important;
-      overflow: hidden;
+      gap: 10px;
+      padding: 0 !important;
+      max-height: 80vh;
+      overflow-x: hidden;
+    }
+    .camera-select-row {
+      margin-bottom: -4px;
+    }
+    .compact-field {
+      font-size: 0.85rem;
     }
     .video-wrapper {
       position: relative;
       width: 100%;
-      height: 260px;
+      height: clamp(200px, 38vh, 280px);
       background: #0f172a;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
     }
     .camera-video {
       width: 100%;
@@ -157,49 +189,53 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.3);
+      pointer-events: none;
     }
     .scan-box {
       position: relative;
-      width: 230px;
+      width: 240px;
       height: 140px;
       border: 1px dashed rgba(255, 255, 255, 0.4);
-      border-radius: 8px;
+      border-radius: 12px;
     }
     .corner {
       position: absolute;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       border-color: #6366f1;
       border-style: solid;
     }
-    .top-left { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-top-left-radius: 6px; }
-    .top-right { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-top-right-radius: 6px; }
-    .bottom-left { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-bottom-left-radius: 6px; }
-    .bottom-right { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-bottom-right-radius: 6px; }
+    .top-left { top: -2px; left: -2px; border-width: 3.5px 0 0 3.5px; border-top-left-radius: 8px; }
+    .top-right { top: -2px; right: -2px; border-width: 3.5px 3.5px 0 0; border-top-right-radius: 8px; }
+    .bottom-left { bottom: -2px; left: -2px; border-width: 0 0 3.5px 3.5px; border-bottom-left-radius: 8px; }
+    .bottom-right { bottom: -2px; right: -2px; border-width: 0 3.5px 3.5px 0; border-bottom-right-radius: 8px; }
 
     .laser-line {
       position: absolute;
-      left: 8px;
-      right: 8px;
+      left: 10px;
+      right: 10px;
       height: 3px;
       background: #ef4444;
-      box-shadow: 0 0 8px #ef4444;
-      animation: scan 2s infinite ease-in-out;
+      box-shadow: 0 0 10px #ef4444;
+      border-radius: 2px;
+      animation: scan 2.2s infinite ease-in-out;
     }
     @keyframes scan {
-      0% { top: 10px; }
+      0% { top: 12px; }
       50% { top: 120px; }
-      100% { top: 10px; }
+      100% { top: 12px; }
     }
     .scan-hint {
       color: #ffffff;
-      font-size: 0.82rem;
-      margin-top: 12px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-top: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 5px 14px;
       border-radius: 20px;
       text-align: center;
+      backdrop-filter: blur(4px);
     }
     .no-camera-box {
       display: flex;
@@ -208,8 +244,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
       justify-content: center;
       color: #94a3b8;
       text-align: center;
-      padding: 16px;
-      gap: 8px;
+      padding: 20px;
+      gap: 10px;
+    }
+    .status-msg {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin: 0;
+      max-width: 280px;
+      line-height: 1.4;
     }
     .large-icon {
       font-size: 48px;
@@ -222,6 +265,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     }
     .full-width {
       width: 100%;
+    }
+    .dialog-actions {
+      margin-top: 4px;
+      padding: 8px 0 0 0 !important;
     }
   `]
 })
@@ -238,12 +285,13 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
   availableCameras: MediaDeviceInfo[] = [];
   selectedCameraId: string | null = null;
 
-  private mediaStream: MediaStream | null = null;
-  private animFrameId: number | null = null;
-  private canvasElement: HTMLCanvasElement = document.createElement('canvas');
+  private codeReader: BrowserMultiFormatReader | null = null;
+  private isScanning = false;
+  private hasScanned = false;
 
   ngOnInit(): void {
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    this.initZXingReader();
     this.iniciarCamara();
   }
 
@@ -251,15 +299,38 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
     this.detenerCamara();
   }
 
+  private initZXingReader(): void {
+    const hints = new Map<DecodeHintType, any>();
+    const formats = [
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.ITF,
+    ];
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+
+    this.codeReader = new BrowserMultiFormatReader(hints);
+  }
+
   async cargarDispositivos(): Promise<void> {
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        this.availableCameras = devices.filter(d => d.kind === 'videoinput');
+      if (this.codeReader) {
+        const devices = await this.codeReader.listVideoInputDevices();
+        this.availableCameras = devices;
       }
     } catch (e) {
-      console.warn('No se pudieron listar cámaras:', e);
+      console.warn('No se pudieron listar cámaras con ZXing:', e);
     }
+  }
+
+  async onSelectCamera(deviceId: string): Promise<void> {
+    this.selectedCameraId = deviceId;
+    await this.iniciarCamara(deviceId);
   }
 
   async cambiarCamara(): Promise<void> {
@@ -277,103 +348,50 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
     this.detenerCamara();
     this.cameraStatus.set('Solicitando acceso a la cámara...');
 
-    // Estrategia de fallback dinámico para soportar tanto webcam de Laptop como cámaras de Teléfono
-    const constraintsList: MediaStreamConstraints[] = deviceId
-      ? [{ video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } } }]
-      : [
-          { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
-          { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } },
-          { video: true }
-        ];
-
-    let stream: MediaStream | null = null;
-    let lastError: any = null;
-
-    for (const constraint of constraintsList) {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia(constraint);
-        if (stream) break;
-      } catch (err: any) {
-        lastError = err;
-      }
-    }
-
-    if (!stream) {
-      console.warn('Cámara no disponible:', lastError);
-      this.cameraActive.set(false);
-      this.cameraStatus.set('Cámara no detectada o permiso denegado. Ingresa el código manualmente o usa tu lector USB/Bluetooth.');
-      return;
-    }
-
-    this.mediaStream = stream;
-    const videoTrack = stream.getVideoTracks()[0];
-    if (videoTrack) {
-      this.selectedCameraId = videoTrack.getSettings().deviceId || null;
-    }
     await this.cargarDispositivos();
+
+    // Preferir cámara trasera ('environment') en móvil si no hay deviceId específico
+    let targetDeviceId = deviceId || this.selectedCameraId;
+    if (!targetDeviceId && this.availableCameras.length > 0) {
+      const backCam = this.availableCameras.find(
+        d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('trasera') || d.label.toLowerCase().includes('environment')
+      );
+      targetDeviceId = backCam ? backCam.deviceId : this.availableCameras[0].deviceId;
+    }
+
+    this.selectedCameraId = targetDeviceId || null;
     this.cameraActive.set(true);
 
     setTimeout(() => {
-      if (this.videoElement && this.videoElement.nativeElement) {
-        this.videoElement.nativeElement.srcObject = stream;
-        this.videoElement.nativeElement.play().catch(e => console.warn('Play video error:', e));
-        this.iniciarDeteccionBarcode();
-      }
-    }, 120);
-  }
+      if (!this.videoElement || !this.videoElement.nativeElement || !this.codeReader) return;
+      const videoEl = this.videoElement.nativeElement;
 
-  private iniciarDeteccionBarcode(): void {
-    // 1. Usar BarcodeDetector si está disponible en la plataforma (Chrome Desktop / Edge / Android)
-    if ('BarcodeDetector' in window) {
-      try {
-        const detector = new (window as any).BarcodeDetector({
-          formats: ['code_128', 'ean_13', 'ean_8', 'qr_code', 'upc_a', 'upc_e']
-        });
+      this.isScanning = true;
+      this.hasScanned = false;
 
-        const detectLoop = async () => {
-          if (!this.cameraActive() || !this.videoElement?.nativeElement) return;
-          try {
-            const barcodes = await detector.detect(this.videoElement.nativeElement);
-            if (barcodes && barcodes.length > 0) {
-              const detected = barcodes[0].rawValue;
-              if (detected) {
-                this.reproducirBeep();
-                this.dialogRef.close(detected);
-                return;
-              }
-            }
-          } catch (e) {
-            // Ignorar errores en cuadros individuales
+      const constraints: MediaStreamConstraints = targetDeviceId
+        ? { video: { deviceId: { exact: targetDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } } }
+        : { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
+
+      this.codeReader.decodeFromConstraints(constraints, videoEl, (result, error) => {
+        if (result && !this.hasScanned && this.isScanning) {
+          const barcodeText = result.getText();
+          if (barcodeText) {
+            this.hasScanned = true;
+            this.reproducirBeep();
+            this.detenerCamara();
+            this.dialogRef.close(barcodeText);
           }
-          if (this.cameraActive()) {
-            this.animFrameId = requestAnimationFrame(detectLoop);
-          }
-        };
-
-        detectLoop();
-        return;
-      } catch (e) {
-        console.log('BarcodeDetector nativo no activo:', e);
-      }
-    }
-
-    // 2. Fallback de escaneo por inspección de Canvas (para navegadores donde BarcodeDetector esté desactivado)
-    const ctx = this.canvasElement.getContext('2d');
-    const fallbackLoop = () => {
-      if (!this.cameraActive() || !this.videoElement?.nativeElement || !ctx) return;
-      const video = this.videoElement.nativeElement;
-
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        this.canvasElement.width = video.videoWidth || 640;
-        this.canvasElement.height = video.videoHeight || 480;
-        ctx.drawImage(video, 0, 0, this.canvasElement.width, this.canvasElement.height);
-      }
-
-      if (this.cameraActive()) {
-        this.animFrameId = requestAnimationFrame(fallbackLoop);
-      }
-    };
-    fallbackLoop();
+        }
+        if (error && error.name !== 'NotFoundException') {
+          // Errores normales de lectura frame-by-frame se ignoran silenciosamente
+        }
+      }).catch(err => {
+        console.warn('Error al iniciar stream de cámara ZXing:', err);
+        this.cameraActive.set(false);
+        this.cameraStatus.set('No se pudo acceder a la cámara. Revisa los permisos de tu navegador o aplicación.');
+      });
+    }, 100);
   }
 
   private reproducirBeep(): void {
@@ -382,31 +400,32 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
+      osc.stop(audioCtx.currentTime + 0.12);
     } catch (e) {
-      // Ignorar si la interacción del usuario bloquea AudioContext sin presionar previo
+      // Ignorar restricciones de audio
     }
   }
 
   detenerCamara(): void {
-    if (this.animFrameId) {
-      cancelAnimationFrame(this.animFrameId);
-      this.animFrameId = null;
-    }
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop());
-      this.mediaStream = null;
+    this.isScanning = false;
+    if (this.codeReader) {
+      try {
+        this.codeReader.reset();
+      } catch (e) {
+        // Reset silencioso
+      }
     }
     this.cameraActive.set(false);
   }
 
   confirmarManual(): void {
     if (this.manualCode.trim()) {
+      this.detenerCamara();
       this.dialogRef.close(this.manualCode.trim());
     }
   }
