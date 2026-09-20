@@ -141,47 +141,58 @@ html, body {
   width: 100%;
 }
 
-/* Íconos prefijo (matPrefix) */
+/* Íconos prefijo (matPrefix): posicionados a la izquierda a 14px */
 .mat-mdc-form-field-icon-prefix {
   position: absolute !important;
-  left: 12px !important;
+  left: 14px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  z-index: 2 !important;
-  pointer-events: none;
+  z-index: 5 !important;
+  pointer-events: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.mat-mdc-form-field-icon-prefix > .mat-icon {
+.mat-mdc-form-field-icon-prefix > .mat-icon,
+.mat-mdc-form-field-icon-prefix .field-icon {
   font-size: 20px !important;
   width: 20px !important;
   height: 20px !important;
   margin: 0 !important;
-  color: var(--ic-outline);
+  color: var(--ic-outline) !important;
 }
 
-/* Desplazar el contenido interno (input, select, placeholder) cuando hay ícono prefijo */
-.mat-mdc-form-field:has(.mat-mdc-form-field-icon-prefix) .mat-mdc-form-field-infix {
-  padding-left: 28px !important;
+/* Desplazar el infix (input, select, label) usando selector de hermano directo ~ (compatible con 100% de navegadores) */
+.mat-mdc-form-field-icon-prefix ~ .mat-mdc-form-field-infix {
+  padding-left: 32px !important;
+}
+
+.mat-mdc-form-field-icon-prefix ~ .mat-mdc-form-field-infix .mdc-floating-label {
+  left: 0 !important;
 }
 
 /* Corrección de traslape en MatCheckbox (Recordarme, etc.) */
 .mat-mdc-checkbox {
   display: inline-flex !important;
   align-items: center !important;
+  position: relative !important;
 }
 
 .mat-mdc-checkbox .mdc-form-field {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  position: relative !important;
 }
 
 .mat-mdc-checkbox .mdc-label {
-  padding-left: 0 !important;
-  margin-left: 2px !important;
+  padding-left: 32px !important;
+  margin-left: 0 !important;
+  display: inline-block !important;
   line-height: 1.4 !important;
   color: var(--ic-on-surface) !important;
   font-family: inherit !important;
