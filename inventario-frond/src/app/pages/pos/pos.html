@@ -257,13 +257,16 @@
         </div>
 
         <!-- PANEL DE PAGO CON CÓDIGO QR / TRANSFERENCIA BANCARIA -->
-        <div *ngIf="(metodoPago === 'Pago por QR' || metodoPago === 'Transferencia Bancaria' || metodoPago === 'Transferencia') && cart().length > 0" class="qr-payment-wrapper">
-          <div class="qr-card">
+        <div *ngIf="metodoPago === 'Pago por QR' || metodoPago === 'Transferencia Bancaria' || metodoPago === 'Transferencia'" class="qr-payment-wrapper">
+          <div class="qr-card" [ngClass]="metodoPago === 'Pago por QR' ? 'theme-qr-pago' : 'theme-transferencia-pago'">
             <div class="qr-card-header">
               <mat-icon class="qr-header-icon">{{ iconoMetodoActual() }}</mat-icon>
               <div class="qr-header-text">
                 <h4 class="qr-card-title">{{ tituloMetodoActual() }}</h4>
-                <p class="qr-card-sub">{{ subtituloMetodoActual() }} de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></p>
+                <p class="qr-card-sub">
+                  {{ subtituloMetodoActual() }}
+                  <span *ngIf="cart().length > 0"> de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></span>
+                </p>
               </div>
             </div>
 
@@ -274,7 +277,7 @@
                   <img [src]="imagenMetodoActual()" [alt]="tituloMetodoActual()" class="qr-preview-img" />
                   <div class="qr-actions-row">
                     <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="seleccionarImagenMetodo()">
-                      <mat-icon>photo_camera</mat-icon> Cambiar Imagen
+                      <mat-icon>photo_camera</mat-icon> {{ metodoPago === 'Pago por QR' ? 'Cambiar QR' : 'Cambiar Cuenta' }}
                     </button>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
@@ -285,15 +288,16 @@
 
               <ng-template #noQrTemplate>
                 <div class="qr-upload-placeholder" (click)="seleccionarImagenMetodo()">
-                  <mat-icon class="upload-icon">add_a_photo</mat-icon>
+                  <mat-icon class="upload-icon">{{ iconoMetodoActual() }}</mat-icon>
                   <span class="upload-title">
                     {{ metodoPago === 'Pago por QR' ? 'Subir imagen de tu Código QR' : 'Subir imagen de tu Cuenta Bancaria' }}
                   </span>
                   <span class="upload-desc">
-                    {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, etc.)' }}
+                    {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, Pichincha QR, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, Produbanco, etc.)' }}
                   </span>
                   <button type="button" mat-flat-button color="primary" class="btn-select-qr" (click)="$event.stopPropagation(); seleccionarImagenMetodo()">
-                    <mat-icon>photo_camera</mat-icon> Seleccionar Imagen
+                    <mat-icon>photo_camera</mat-icon>
+                    {{ metodoPago === 'Pago por QR' ? 'Seleccionar Imagen de QR' : 'Seleccionar Imagen de Cuenta' }}
                   </button>
                 </div>
               </ng-template>
@@ -303,9 +307,9 @@
             </div>
 
             <!-- Input de Referencia o N° de Comprobante -->
-            <div class="qr-ref-input">
+            <div class="qr-ref-input" *ngIf="cart().length > 0">
               <mat-form-field appearance="outline" class="input-full compact-field">
-                <mat-label>N° de comprobante / Referencia (opcional)</mat-label>
+                <mat-label>{{ metodoPago === 'Pago por QR' ? 'N° de comprobante QR / Referencia' : 'N° de comprobante / Transferencia' }}</mat-label>
                 <input matInput [ngModel]="referenciaPago()" (ngModelChange)="referenciaPago.set($event)" placeholder="Ej. Ref 987654" id="input-ref-pago" />
               </mat-form-field>
             </div>
