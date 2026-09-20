@@ -51,6 +51,16 @@ export class ProductosService {
 
   getAll(): Producto[] { return this._productos(); }
 
+  getBySku(sku: string): Producto | undefined {
+    if (!sku) return undefined;
+    const s = sku.trim().toLowerCase();
+    return this._productos().find(p => p.sku && p.sku.trim().toLowerCase() === s);
+  }
+
+  obtenerPorSku(sku: string): Observable<Producto> {
+    return this.http.get<Producto>(`${API}/sku/${encodeURIComponent(sku)}`);
+  }
+
   create(data: Omit<Producto, 'id' | 'ultimaActualizacion'>): Observable<Producto> {
     return this.http.post<Producto>(API, data).pipe(
       tap(nuevo => this._productos.update(list => [nuevo, ...list]))

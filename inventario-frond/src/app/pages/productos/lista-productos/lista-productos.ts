@@ -19,6 +19,8 @@ import { NuevoProductoDialog } from './nuevo-producto-dialog';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { ProveedoresService } from '../../../core/services/proveedores.service';
+import { BarcodeGeneratorService } from '../../../core/services/barcode-generator.service';
+import { BarcodeScannerModalDialog } from '../../../shared/components/barcode-scanner-modal/barcode-scanner-modal';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
@@ -42,6 +44,7 @@ export class ListaProductos implements OnInit {
   private productosService  = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proveedoresService= inject(ProveedoresService);
+  private barcodeService    = inject(BarcodeGeneratorService);
 
   isLoading = signal(true);
   error     = signal<string | null>(null);
@@ -117,6 +120,26 @@ export class ListaProductos implements OnInit {
 
   getInitials(nombre: string): string {
     return nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
+
+  // ── Escaneo e Impresión de Etiquetas ───────────────────────
+  abrirEscaneoFiltro(): void {
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    ref.afterClosed().subscribe((codigo: string | null) => {
+      if (codigo) {
+        this.busqueda.set(codigo);
+        this.snack.open(`Filtrando por código: "${codigo}"`, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  imprimirEtiquetaProducto(p: Producto): void {
+    this.barcodeService.imprimirEtiqueta({
+      nombre: p.nombre,
+      sku: p.sku,
+      precio: p.precio,
+      categoria: p.categoria,
+    });
   }
 
   // ────────────────────────────────────────────────────────────

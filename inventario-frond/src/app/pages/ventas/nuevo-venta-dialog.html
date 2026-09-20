@@ -38,10 +38,13 @@
         <mat-label>Producto</mat-label>
         <mat-select formControlName="productoId" (selectionChange)="onProductoChange()" id="select-producto">
           @for (p of productos(); track p.id) {
-            <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+            <mat-option [value]="p.id">{{ p.nombre }} {{ p.sku ? '(' + p.sku + ')' : '' }}</mat-option>
           }
         </mat-select>
         <mat-icon matPrefix>inventory_2</mat-icon>
+        <button matSuffix mat-icon-button type="button" (click)="abrirEscaneoBarcode()" matTooltip="Escanear Código de Barras / QR" id="btn-scan-barcode">
+          <mat-icon color="primary">qr_code_scanner</mat-icon>
+        </button>
         @if (form.get('productoId')?.hasError('required') && form.get('productoId')?.touched) {
           <mat-error>Selecciona un producto</mat-error>
         }

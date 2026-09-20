@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -24,11 +24,20 @@ export class UsuariosService {
   }
 
   async create(data: Partial<Usuario> & { contrasena: string }, companyId: number) {
+    if (!data.correo) {
+      throw new BadRequestException('El correo es requerido');
+    }
+    const correoLower = data.correo.toLowerCase();
+    const existe = await this.repo.findOne({ where: { correo: correoLower } });
+    if (existe) {
+      throw new BadRequestException('El correo ya está registrado por otro usuario');
+    }
+
     const hash = await bcrypt.hash(data.contrasena, 10);
     const nuevo = this.repo.create({
       ...data,
       companyId,
-      correo: data.correo?.toLowerCase(),
+      correo: correoLower,
       contrasena: hash,
       rol: data.rol ?? 'usuario',
     });
@@ -41,7 +50,16 @@ export class UsuariosService {
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
     const update: any = sanitizeUpdate(data);
-    if (data.correo) update.correo = data.correo.toLowerCase();
+    if (data.correo) {
+      const correoLower = data.correo.toLowerCase();
+      if (correoLower !== usuario.correo) {
+        const existe = await this.repo.findOne({ where: { correo: correoLower } });
+        if (existe && existe.id !== id) {
+          throw new BadRequestException('El correo ya está registrado por otro usuario');
+        }
+      }
+      update.correo = correoLower;
+    }
     if (data.contrasena) {
       update.contrasena = await bcrypt.hash(data.contrasena, 10);
     }

@@ -12,6 +12,22 @@ export interface Venta {
   total: number;
   fecha: string;
   estado: string;
+  metodoPago?: string;
+  folio?: string;
+}
+
+export interface PosCheckoutRequest {
+  cliente?: string;
+  metodoPago?: string;
+  items: Array<{ productoId: number; cantidad: number }>;
+}
+
+export interface PosCheckoutResponse {
+  folio: string;
+  cliente: string;
+  metodoPago: string;
+  total: number;
+  ventas: Venta[];
 }
 
 const API = `${environment.apiUrl}/ventas`;
@@ -34,6 +50,16 @@ export class VentasService {
   create(data: Omit<Venta, 'id'>): Observable<Venta> {
     return this.http.post<Venta>(API, data).pipe(
       tap(nueva => this._ventas.update(list => [nueva, ...list]))
+    );
+  }
+
+  createPosBatch(payload: PosCheckoutRequest): Observable<PosCheckoutResponse> {
+    return this.http.post<PosCheckoutResponse>(`${API}/pos`, payload).pipe(
+      tap(res => {
+        if (res.ventas && res.ventas.length > 0) {
+          this._ventas.update(list => [...res.ventas, ...list]);
+        }
+      })
     );
   }
 

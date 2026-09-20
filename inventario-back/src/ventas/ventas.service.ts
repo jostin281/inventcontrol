@@ -80,9 +80,100 @@ export class VentasService {
         productoId: producto?.id,
         cantidad,
         estado,
+        metodoPago: data.metodoPago ?? 'Efectivo',
+        folio: data.folio,
         companyId,
       });
       return ventaRepo.save(venta);
+    });
+  }
+
+  /**
+   * Procesa la venta de múltiples productos del carrito de punto de venta (POS)
+   * dentro de una ÚNICA transacción Atómica de base de datos.
+   */
+  async createPosBatch(
+    body: { cliente?: string; metodoPago?: string; items: Array<{ productoId: number; cantidad: number }> },
+    companyId: number,
+    usuario = 'POS'
+  ): Promise<{ folio: string; cliente: string; metodoPago: string; total: number; ventas: Venta[] }> {
+    if (!body.items || body.items.length === 0) {
+      throw new BadRequestException('El carrito de compras no contiene productos');
+    }
+
+    return this.dataSource.transaction(async (manager) => {
+      const ventaRepo = manager.getRepository(Venta);
+      const productoRepo = manager.getRepository(Producto);
+      const movimientoRepo = manager.getRepository(Movimiento);
+
+      const folio = `POS-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+      const cliente = body.cliente?.trim() || 'Cliente Mostrador';
+      const metodoPago = body.metodoPago?.trim() || 'Efectivo';
+      const fechaStr = new Date().toISOString().slice(0, 10);
+
+      const savedVentas: Venta[] = [];
+      let totalVentaGeneral = 0;
+
+      for (const item of body.items) {
+        if (!item.productoId || item.cantidad <= 0) {
+          throw new BadRequestException('Cada producto debe tener un ID válido y cantidad mayor a cero');
+        }
+
+        const producto = await productoRepo.findOne({ where: { id: item.productoId, companyId } });
+        if (!producto) {
+          throw new NotFoundException(`Producto con ID ${item.productoId} no encontrado`);
+        }
+
+        if (producto.stock < item.cantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para "${producto.nombre}". Disponible: ${producto.stock}, Solicitado: ${item.cantidad}`,
+          );
+        }
+
+        // Descontar stock real en base de datos
+        producto.stock -= item.cantidad;
+        await productoRepo.save(producto);
+
+        // Registrar movimiento de inventario de Salida
+        await movimientoRepo.save(
+          movimientoRepo.create({
+            companyId,
+            producto: producto.nombre,
+            sku: producto.sku ?? '',
+            tipo: 'Salida',
+            cantidad: item.cantidad,
+            usuario,
+            nota: `Venta POS Folio: ${folio} (${metodoPago})`,
+            colorProducto: producto.categoriaColor ?? '#f0f0f7',
+          }),
+        );
+
+        const itemTotal = Math.round(producto.precio * item.cantidad * 100) / 100;
+        totalVentaGeneral += itemTotal;
+
+        const v = ventaRepo.create({
+          companyId,
+          cliente,
+          producto: producto.nombre,
+          productoId: producto.id,
+          cantidad: item.cantidad,
+          total: itemTotal,
+          fecha: fechaStr,
+          estado: 'Completada',
+          metodoPago,
+          folio,
+        });
+
+        savedVentas.push(await ventaRepo.save(v));
+      }
+
+      return {
+        folio,
+        cliente,
+        metodoPago,
+        total: Math.round(totalVentaGeneral * 100) / 100,
+        ventas: savedVentas,
+      };
     });
   }
 

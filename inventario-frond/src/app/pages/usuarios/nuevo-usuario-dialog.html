@@ -26,18 +26,34 @@
 <mat-dialog-content class="dialog-body">
   <form [formGroup]="form" class="usuario-form">
 
+    @if (errorPassword()) {
+      <div class="password-error-banner" style="margin-bottom: 16px; padding: 10px 14px; background: #fee2e2; border-radius: 8px; color: #dc2626; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">error_outline</mat-icon>
+        <span>{{ errorPassword() }}</span>
+      </div>
+    }
+
     <!-- Nombre + Correo (2 columnas) -->
     <div class="form-row-2">
       <mat-form-field appearance="outline">
         <mat-label>Nombre</mat-label>
         <input matInput formControlName="nombre" placeholder="Nombre completo" id="input-nombre" />
         <mat-icon matPrefix>person</mat-icon>
+        @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
+          <mat-error>El nombre es requerido</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Correo</mat-label>
         <input matInput formControlName="correo" placeholder="correo@dominio.com" id="input-correo" />
         <mat-icon matPrefix>email</mat-icon>
+        @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
+          <mat-error>Correo no válido</mat-error>
+        }
+        @if (form.get('correo')?.hasError('required') && form.get('correo')?.touched) {
+          <mat-error>El correo es requerido</mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -68,12 +84,21 @@
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" formControlName="password" id="input-password" />
           <mat-icon matPrefix>lock</mat-icon>
+          @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+            <mat-error>La contraseña es requerida</mat-error>
+          }
+          @if (form.get('password')?.hasError('minlength') && form.get('password')?.touched) {
+            <mat-error>Mínimo 6 caracteres</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Confirmar contraseña</mat-label>
           <input matInput type="password" formControlName="confirmPassword" id="input-confirm-password" />
           <mat-icon matPrefix>lock_reset</mat-icon>
+          @if (form.get('confirmPassword')?.hasError('required') && form.get('confirmPassword')?.touched) {
+            <mat-error>Confirme la contraseña</mat-error>
+          }
         </mat-form-field>
       </div>
     }

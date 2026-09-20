@@ -1,0 +1,329 @@
+<div class="pos-container">
+  <!-- Header del Punto de Venta -->
+  <header class="pos-header">
+    <div class="header-info">
+      <div class="header-icon">
+        <mat-icon>point_of_sale</mat-icon>
+      </div>
+      <div>
+        <h1 class="header-title">Punto de Venta (POS)</h1>
+        <p class="header-subtitle">Escanea códigos de barras o selecciona productos para cobro rápido</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" class="btn-scan-header" (click)="abrirEscaner()" id="btn-scan-header">
+        <mat-icon>qr_code_scanner</mat-icon>
+        Escanear Código
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Principal de 2 Columnas (Adaptable a pantallas táctiles y móviles) -->
+  <div class="pos-grid">
+    <!-- COLUMNA IZQUIERDA: Catálogo y Búsqueda -->
+    <section class="catalog-section">
+      <!-- Buscador e icono de cámara -->
+      <div class="search-bar-row">
+        <div class="search-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar por nombre, SKU o código de barras…"
+            [ngModel]="busquedaStr()"
+            (ngModelChange)="busquedaStr.set($event)"
+            id="input-pos-search"
+          />
+          <button
+            *ngIf="busquedaStr()"
+            mat-icon-button
+            class="clear-btn"
+            (click)="busquedaStr.set('')"
+            id="btn-pos-clear"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <button
+          mat-stroked-button
+          class="btn-scan-action"
+          (click)="abrirEscaner()"
+          matTooltip="Activar cámara escáner de código de barras"
+          id="btn-pos-scan-cam"
+        >
+          <mat-icon color="primary">qr_code_scanner</mat-icon>
+          <span class="scan-btn-label">Cámara</span>
+        </button>
+      </div>
+
+      <!-- Filtro por Categorías (Chips scrollables) -->
+      <div class="categories-chips">
+        @for (cat of categorias(); track cat) {
+          <div
+            class="category-chip"
+            [class.active]="categoriaFiltro() === cat"
+            (click)="categoriaFiltro.set(cat)"
+          >
+            {{ cat }}
+          </div>
+        }
+      </div>
+
+      <!-- Spinner de carga -->
+      <div *ngIf="isLoading()" class="loading-box">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Cargando productos de InventControl…</p>
+      </div>
+
+      <!-- Grid de Productos -->
+      <div *ngIf="!isLoading()" class="products-grid">
+        @for (prod of productosFiltrados(); track prod.id) {
+          <mat-card
+            class="product-card"
+            [class.out-of-stock]="prod.stock <= 0"
+            (click)="agregarAlCarrito(prod)"
+            id="prod-card-{{ prod.id }}"
+          >
+            <div class="card-thumb" [style.background]="prod.categoriaColor">
+              @if (prod.imagen) {
+                <img [src]="prod.imagen" [alt]="prod.nombre" class="thumb-img" />
+              } @else {
+                <span class="thumb-initial">{{ getInitials(prod.nombre) }}</span>
+              }
+              <span class="stock-badge" [class.badge-low]="prod.stock > 0 && prod.stock <= 5" [class.badge-zero]="prod.stock <= 0">
+                {{ prod.stock > 0 ? prod.stock + ' en stock' : 'Agotado' }}
+              </span>
+            </div>
+
+            <div class="card-content">
+              <span class="prod-category">{{ prod.categoria }}</span>
+              <h3 class="prod-title" [matTooltip]="prod.nombre">{{ prod.nombre }}</h3>
+              <p class="prod-sku">SKU: {{ prod.sku || 'N/A' }}</p>
+
+              <div class="card-footer">
+                <span class="prod-price">${{ prod.precio | number:'1.2-2' }}</span>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  class="btn-add-cart"
+                  [disabled]="prod.stock <= 0"
+                  (click)="$event.stopPropagation(); agregarAlCarrito(prod)"
+                  id="btn-add-prod-{{ prod.id }}"
+                >
+                  <mat-icon>add_shopping_cart</mat-icon>
+                  Agregar
+                </button>
+              </div>
+            </div>
+          </mat-card>
+        }
+
+        @if (productosFiltrados().length === 0) {
+          <div class="empty-products-box">
+            <mat-icon class="large-icon">inventory_2</mat-icon>
+            <p>No se encontraron productos</p>
+            <span>Intenta con otro término de búsqueda o escanea otro código</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- COLUMNA DERECHA: Carrito de Venta y Cobro -->
+    <aside class="cart-section">
+      <div class="cart-card">
+        <div class="cart-header">
+          <div class="cart-header-title">
+            <mat-icon color="primary">shopping_cart</mat-icon>
+            <h2>Carrito de Venta</h2>
+            <span class="items-badge" *ngIf="totalItemsCart() > 0">{{ totalItemsCart() }}</span>
+          </div>
+
+          <button
+            *ngIf="cart().length > 0"
+            mat-button
+            color="warn"
+            class="btn-clear-cart"
+            (click)="vaciarCarrito()"
+            id="btn-empty-cart"
+          >
+            <mat-icon>delete_sweep</mat-icon> Vaciar
+          </button>
+        </div>
+
+        <!-- Datos del Cliente y Método de Pago -->
+        <div class="cart-inputs-group">
+          <mat-form-field appearance="outline" class="input-full">
+            <mat-label>Cliente</mat-label>
+            <input matInput [(ngModel)]="clienteNombre" placeholder="Cliente Mostrador" id="input-pos-cliente" />
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
+
+          <div class="inputs-row">
+            <mat-form-field appearance="outline" class="input-half">
+              <mat-label>Método de Pago</mat-label>
+              <mat-select [(ngModel)]="metodoPago" id="select-pos-pago">
+                <mat-option value="Efectivo">Efectivo</mat-option>
+                <mat-option value="Tarjeta">Tarjeta de Crédito/Débito</mat-option>
+                <mat-option value="Transferencia">Transferencia Bancaria</mat-option>
+                <mat-option value="Otro">Otro</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>payments</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="input-half">
+              <mat-label>Papel Ticket</mat-label>
+              <mat-select [(ngModel)]="anchoPapel" id="select-pos-papel">
+                <mat-option value="80mm">80 mm (Térmica Estándar)</mat-option>
+                <mat-option value="58mm">58 mm (Térmica Móvil)</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>print</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Lista de Productos en el Carrito -->
+        <div class="cart-items-list">
+          @for (item of cart(); track item.producto.id) {
+            <div class="cart-item-row" id="cart-row-{{ item.producto.id }}">
+              <div class="item-info">
+                <h4 class="item-title">{{ item.producto.nombre }}</h4>
+                <div class="item-meta">
+                  <span class="item-price">${{ item.producto.precio | number:'1.2-2' }} c/u</span>
+                  <span class="item-sku" *ngIf="item.producto.sku">· {{ item.producto.sku }}</span>
+                </div>
+              </div>
+
+              <div class="item-controls">
+                <button
+                  mat-icon-button
+                  class="btn-qty"
+                  (click)="actualizarCantidad(item.producto.id, -1)"
+                  id="btn-minus-{{ item.producto.id }}"
+                >
+                  <mat-icon>remove</mat-icon>
+                </button>
+
+                <input
+                  type="number"
+                  class="qty-input"
+                  [value]="item.cantidad"
+                  (change)="cambiarCantidadDirecta(item.producto.id, $event)"
+                  min="1"
+                  [max]="item.producto.stock"
+                  id="input-qty-{{ item.producto.id }}"
+                />
+
+                <button
+                  mat-icon-button
+                  class="btn-qty"
+                  (click)="actualizarCantidad(item.producto.id, 1)"
+                  id="btn-plus-{{ item.producto.id }}"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+
+              <div class="item-total">
+                <span>${{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}</span>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  class="btn-remove-item"
+                  (click)="eliminarDelCarrito(item.producto.id)"
+                  matTooltip="Eliminar del carrito"
+                  id="btn-del-{{ item.producto.id }}"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (cart().length === 0) {
+            <div class="empty-cart-box">
+              <mat-icon class="cart-empty-icon">remove_shopping_cart</mat-icon>
+              <p>El carrito está vacío</p>
+              <span>Haz clic en un producto o escanea un código para comenzar la venta</span>
+            </div>
+          }
+        </div>
+
+        <!-- Totales y Acción de Cobro -->
+        <div class="cart-summary-footer">
+          <div class="summary-line">
+            <span>Subtotal:</span>
+            <span>${{ totalVenta() | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-line total-line">
+            <span>Total a Cobrar:</span>
+            <span class="total-price">${{ totalVenta() | number:'1.2-2' }}</span>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="btn-checkout"
+            [disabled]="cart().length === 0 || procesandoCobro()"
+            (click)="finalizarVenta()"
+            id="btn-checkout-pos"
+          >
+            @if (procesandoCobro()) {
+              <ng-container>
+                <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
+                Procesando cobro…
+              </ng-container>
+            } @else {
+              <ng-container>
+                <mat-icon>point_of_sale</mat-icon>
+                Cobrar y Generar Ticket (${{ totalVenta() | number:'1.2-2' }})
+              </ng-container>
+            }
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Venta Exitosa -->
+@if (ultimaVentaExitosa()) {
+  <div class="modal-overlay">
+    <div class="success-card">
+      <div class="success-icon-wrap">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <h2>¡Venta Completada con Éxito!</h2>
+      <p class="folio-text">Folio: <strong>{{ ultimaVentaExitosa()!.folio }}</strong></p>
+
+      <div class="success-details">
+        <div class="detail-row">
+          <span>Cliente:</span>
+          <strong>{{ ultimaVentaExitosa()!.cliente }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Método de Pago:</span>
+          <strong>{{ ultimaVentaExitosa()!.metodoPago }}</strong>
+        </div>
+        <div class="detail-row highlight-row">
+          <span>Total Cobrado:</span>
+          <strong class="success-total">${{ ultimaVentaExitosa()!.total | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="imprimirTicketRespuesta(ultimaVentaExitosa()!)"
+          id="btn-reimprimir-ticket-modal"
+        >
+          <mat-icon>print</mat-icon> Imprimir Ticket
+        </button>
+        <button mat-stroked-button (click)="cerrarModalExito()" id="btn-nueva-venta-modal">
+          <mat-icon>add</mat-icon> Nueva Venta
+        </button>
+      </div>
+    </div>
+  </div>
+}

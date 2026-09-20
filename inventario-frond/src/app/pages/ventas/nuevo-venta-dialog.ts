@@ -1,13 +1,15 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProductosService } from '../../core/services/productos.service';
+import { BarcodeScannerModalDialog } from '../../shared/components/barcode-scanner-modal/barcode-scanner-modal';
 
 @Component({
   selector: 'app-nuevo-venta-dialog',
@@ -15,7 +17,7 @@ import { ProductosService } from '../../core/services/productos.service';
   imports: [
     CommonModule, ReactiveFormsModule,
     MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatButtonModule, MatIconModule,
+    MatSelectModule, MatButtonModule, MatIconModule, MatTooltipModule,
   ],
   templateUrl: './nuevo-venta-dialog.html',
   styleUrl: './nuevo-venta-dialog.css'
@@ -23,6 +25,7 @@ import { ProductosService } from '../../core/services/productos.service';
 export class NuevoVentaDialog implements OnInit {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<NuevoVentaDialog>);
+  private dialog = inject(MatDialog);
   private productosSvc = inject(ProductosService);
 
   productos = this.productosSvc.productos; // Use the read-only signal directly
@@ -60,6 +63,32 @@ export class NuevoVentaDialog implements OnInit {
       // No se puede vender más unidades de las que hay en stock.
       cantidadCtrl.setValidators([Validators.required, Validators.min(1), Validators.max(p.stock)]);
       cantidadCtrl.updateValueAndValidity();
+    }
+  }
+
+  abrirEscaneoBarcode(): void {
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    ref.afterClosed().subscribe((codigo: string | null) => {
+      if (codigo) {
+        this.procesarCodigoEscaneado(codigo);
+      }
+    });
+  }
+
+  procesarCodigoEscaneado(codigo: string): void {
+    const clean = codigo.trim().toLowerCase();
+    // Búsqueda por SKU exacto, ID o nombre
+    const p = this.productos().find(item =>
+      (item.sku && item.sku.trim().toLowerCase() === clean) ||
+      String(item.id) === clean ||
+      item.nombre.toLowerCase().includes(clean)
+    );
+
+    if (p) {
+      this.form.patchValue({ productoId: p.id });
+      this.onProductoChange();
+    } else {
+      alert(`No se encontró ningún producto con el código de barras o SKU "${codigo}".`);
     }
   }
 

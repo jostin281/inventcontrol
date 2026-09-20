@@ -73,9 +73,12 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>SKU / Código</mat-label>
-        <input matInput formControlName="sku" placeholder="Ej. LAP-DELL-001" id="input-sku" />
+        <mat-label>SKU / Código de Barras</mat-label>
+        <input matInput formControlName="sku" placeholder="Ej. 7501234567890" id="input-sku" />
         <mat-icon matPrefix>qr_code</mat-icon>
+        <button matSuffix mat-icon-button type="button" (click)="abrirEscaneoBarcode()" matTooltip="Escanear Código de Barras / QR" id="btn-scan-sku">
+          <mat-icon color="primary">qr_code_scanner</mat-icon>
+        </button>
       </mat-form-field>
     </div>
 

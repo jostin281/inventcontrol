@@ -42,7 +42,7 @@ export class Usuarios implements OnInit {
   private usuariosSvc = inject(UsuariosService);
 
   columnas = ['nombre', 'rol', 'estado', 'acciones'];
-  roles = ['admin', 'usuario'];
+  roles = ['Administrador', 'Operador'];
 
   filtroStr = '';
   isLoading = signal(true);
@@ -80,16 +80,18 @@ export class Usuarios implements OnInit {
   usuarioEliminar  = signal<UsuarioResumen | null>(null);
   eliminando       = signal(false);
 
-  // ── Cambio de contraseña ──────────────────────────────────
+  // ── Mensajes de error ─────────────────────────────────────
   mostrarCambioPassword = signal(false);
   mostrarNuevoPass      = signal(false);
   mostrarConfirmPass    = signal(false);
   errorPassword         = signal('');
+  errorEdicion          = signal('');
+  errorEliminar         = signal('');
 
   editForm = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
     correo:          ['', [Validators.required, Validators.email]],
-    rol:             ['', Validators.required],
+    rol:             ['Operador', Validators.required],
     estado:          ['Activo', Validators.required],
     nuevaPassword:   [''],
     confirmarPassword: [''],
@@ -106,9 +108,15 @@ export class Usuarios implements OnInit {
       this.usuariosSvc.create({
         nombre: res.nombre,
         correo: res.correo,
-        contrasena: res.contrasena || '12345678',
+        contrasena: res.contrasena,
         rol: res.rol === 'Administrador' ? 'admin' : 'usuario',
-      }).subscribe();
+        activo: res.estado === 'Activo',
+      }).subscribe({
+        next: () => {},
+        error: (err) => {
+          alert(err.error?.message || 'Error al crear el usuario');
+        }
+      });
     });
   }
 
@@ -121,7 +129,7 @@ export class Usuarios implements OnInit {
     this.editForm.reset({
       nombre: u.nombre,
       correo: u.correo,
-      rol: u.rol === 'Administrador' ? 'admin' : 'usuario',
+      rol: u.rol,
       estado: u.estado,
       nuevaPassword: '',
       confirmarPassword: ''
@@ -130,11 +138,13 @@ export class Usuarios implements OnInit {
     this.mostrarNuevoPass.set(false);
     this.mostrarConfirmPass.set(false);
     this.errorPassword.set('');
+    this.errorEdicion.set('');
     this.usuarioEditando.set(u);
   }
 
   cerrarEditar(): void {
     this.errorPassword.set('');
+    this.errorEdicion.set('');
     this.usuarioEditando.set(null);
   }
 
@@ -150,6 +160,8 @@ export class Usuarios implements OnInit {
   toggleVerConfirmPass(): void { this.mostrarConfirmPass.update(v => !v); }
 
   guardarEdicion(): void {
+    this.errorEdicion.set('');
+    this.errorPassword.set('');
     if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
     const editando = this.usuarioEditando();
     if (!editando) return;
@@ -162,7 +174,7 @@ export class Usuarios implements OnInit {
     const updatePayload: any = {
       nombre: v.nombre,
       correo: v.correo,
-      rol: v.rol,
+      rol: v.rol === 'Administrador' ? 'admin' : 'usuario',
       activo: v.estado === 'Activo',
     };
 
@@ -179,24 +191,35 @@ export class Usuarios implements OnInit {
 
     this.usuariosSvc.update(editando.id, updatePayload).subscribe({
       next: () => this.cerrarEditar(),
-      error: (err) => this.errorPassword.set(err.error?.message || 'Error al actualizar usuario')
+      error: (err) => this.errorEdicion.set(err.error?.message || 'Error al actualizar usuario')
     });
   }
 
   // ── Eliminar ──────────────────────────────────────────────
-  abrirConfirmarEliminar(u: UsuarioResumen): void { this.usuarioEliminar.set(u); }
-  cancelarEliminar(): void                        { this.usuarioEliminar.set(null); }
+  abrirConfirmarEliminar(u: UsuarioResumen): void {
+    this.errorEliminar.set('');
+    this.usuarioEliminar.set(u);
+  }
+  cancelarEliminar(): void {
+    this.errorEliminar.set('');
+    this.usuarioEliminar.set(null);
+  }
 
   confirmarEliminar(): void {
     const u = this.usuarioEliminar();
     if (!u) return;
     this.eliminando.set(true);
+    this.errorEliminar.set('');
     this.usuariosSvc.delete(u.id).subscribe({
       next: () => {
         this.eliminando.set(false);
         this.usuarioEliminar.set(null);
+        this.errorEliminar.set('');
       },
-      error: () => this.eliminando.set(false)
+      error: (err) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(err.error?.message || 'Error al eliminar usuario');
+      }
     });
   }
 }

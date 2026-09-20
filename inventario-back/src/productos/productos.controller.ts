@@ -17,6 +17,11 @@ export class ProductosController {
     return this.service.findAll(req.user.companyId);
   }
 
+  @Get('sku/:sku')
+  findBySku(@Param('sku') sku: string, @Req() req: any) {
+    return this.service.findBySku(sku, req.user.companyId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.service.findOne(id, req.user.companyId);

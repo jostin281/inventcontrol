@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NuevoVentaDialog } from './nuevo-venta-dialog';
 import { ProductosService } from '../../core/services/productos.service';
 import { VentasService, Venta } from '../../core/services/ventas.service';
+import { TicketPrintService } from '../../core/services/ticket-print.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 @Component({
@@ -34,8 +35,9 @@ export class Ventas implements OnInit {
   private fb = inject(FormBuilder);
   private productosSvc = inject(ProductosService);
   private ventasSvc = inject(VentasService);
+  private ticketSvc = inject(TicketPrintService);
 
-  columnas = ['cliente', 'producto', 'total', 'fecha', 'estado', 'acciones'];
+  columnas = ['folio', 'cliente', 'producto', 'total', 'metodoPago', 'fecha', 'estado', 'acciones'];
   filtroStr = '';
   isLoading = signal(true);
   /** Mensaje de error de la última operación (p. ej. "stock insuficiente"). */
@@ -59,7 +61,10 @@ export class Ventas implements OnInit {
     return this.ventas.filter(v =>
       v.cliente.toLowerCase().includes(t) ||
       v.producto.toLowerCase().includes(t) ||
-      v.estado.toLowerCase().includes(t)
+      v.estado.toLowerCase().includes(t) ||
+      (v.folio ?? '').toLowerCase().includes(t) ||
+      (v.metodoPago ?? '').toLowerCase().includes(t) ||
+      v.fecha.toLowerCase().includes(t)
     );
   }
 
@@ -81,12 +86,27 @@ export class Ventas implements OnInit {
         fecha: res.fecha,
         estado: res.estado,
       }).subscribe({
-        // La venta descuenta stock en el backend: refrescamos productos
-        // para que el resto de la app (alertas de stock, dashboard, lista
-        // de productos) refleje el nuevo stock de inmediato.
-        next: () => this.productosSvc.cargar().subscribe(),
+        next: (ventaCreada) => {
+          this.productosSvc.cargar().subscribe();
+          // Imprimir ticket automáticamente al registrar la venta
+          this.imprimirTicket(ventaCreada);
+        },
         error: (err) => this.errorMsg.set(this._mensajeError(err)),
       });
+    });
+  }
+
+  imprimirTicket(v: Venta): void {
+    this.ticketSvc.imprimirTicket({
+      id: v.id,
+      cliente: v.cliente,
+      producto: v.producto,
+      cantidad: v.cantidad || 1,
+      total: v.total,
+      fecha: v.fecha,
+      estado: v.estado,
+      metodoPago: v.metodoPago || 'Efectivo',
+      folio: v.folio,
     });
   }
 

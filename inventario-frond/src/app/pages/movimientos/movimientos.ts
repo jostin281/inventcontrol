@@ -18,9 +18,11 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MovimientosService, Movimiento, TipoMovimiento } from '../../core/services/movimientos.service';
 import { ProductosService } from '../../core/services/productos.service';
 import { AuthService } from '../../core/services/auth.service';
+import { BarcodeScannerModalDialog } from '../../shared/components/barcode-scanner-modal/barcode-scanner-modal';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 
 export interface ProductoItem {
@@ -38,7 +40,7 @@ export interface ProductoItem {
     MatInputModule, MatFormFieldModule, MatSelectModule, MatTooltipModule,
     MatChipsModule, MatButtonToggleModule, MatAutocompleteModule,
     MatDatepickerModule, MatNativeDateModule, MatProgressSpinnerModule,
-    ConfirmDialog,
+    MatDialogModule, ConfirmDialog,
   ],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.css'
@@ -49,6 +51,7 @@ export class Movimientos implements OnInit, AfterViewInit {
   private authSvc        = inject(AuthService);
   private fb             = inject(FormBuilder);
   private snack          = inject(MatSnackBar);
+  private dialog         = inject(MatDialog);
 
   // ── Columnas ─────────────────────────────────────────────────
   displayedColumns = ['fecha', 'producto', 'tipo', 'cantidad', 'usuario', 'acciones'];
@@ -174,6 +177,35 @@ export class Movimientos implements OnInit, AfterViewInit {
   }
 
   displayProducto(val: string): string { return val; }
+
+  // ── Escaneo de Códigos ────────────────────────────────────────
+  abrirEscaneoFiltro(): void {
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    ref.afterClosed().subscribe((codigo: string | null) => {
+      if (codigo) {
+        this.busqueda.set(codigo);
+        this.snack.open(`Filtrando por código: "${codigo}"`, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  abrirEscaneoProducto(): void {
+    const ref = this.dialog.open(BarcodeScannerModalDialog, { width: '480px' });
+    ref.afterClosed().subscribe((codigo: string | null) => {
+      if (codigo) {
+        const clean = codigo.trim().toLowerCase();
+        const match = this.productosCatalogo().find(p =>
+          p.sku.toLowerCase() === clean || p.nombre.toLowerCase().includes(clean)
+        );
+        if (match) {
+          this.seleccionarProducto(match);
+        } else {
+          this.form.patchValue({ productoBusqueda: codigo });
+          this.snack.open(`Código escaneado: "${codigo}"`, 'OK', { duration: 3000 });
+        }
+      }
+    });
+  }
 
   // ── Crear ─────────────────────────────────────────────────────
   abrirCrear(): void {

@@ -31,7 +31,7 @@ export class UsuariosService {
 
   getAll(): UsuarioBackend[] { return this._usuarios(); }
 
-  create(data: { nombre: string; correo: string; contrasena: string; rol?: string }): Observable<UsuarioBackend> {
+  create(data: { nombre: string; correo: string; contrasena: string; rol?: string; activo?: boolean }): Observable<UsuarioBackend> {
     return this.http.post<UsuarioBackend>(API, data).pipe(
       tap(nuevo => this._usuarios.update(list => [nuevo, ...list]))
     );

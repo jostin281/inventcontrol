@@ -158,6 +158,13 @@
       </div>
       <div class="panel-body" [formGroup]="editForm">
 
+        @if (errorEdicion()) {
+          <div class="password-error-banner" style="margin-bottom: 16px; padding: 10px 14px; background: #fee2e2; border-radius: 8px; color: #dc2626; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+            <mat-icon style="font-size: 18px; width: 18px; height: 18px;">error_outline</mat-icon>
+            <span>{{ errorEdicion() }}</span>
+          </div>
+        }
+
         <!-- ── Información básica ── -->
         <p class="section-group-label">Información básica</p>
 
@@ -276,6 +283,12 @@
       [cargando]="eliminando()"
       (cancelar)="cancelarEliminar()"
       (confirmar)="confirmarEliminar()">
+      @if (errorEliminar()) {
+        <div style="margin-bottom: 12px; padding: 10px 14px; background: #fee2e2; border-radius: 8px; color: #dc2626; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px;">error_outline</mat-icon>
+          <span>{{ errorEliminar() }}</span>
+        </div>
+      }
       Estás a punto de eliminar a <strong>{{ usuarioEliminar()!.nombre }}</strong>.
       Esta acción no se puede deshacer.
     </app-confirm-dialog>

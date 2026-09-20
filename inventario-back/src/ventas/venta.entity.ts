@@ -33,4 +33,10 @@ export class Venta {
 
   @Column({ length: 50, default: 'Completada' })
   estado: string;
+
+  @Column({ length: 50, default: 'Efectivo' })
+  metodoPago: string;
+
+  @Column({ length: 100, nullable: true })
+  folio?: string;
 }

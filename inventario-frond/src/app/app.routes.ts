@@ -18,6 +18,11 @@ export const routes: Routes = [
   { path: 'asistente-ia', canActivate: [authGuard], loadComponent: () => import('./pages/asistente-ia/asistente-ia').then(m => m.AsistenteIa) },
   { path: 'configuracion',canActivate: [authGuard], loadComponent: () => import('./pages/configuracion/configuracion').then(m => m.Configuracion) },
   {
+    path: 'pos',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/pos/pos').then(m => m.PosComponent),
+  },
+  {
     path: 'ventas',
     canActivate: [authGuard, adminGuard],
     loadComponent: () => import('./pages/ventas/ventas').then(m => m.Ventas),

@@ -24,10 +24,13 @@
       id="search-productos"
       type="text"
       class="search-input-local"
-      placeholder="Buscar por nombre, proveedor, categoría…"
+      placeholder="Buscar por nombre, código de barras/SKU, categoría…"
       [ngModel]="busqueda()"
       (ngModelChange)="busqueda.set($event)"
     />
+    <button mat-icon-button type="button" class="scan-btn-local" (click)="abrirEscaneoFiltro()" matTooltip="Escanear Código de Barras / QR">
+      <mat-icon color="primary">qr_code_scanner</mat-icon>
+    </button>
     @if (busqueda()) {
       <button mat-icon-button class="clear-btn" (click)="busqueda.set('')" id="btn-clear-search">
         <mat-icon>close</mat-icon>
@@ -146,6 +149,15 @@
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let p">
         <div class="actions-cell">
+          <button
+            mat-icon-button
+            class="action-btn action-btn--view"
+            matTooltip="Imprimir Etiqueta de Código de Barras"
+            [id]="'btn-label-' + p.id"
+            (click)="imprimirEtiquetaProducto(p)"
+          >
+            <mat-icon color="primary">qr_code</mat-icon>
+          </button>
           <button
             mat-icon-button
             class="action-btn action-btn--view"

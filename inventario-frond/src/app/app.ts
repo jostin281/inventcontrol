@@ -199,13 +199,14 @@ export class App {
 
   // ── Menús ─────────────────────────────────────────────────────────────────
   mainMenu = [
-    { label: 'Dashboard',    icon: 'dashboard',      link: '/dashboard' },
-    { label: 'Productos',    icon: 'inventory_2',    link: '/productos' },
-    { label: 'Categorías',   icon: 'category',       link: '/categorias' },
-    { label: 'Movimientos',  icon: 'swap_horiz',     link: '/movimientos' },
-    { label: 'Proveedores',  icon: 'local_shipping', link: '/proveedores' },
-    { label: 'Reportes',     icon: 'bar_chart',      link: '/reportes' },
-    { label: 'Asistente IA', icon: 'smart_toy',      link: '/asistente-ia' },
+    { label: 'Dashboard',      icon: 'dashboard',      link: '/dashboard' },
+    { label: 'Punto de Venta', icon: 'point_of_sale',  link: '/pos' },
+    { label: 'Productos',      icon: 'inventory_2',    link: '/productos' },
+    { label: 'Categorías',     icon: 'category',       link: '/categorias' },
+    { label: 'Movimientos',    icon: 'swap_horiz',     link: '/movimientos' },
+    { label: 'Proveedores',    icon: 'local_shipping', link: '/proveedores' },
+    { label: 'Reportes',       icon: 'bar_chart',      link: '/reportes' },
+    { label: 'Asistente IA',   icon: 'smart_toy',      link: '/asistente-ia' },
   ];
 
   readonly adminMenu = [

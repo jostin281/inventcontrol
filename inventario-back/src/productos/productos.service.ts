@@ -21,6 +21,12 @@ export class ProductosService {
     return p;
   }
 
+  async findBySku(sku: string, companyId: number): Promise<Producto> {
+    const p = await this.repo.findOne({ where: { sku, companyId } });
+    if (!p) throw new NotFoundException(`Producto con código ${sku} no encontrado`);
+    return p;
+  }
+
   create(data: Partial<Producto>, companyId: number): Promise<Producto> {
     this._validarImagen(data.imagen);
     const producto = this.repo.create({ ...data, companyId });

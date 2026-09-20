@@ -24,6 +24,11 @@ export class VentasController {
     return this.service.create(data, req.user.companyId, req.user.nombre);
   }
 
+  @Post('pos')
+  createPosBatch(@Body() body: any, @Req() req: any) {
+    return this.service.createPosBatch(body, req.user.companyId, req.user.nombre);
+  }
+
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() data: any, @Req() req: any) {
     return this.service.update(id, data, req.user.companyId);

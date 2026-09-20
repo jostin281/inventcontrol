@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -30,7 +30,8 @@ export class NuevoUsuarioDialog {
   private dialogRef = inject(MatDialogRef<NuevoUsuarioDialog>);
   readonly data = inject(MAT_DIALOG_DATA) as NuevoUsuarioData | undefined;
 
-  roles = ['Administrador', 'Supervisor', 'Operador'];
+  roles = ['Administrador', 'Operador'];
+  errorPassword = signal('');
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(2)]],
@@ -45,6 +46,10 @@ export class NuevoUsuarioDialog {
     if (this.data?.usuario) {
       const u = this.data.usuario;
       this.form.patchValue({ nombre: u.nombre, correo: u.correo, rol: u.rol, estado: u.estado });
+    } else {
+      // Si es nuevo usuario, la contraseña es requerida (mínimo 6 caracteres)
+      this.form.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.form.get('confirmPassword')?.setValidators([Validators.required]);
     }
     if (this.data?.readonly) {
       this.form.disable();
@@ -56,12 +61,13 @@ export class NuevoUsuarioDialog {
   }
 
   guardar(): void {
+    this.errorPassword.set('');
     if (this.data?.readonly) { this.dialogRef.close(); return; }
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
-    if (v.password || v.confirmPassword) {
+    if (v.password || v.confirmPassword || !this.data?.usuario) {
       if (v.password !== v.confirmPassword) {
-        alert('Las contraseñas no coinciden.');
+        this.errorPassword.set('Las contraseñas no coinciden.');
         return;
       }
     }
@@ -71,7 +77,9 @@ export class NuevoUsuarioDialog {
       rol: v.rol,
       estado: v.estado,
     };
-    if (v.password) result.password = v.password;
+    if (v.password) {
+      result.contrasena = v.password;
+    }
     this.dialogRef.close(result);
   }
 }

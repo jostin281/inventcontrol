@@ -102,6 +102,9 @@
       [ngModel]="busqueda()"
       (ngModelChange)="busqueda.set($event)"
     />
+    <button mat-icon-button type="button" class="scan-btn-local" (click)="abrirEscaneoFiltro()" matTooltip="Escanear Código de Barras / QR">
+      <mat-icon color="primary">qr_code_scanner</mat-icon>
+    </button>
     @if (busqueda()) {
       <button mat-icon-button class="clear-btn" (click)="busqueda.set('')" id="btn-clear-search-mov">
         <mat-icon>close</mat-icon>
@@ -282,6 +285,9 @@
           (input)="onBusquedaProducto($any($event.target).value)"
           placeholder="Buscar producto…"
         />
+        <button matSuffix mat-icon-button type="button" (click)="abrirEscaneoProducto()" matTooltip="Escanear Código de Barras / QR" id="btn-scan-mov-prod">
+          <mat-icon color="primary">qr_code_scanner</mat-icon>
+        </button>
         <mat-autocomplete #autoProducto="matAutocomplete" (optionSelected)="seleccionarProducto($event.option.value)">
           @for (p of productosFiltrados(); track p.sku) {
             <mat-option [value]="p">
