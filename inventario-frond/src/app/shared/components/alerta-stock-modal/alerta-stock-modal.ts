@@ -1,13 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 
 @Component({
@@ -15,13 +12,11 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatInputModule,
-    MatFormFieldModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   template: `
     <div class="alert-dialog-container">
@@ -52,8 +47,8 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
             <div class="summary-info">
               <span class="summary-count">{{ productosAlertas().length }}</span>
               <div class="summary-text">
-                <strong>Productos requieren atención inmediata</strong>
-                <small>Se sugiere reabastecer existencias con sus proveedores</small>
+                <strong>{{ productosAlertas().length }} productos requieren reabastecimiento</strong>
+                <small>Solicita el pedido directamente a tus proveedores vía WhatsApp</small>
               </div>
             </div>
           </div>
@@ -72,20 +67,11 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
                     <span>Proveedor: <strong>{{ p.proveedor || 'Sin especificar' }}</strong></span>
                   </div>
                 </div>
-                <button mat-icon-button color="accent" (click)="compartirWhatsAppProducto(p)" matTooltip="Enviar pedido individual por WhatsApp">
-                  <mat-icon>share</mat-icon>
+                <button mat-flat-button class="btn-ws-item" (click)="compartirWhatsAppProducto(p)" matTooltip="Enviar pedido por WhatsApp">
+                  <mat-icon>chat</mat-icon> Pedir
                 </button>
               </div>
             }
-          </div>
-
-          <!-- Enviar por correo -->
-          <div class="email-section">
-            <mat-form-field appearance="outline" class="email-input">
-              <mat-label>Correo para recibir informe de stock</mat-label>
-              <input matInput [(ngModel)]="emailDestino" placeholder="ejemplo@correo.com" />
-              <mat-icon matPrefix>email</mat-icon>
-            </mat-form-field>
           </div>
         }
       </mat-dialog-content>
@@ -93,15 +79,8 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
       <mat-dialog-actions align="end" class="dialog-actions">
         <button mat-button (click)="cerrar()" type="button">Cerrar</button>
         @if (productosAlertas().length > 0) {
-          <button mat-stroked-button color="accent" (click)="enviarWhatsAppGlobal()" type="button">
+          <button mat-flat-button class="btn-ws-global" (click)="enviarWhatsAppGlobal()" type="button">
             <mat-icon>chat</mat-icon> Pedir Todo por WhatsApp
-          </button>
-          <button mat-flat-button color="primary" (click)="enviarEmail()" [disabled]="enviandoEmail()" type="button">
-            @if (enviandoEmail()) {
-              <mat-spinner diameter="18" style="display:inline-block"></mat-spinner>
-            } @else {
-              <mat-icon>mail</mat-icon> Enviar Informe por Correo
-            }
           </button>
         }
       </mat-dialog-actions>
@@ -242,11 +221,18 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
       font-size: 12px;
       color: #64748b;
     }
-    .email-section {
-      margin-top: 8px;
+    .btn-ws-item {
+      background: #25d366 !important;
+      color: white !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
     }
-    .email-input {
-      width: 100%;
+    .btn-ws-global {
+      background: #25d366 !important;
+      color: white !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
+      padding: 0 18px !important;
     }
     .dialog-actions {
       padding-top: 10px;
@@ -257,36 +243,61 @@ import { ProductosService, Producto } from '../../../core/services/productos.ser
 export class AlertaStockModalDialog implements OnInit {
   private dialogRef = inject(MatDialogRef<AlertaStockModalDialog>);
   private productosService = inject(ProductosService);
-  private snack = inject(MatSnackBar);
 
   cargando = signal(true);
-  enviandoEmail = signal(false);
   productosAlertas = signal<Producto[]>([]);
-  mensajeWhatsAppUrl = '';
-  textoWhatsAppPlano = '';
-  emailDestino = '';
+  mensajeWhatsAppEncoded = '';
 
   ngOnInit(): void {
     this.cargarAlertas();
   }
 
   cargarAlertas(): void {
+    // Obtener inmediatamente de la memoria del servicio
+    const sinStock = this.productosService.productosSinStock();
+    const stockBajo = this.productosService.productosStockBajo();
+    const listaCompleta = [...sinStock, ...stockBajo];
+
+    this.productosAlertas.set(listaCompleta);
+    this.generarTextoWhatsApp(listaCompleta);
+    this.cargando.set(false);
+
+    // Intentar refrescar vía backend
     this.productosService.getAlertasStock().subscribe({
       next: (res) => {
-        this.cargando.set(false);
-        this.productosAlertas.set(res.productos || []);
-        this.mensajeWhatsAppUrl = res.mensajeWhatsApp;
-        this.textoWhatsAppPlano = res.textoWhatsAppPlano;
+        if (res && res.productos && res.productos.length > 0) {
+          this.productosAlertas.set(res.productos);
+          if (res.mensajeWhatsApp) {
+            this.mensajeWhatsAppEncoded = res.mensajeWhatsApp;
+          }
+        }
       },
       error: () => {
-        this.cargando.set(false);
+        // Mantener la lista local de memoria
       }
     });
   }
 
+  generarTextoWhatsApp(list: Producto[]): void {
+    if (!list || list.length === 0) return;
+    let txt = `🚨 *ALERTA DE REABASTECIMIENTO DE INVENTARIO*\n\n`;
+    txt += `Hola, se requiere reabastecer los siguientes ${list.length} productos:\n\n`;
+    list.forEach((p, i) => {
+      const st = p.stock === 0 ? '❌ AGOTADO' : `⚠️ STOCK BAJO (${p.stock})`;
+      txt += `${i + 1}. *${p.nombre}*\n`;
+      txt += `   • Estado: ${st}\n`;
+      txt += `   • SKU: ${p.sku || 'N/A'}\n`;
+      txt += `   • Proveedor: ${p.proveedor || 'General'}\n\n`;
+    });
+    txt += `_Mensaje generado automáticamente por InvenControl._`;
+    this.mensajeWhatsAppEncoded = encodeURIComponent(txt);
+  }
+
   enviarWhatsAppGlobal(): void {
-    if (!this.mensajeWhatsAppUrl) return;
-    const url = `https://api.whatsapp.com/send?text=${this.mensajeWhatsAppUrl}`;
+    if (!this.mensajeWhatsAppEncoded) {
+      this.generarTextoWhatsApp(this.productosAlertas());
+    }
+    const url = `https://api.whatsapp.com/send?text=${this.mensajeWhatsAppEncoded}`;
     window.open(url, '_blank');
   }
 
@@ -294,20 +305,6 @@ export class AlertaStockModalDialog implements OnInit {
     const txt = `🚨 *REABASTECIMIENTO DE PRODUCTO*\n\nHola, requerimos pedir más unidades de:\n- *${p.nombre}*\n- SKU: ${p.sku || 'N/A'}\n- Stock Actual: ${p.stock}\n- Proveedor: ${p.proveedor || 'General'}\n\nPor favor confirmar precio y tiempo de entrega.`;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(txt)}`;
     window.open(url, '_blank');
-  }
-
-  enviarEmail(): void {
-    this.enviandoEmail.set(true);
-    this.productosService.enviarAlertaEmail(this.emailDestino).subscribe({
-      next: (res) => {
-        this.enviandoEmail.set(false);
-        this.snack.open('✅ ' + (res.mensaje || 'Informe de stock enviado con éxito por correo.'), 'OK', { duration: 4500 });
-      },
-      error: () => {
-        this.enviandoEmail.set(false);
-        this.snack.open('✕ No se pudo enviar el correo de alerta.', 'OK', { duration: 4000 });
-      }
-    });
   }
 
   cerrar(): void {
