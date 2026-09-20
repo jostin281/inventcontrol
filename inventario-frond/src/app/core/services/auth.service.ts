@@ -18,6 +18,8 @@ export interface UserSession {
   zona?: string;
   moneda?: string;
   logo?: string | null;
+  qrPagoImagen?: string | null;
+  transferenciaImagen?: string | null;
 }
 
 /** Datos editables de "Perfil del negocio" en Configuración — todos opcionales. */
@@ -28,6 +30,8 @@ export interface PerfilNegocioUpdate {
   zona?: string;
   moneda?: string;
   logo?: string | null;
+  qrPagoImagen?: string | null;
+  transferenciaImagen?: string | null;
 }
 
 export interface SesionActiva {

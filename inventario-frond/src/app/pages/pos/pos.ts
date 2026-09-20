@@ -14,6 +14,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { AuthService } from '../../core/services/auth.service';
 import { ProductosService, Producto } from '../../core/services/productos.service';
 import { CategoriasService } from '../../core/services/categorias.service';
 import { VentasService, PosCheckoutResponse } from '../../core/services/ventas.service';
@@ -47,6 +48,7 @@ export interface CartItem {
   styleUrl: './pos.css',
 })
 export class PosComponent implements OnInit {
+  private authService = inject(AuthService);
   private productosSvc = inject(ProductosService);
   private categoriasSvc = inject(CategoriasService);
   private ventasSvc = inject(VentasService);
@@ -62,9 +64,13 @@ export class PosComponent implements OnInit {
   metodoPago = 'Efectivo';
   anchoPapel: '58mm' | '80mm' = '80mm';
 
-  // Pago con QR / Transferencia (Imágenes separadas)
-  qrPagoImagen = signal<string | null>(localStorage.getItem('invencontrol-qr-pago'));
-  transferenciaImagen = signal<string | null>(localStorage.getItem('invencontrol-transferencia-pago'));
+  // Pago con QR / Transferencia (Imágenes separadas y sincronizadas con el Backend)
+  qrPagoImagen = signal<string | null>(
+    this.authService.currentUser()?.qrPagoImagen || localStorage.getItem('invencontrol-qr-pago')
+  );
+  transferenciaImagen = signal<string | null>(
+    this.authService.currentUser()?.transferenciaImagen || localStorage.getItem('invencontrol-transferencia-pago')
+  );
   referenciaPago = signal<string>('');
 
   imagenMetodoActual = computed(() => {
@@ -408,11 +414,13 @@ export class PosComponent implements OnInit {
       if (isQr) {
         this.qrPagoImagen.set(result);
         try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
-        this.snack.open('✓ Imagen de Código QR guardada', 'OK', { duration: 3000 });
+        this.authService.actualizarPerfilNegocio({ qrPagoImagen: result }).subscribe();
+        this.snack.open('✓ Imagen de Código QR guardada y sincronizada', 'OK', { duration: 3000 });
       } else {
         this.transferenciaImagen.set(result);
         try { localStorage.setItem('invencontrol-transferencia-pago', result); } catch {}
-        this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada', 'OK', { duration: 3000 });
+        this.authService.actualizarPerfilNegocio({ transferenciaImagen: result }).subscribe();
+        this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada y sincronizada', 'OK', { duration: 3000 });
       }
     };
     reader.readAsDataURL(file);
@@ -422,10 +430,12 @@ export class PosComponent implements OnInit {
     if (this.metodoPago === 'Pago por QR') {
       this.qrPagoImagen.set(null);
       try { localStorage.removeItem('invencontrol-qr-pago'); } catch {}
+      this.authService.actualizarPerfilNegocio({ qrPagoImagen: null }).subscribe();
       this.snack.open('Imagen de Código QR eliminada', 'OK', { duration: 2500 });
     } else {
       this.transferenciaImagen.set(null);
       try { localStorage.removeItem('invencontrol-transferencia-pago'); } catch {}
+      this.authService.actualizarPerfilNegocio({ transferenciaImagen: null }).subscribe();
       this.snack.open('Imagen de Transferencia Bancaria eliminada', 'OK', { duration: 2500 });
     }
   }
