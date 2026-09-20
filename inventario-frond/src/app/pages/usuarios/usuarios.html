@@ -171,7 +171,6 @@
         <mat-form-field appearance="outline" class="full-field">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" />
-          <mat-icon matPrefix>person</mat-icon>
           @if (editForm.get('nombre')?.hasError('required') && editForm.get('nombre')?.touched) {
             <mat-error>El nombre es requerido</mat-error>
           }
@@ -180,7 +179,6 @@
         <mat-form-field appearance="outline" class="full-field">
           <mat-label>Correo</mat-label>
           <input matInput formControlName="correo" />
-          <mat-icon matPrefix>email</mat-icon>
           @if (editForm.get('correo')?.hasError('email') && editForm.get('correo')?.touched) {
             <mat-error>Correo no válido</mat-error>
           }
@@ -192,7 +190,6 @@
             <mat-select formControlName="rol">
               <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
             </mat-select>
-            <mat-icon matPrefix>badge</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-field">
@@ -201,7 +198,6 @@
               <mat-option value="Activo">Activo</mat-option>
               <mat-option value="Inactivo">Inactivo</mat-option>
             </mat-select>
-            <mat-icon matPrefix>toggle_on</mat-icon>
           </mat-form-field>
         </div>
 
@@ -237,7 +233,6 @@
                   formControlName="nuevaPassword"
                   placeholder="Mínimo 6 caracteres"
                 />
-                <mat-icon matPrefix>lock</mat-icon>
                 <button mat-icon-button matSuffix type="button"
                         (click)="toggleVerNuevoPass()"
                         [attr.aria-label]="mostrarNuevoPass() ? 'Ocultar contraseña' : 'Ver contraseña'">
@@ -253,7 +248,6 @@
                   formControlName="confirmarPassword"
                   placeholder="Repite la nueva contraseña"
                 />
-                <mat-icon matPrefix>lock_reset</mat-icon>
                 <button mat-icon-button matSuffix type="button"
                         (click)="toggleVerConfirmPass()"
                         [attr.aria-label]="mostrarConfirmPass() ? 'Ocultar contraseña' : 'Ver contraseña'">

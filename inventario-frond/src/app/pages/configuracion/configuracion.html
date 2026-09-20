@@ -121,7 +121,6 @@
 
               <mat-form-field appearance="outline" class="field-half">
                 <mat-label>Nombre del negocio</mat-label>
-                <mat-icon matPrefix>business</mat-icon>
                 <input matInput formControlName="nombre" id="input-nombre-negocio"
                   placeholder="InvenControl S.A.">
                 @if (perfilForm.get('nombre')?.hasError('required') && perfilForm.get('nombre')?.touched) {
@@ -131,7 +130,6 @@
 
               <mat-form-field appearance="outline" class="field-half">
                 <mat-label>Correo de operaciones</mat-label>
-                <mat-icon matPrefix>mail_outline</mat-icon>
                 <input matInput formControlName="correo" id="input-correo-operaciones"
                   placeholder="operaciones@empresa.com" type="email">
                 @if (perfilForm.get('correo')?.hasError('email') && perfilForm.get('correo')?.touched) {
@@ -141,14 +139,12 @@
 
               <mat-form-field appearance="outline" class="field-full">
                 <mat-label>Dirección (opcional)</mat-label>
-                <mat-icon matPrefix>location_on</mat-icon>
                 <input matInput formControlName="direccion" id="input-direccion"
                   placeholder="Av., Calle, Número, Sector, Ciudad">
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="field-half">
                 <mat-label>Zona horaria</mat-label>
-                <mat-icon matPrefix>schedule</mat-icon>
                 <mat-select formControlName="zona" id="select-zona">
                   @for (z of zonas; track z.value) {
                     <mat-option [value]="z.value">{{ z.label }}</mat-option>
@@ -158,7 +154,6 @@
 
               <mat-form-field appearance="outline" class="field-half">
                 <mat-label>Moneda</mat-label>
-                <mat-icon matPrefix>payments</mat-icon>
                 <mat-select formControlName="moneda" id="select-moneda">
                   @for (m of monedas; track m.code) {
                     <mat-option [value]="m.code">{{ m.label }}</mat-option>
@@ -274,7 +269,6 @@
 
                   <mat-form-field appearance="outline" class="field-full">
                     <mat-label>Contraseña actual</mat-label>
-                    <mat-icon matPrefix>lock_outline</mat-icon>
                     <input matInput formControlName="actual" id="input-pass-actual"
                       [type]="showActual() ? 'text' : 'password'">
                     <button mat-icon-button matSuffix type="button"
@@ -294,7 +288,6 @@
 
                   <mat-form-field appearance="outline" class="field-full">
                     <mat-label>Nueva contraseña</mat-label>
-                    <mat-icon matPrefix>lock</mat-icon>
                     <input matInput formControlName="nueva" id="input-pass-nueva"
                       [type]="showNueva() ? 'text' : 'password'">
                     <button mat-icon-button matSuffix type="button"

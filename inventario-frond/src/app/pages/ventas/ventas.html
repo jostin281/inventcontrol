@@ -232,7 +232,6 @@
         <mat-form-field appearance="outline" class="full-field">
           <mat-label>Cliente</mat-label>
           <input matInput formControlName="cliente" />
-          <mat-icon matPrefix>person</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-field">
@@ -240,20 +239,17 @@
           <mat-select formControlName="producto">
             <mat-option *ngFor="let p of productos()" [value]="p.nombre">{{ p.nombre }}</mat-option>
           </mat-select>
-          <mat-icon matPrefix>inventory_2</mat-icon>
         </mat-form-field>
 
         <div class="edit-row">
           <mat-form-field appearance="outline" class="half-field">
             <mat-label>Total</mat-label>
             <input matInput type="number" formControlName="total" />
-            <mat-icon matPrefix>attach_money</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-field">
             <mat-label>Fecha</mat-label>
             <input matInput formControlName="fecha" />
-            <mat-icon matPrefix>calendar_today</mat-icon>
           </mat-form-field>
         </div>
 
@@ -264,7 +260,6 @@
             <mat-option value="Pendiente">Pendiente</mat-option>
             <mat-option value="Cancelada">Cancelada</mat-option>
           </mat-select>
-          <mat-icon matPrefix>fact_check</mat-icon>
         </mat-form-field>
       </div>
       <div class="panel-footer">

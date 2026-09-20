@@ -125,7 +125,6 @@
       <mat-option value="Salida">Salida</mat-option>
       <mat-option value="Ajuste">Ajuste</mat-option>
     </mat-select>
-    <mat-icon matPrefix>filter_list</mat-icon>
   </mat-form-field>
 
 </div>
@@ -277,7 +276,6 @@
       <!-- Producto Autocomplete -->
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Producto (nombre o SKU)</mat-label>
-        <mat-icon matPrefix>inventory_2</mat-icon>
         <input matInput
           formControlName="productoBusqueda"
           id="create-producto"
@@ -330,7 +328,6 @@
       <!-- Cantidad -->
       <mat-form-field appearance="outline" class="full-field" style="margin-top:16px">
         <mat-label>Cantidad</mat-label>
-        <mat-icon matPrefix>tag</mat-icon>
         <input matInput type="number" formControlName="cantidad" id="create-cantidad" min="1">
         @if (form.get('cantidad')?.hasError('min') && form.get('cantidad')?.touched) {
           <mat-error>La cantidad debe ser mayor a 0</mat-error>
@@ -340,7 +337,6 @@
       <!-- Nota -->
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Nota (opcional)</mat-label>
-        <mat-icon matPrefix>notes</mat-icon>
         <textarea matInput formControlName="nota" id="create-nota" rows="3" placeholder="Observaciones del movimiento…"></textarea>
       </mat-form-field>
 
@@ -492,7 +488,6 @@
       <!-- Cantidad -->
       <mat-form-field appearance="outline" class="full-field" style="margin-top:16px">
         <mat-label>Cantidad</mat-label>
-        <mat-icon matPrefix>tag</mat-icon>
         <input matInput type="number" formControlName="cantidad" id="edit-cantidad-mov" min="1">
         @if (form.get('cantidad')?.hasError('min') && form.get('cantidad')?.touched) {
           <mat-error>La cantidad debe ser mayor a 0</mat-error>
@@ -502,7 +497,6 @@
       <!-- Nota -->
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Nota</mat-label>
-        <mat-icon matPrefix>notes</mat-icon>
         <textarea matInput formControlName="nota" id="edit-nota-mov" rows="3"></textarea>
       </mat-form-field>
     </div>

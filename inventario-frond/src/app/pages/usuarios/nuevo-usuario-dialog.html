@@ -38,7 +38,6 @@
       <mat-form-field appearance="outline">
         <mat-label>Nombre</mat-label>
         <input matInput formControlName="nombre" placeholder="Nombre completo" id="input-nombre" />
-        <mat-icon matPrefix>person</mat-icon>
         @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
           <mat-error>El nombre es requerido</mat-error>
         }
@@ -47,7 +46,6 @@
       <mat-form-field appearance="outline">
         <mat-label>Correo</mat-label>
         <input matInput formControlName="correo" placeholder="correo@dominio.com" id="input-correo" />
-        <mat-icon matPrefix>email</mat-icon>
         @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
           <mat-error>Correo no válido</mat-error>
         }
@@ -64,7 +62,6 @@
         <mat-select formControlName="rol" id="select-rol">
           <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
         </mat-select>
-        <mat-icon matPrefix>badge</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
@@ -73,7 +70,6 @@
           <mat-option value="Activo">Activo</mat-option>
           <mat-option value="Inactivo">Inactivo</mat-option>
         </mat-select>
-        <mat-icon matPrefix>toggle_on</mat-icon>
       </mat-form-field>
     </div>
 
@@ -83,7 +79,6 @@
         <mat-form-field appearance="outline">
           <mat-label>Contraseña</mat-label>
           <input matInput type="password" formControlName="password" id="input-password" />
-          <mat-icon matPrefix>lock</mat-icon>
           @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
             <mat-error>La contraseña es requerida</mat-error>
           }
@@ -95,7 +90,6 @@
         <mat-form-field appearance="outline">
           <mat-label>Confirmar contraseña</mat-label>
           <input matInput type="password" formControlName="confirmPassword" id="input-confirm-password" />
-          <mat-icon matPrefix>lock_reset</mat-icon>
           @if (form.get('confirmPassword')?.hasError('required') && form.get('confirmPassword')?.touched) {
             <mat-error>Confirme la contraseña</mat-error>
           }

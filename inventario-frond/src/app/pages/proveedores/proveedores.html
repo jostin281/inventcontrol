@@ -246,7 +246,6 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Nombre del proveedor</mat-label>
-        <mat-icon matPrefix>business</mat-icon>
         <input matInput formControlName="nombre" id="create-prov-nombre" placeholder="Ej. TechSupply SA">
         @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
           <mat-error>El nombre es obligatorio</mat-error>
@@ -255,7 +254,6 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Categoría</mat-label>
-        <mat-icon matPrefix>category</mat-icon>
         <input matInput formControlName="categoria" id="create-prov-categoria" placeholder="ej. Electrónica, Servicios, Alimentos...">
         @if (form.get('categoria')?.hasError('required') && form.get('categoria')?.touched) {
           <mat-error>La categoría es obligatoria</mat-error>
@@ -264,7 +262,6 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Contacto</mat-label>
-        <mat-icon matPrefix>person</mat-icon>
         <input matInput formControlName="contacto" id="create-prov-contacto">
         @if (form.get('contacto')?.hasError('required') && form.get('contacto')?.touched) {
           <mat-error>El contacto es obligatorio</mat-error>
@@ -274,13 +271,11 @@
       <div class="edit-row">
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Teléfono</mat-label>
-          <mat-icon matPrefix>phone</mat-icon>
           <input matInput formControlName="telefono" id="create-prov-telefono">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Correo</mat-label>
-          <mat-icon matPrefix>mail_outline</mat-icon>
           <input matInput formControlName="correo" id="create-prov-correo" type="email">
           @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
             <mat-error>Correo inválido</mat-error>
@@ -291,19 +286,16 @@
       <div class="edit-row">
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Tiempo entrega (días)</mat-label>
-          <mat-icon matPrefix>local_shipping</mat-icon>
           <input matInput type="number" formControlName="tiempoEntrega" id="create-prov-tiempo" min="1">
         </mat-form-field>
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Confiabilidad (%)</mat-label>
-          <mat-icon matPrefix>verified</mat-icon>
           <input matInput type="number" formControlName="confiabilidad" id="create-prov-conf" min="0" max="100">
         </mat-form-field>
       </div>
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Calificación inicial</mat-label>
-        <mat-icon matPrefix>star</mat-icon>
         <input matInput type="number" formControlName="calificacion" id="create-prov-cal" min="1" max="5" step="0.1">
       </mat-form-field>
 
@@ -476,7 +468,6 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Nombre del proveedor</mat-label>
-        <mat-icon matPrefix>business</mat-icon>
         <input matInput formControlName="nombre" id="edit-prov-nombre">
         @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
           <mat-error>El nombre es obligatorio</mat-error>
@@ -485,25 +476,21 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Categoría</mat-label>
-        <mat-icon matPrefix>category</mat-icon>
         <input matInput formControlName="categoria" id="edit-prov-categoria" placeholder="ej. Electrónica, Servicios, Alimentos...">
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Contacto</mat-label>
-        <mat-icon matPrefix>person</mat-icon>
         <input matInput formControlName="contacto" id="edit-prov-contacto">
       </mat-form-field>
 
       <div class="edit-row">
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Teléfono</mat-label>
-          <mat-icon matPrefix>phone</mat-icon>
           <input matInput formControlName="telefono" id="edit-prov-telefono">
         </mat-form-field>
         <mat-form-field appearance="outline" class="half-field">
           <mat-label>Correo</mat-label>
-          <mat-icon matPrefix>mail_outline</mat-icon>
           <input matInput formControlName="correo" id="edit-prov-correo" type="email">
           @if (form.get('correo')?.hasError('email') && form.get('correo')?.touched) {
             <mat-error>Correo inválido</mat-error>
@@ -524,7 +511,6 @@
 
       <mat-form-field appearance="outline" class="full-field">
         <mat-label>Calificación (1-5)</mat-label>
-        <mat-icon matPrefix>star</mat-icon>
         <input matInput type="number" formControlName="calificacion" id="edit-prov-cal" min="1" max="5" step="0.1">
       </mat-form-field>
 
