@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -61,6 +61,10 @@ export class PosComponent implements OnInit {
   clienteNombre = 'Cliente Mostrador';
   metodoPago = 'Efectivo';
   anchoPapel: '58mm' | '80mm' = '80mm';
+
+  // Pago con QR / Transferencia
+  qrPagoImagen = signal<string | null>(localStorage.getItem('invencontrol-qr-pago'));
+  referenciaPago = signal<string>('');
 
   // Escaneo directo de código
   codigoDirectoInput = signal('');
@@ -280,9 +284,12 @@ export class PosComponent implements OnInit {
     this.ultimoMontoRecibido.set(rec);
     this.ultimoVuelto.set(vue);
 
+    const ref = this.referenciaPago().trim();
+    const metodoFinal = ref ? `${this.metodoPago} (Ref: ${ref})` : this.metodoPago;
+
     const payload = {
       cliente: this.clienteNombre || 'Cliente Mostrador',
-      metodoPago: this.metodoPago || 'Efectivo',
+      metodoPago: metodoFinal,
       items: this.cart().map(item => ({
         productoId: item.producto.id,
         cantidad: item.cantidad,
@@ -293,6 +300,9 @@ export class PosComponent implements OnInit {
       next: (response) => {
         this.procesandoCobro.set(false);
         this.ultimaVentaExitosa.set(response);
+
+        // Prevenir que el botón atrás de Android cierre la app al ver el ticket
+        try { window.history.pushState({ posModal: true }, ''); } catch {}
 
         // Imprimir ticket automáticamente con vuelto y dinero recibido
         this.imprimirTicketRespuesta(response);
@@ -343,6 +353,42 @@ export class PosComponent implements OnInit {
     this.ultimaVentaExitosa.set(null);
     this.ultimoMontoRecibido.set(null);
     this.ultimoVuelto.set(0);
+    this.referenciaPago.set('');
+  }
+
+  @HostListener('window:popstate')
+  onPopState(): void {
+    if (this.ultimaVentaExitosa()) {
+      this.cerrarModalExito();
+    }
+  }
+
+  // ── Gestión de Imagen QR de Cobro ────────────────────────
+  onQrImagenChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      this.snack.open('La imagen no puede superar 4 MB', 'OK', { duration: 3500, panelClass: ['snack-error'] });
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      this.qrPagoImagen.set(result);
+      try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
+      this.snack.open('✓ Imagen QR guardada para cobros', 'OK', { duration: 3000 });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  eliminarQrImagen(): void {
+    this.qrPagoImagen.set(null);
+    try { localStorage.removeItem('invencontrol-qr-pago'); } catch {}
+    this.snack.open('Imagen QR eliminada', 'OK', { duration: 2500 });
   }
 
   getInitials(nombre: string): string {

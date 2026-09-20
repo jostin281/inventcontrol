@@ -192,6 +192,7 @@
                 <mat-option value="Efectivo">Efectivo</mat-option>
                 <mat-option value="Tarjeta">Tarjeta de Crédito/Débito</mat-option>
                 <mat-option value="Transferencia">Transferencia Bancaria</mat-option>
+                <mat-option value="Pago por Código (Deuna / QR)">Pago por Código (Deuna / QR)</mat-option>
                 <mat-option value="Otro">Otro</mat-option>
               </mat-select>
             </mat-form-field>
@@ -253,6 +254,58 @@
             <div *ngIf="dineroRecibido()! < totalVenta()" class="insufficient-content">
               <span class="insufficient-title">MONTO INSUFICIENTE:</span>
               <span class="insufficient-val">Faltan ${{ faltante() | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL DE PAGO CON CÓDIGO QR / DEUNA / TRANSFERENCIA -->
+        <div *ngIf="(metodoPago === 'Transferencia' || metodoPago === 'Pago por Código (Deuna / QR)') && cart().length > 0" class="qr-payment-wrapper">
+          <div class="qr-card">
+            <div class="qr-card-header">
+              <mat-icon class="qr-header-icon">qr_code_2</mat-icon>
+              <div>
+                <h4 class="qr-card-title">Pago con Transferencia / QR</h4>
+                <p class="qr-card-sub">Muestra este código QR o datos de tu cuenta al cliente para recibir el pago de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></p>
+              </div>
+            </div>
+
+            <!-- Vista de Imagen de QR o Botón de Carga -->
+            <div class="qr-image-container">
+              <ng-container *ngIf="qrPagoImagen(); else noQrTemplate">
+                <div class="qr-img-box">
+                  <img [src]="qrPagoImagen()" alt="Código QR de Cobro" class="qr-preview-img" />
+                  <div class="qr-actions-row">
+                    <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="qrFileInput.click()">
+                      <mat-icon>photo_camera</mat-icon> Cambiar QR
+                    </button>
+                    <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
+                      <mat-icon>delete</mat-icon> Eliminar
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #noQrTemplate>
+                <div class="qr-upload-placeholder" (click)="qrFileInput.click()">
+                  <mat-icon class="upload-icon">add_a_photo</mat-icon>
+                  <span class="upload-title">Subir imagen de tu QR o datos de cuenta</span>
+                  <span class="upload-desc">Formatos PNG, JPG hasta 4 MB (Deuna, Pichincha, Yape, etc.)</span>
+                  <button type="button" mat-flat-button color="primary" class="btn-select-qr">
+                    Seleccionar Imagen
+                  </button>
+                </div>
+              </ng-template>
+
+              <!-- Hidden File Input -->
+              <input #qrFileInput type="file" accept="image/*" style="display: none;" (change)="onQrImagenChange($event)" />
+            </div>
+
+            <!-- Input de Referencia o N° de Comprobante -->
+            <div class="qr-ref-input">
+              <mat-form-field appearance="outline" class="input-full compact-field">
+                <mat-label>N° de comprobante / Referencia (opcional)</mat-label>
+                <input matInput [ngModel]="referenciaPago()" (ngModelChange)="referenciaPago.set($event)" placeholder="Ej. Ref 987654" id="input-ref-pago" />
+              </mat-form-field>
             </div>
           </div>
         </div>

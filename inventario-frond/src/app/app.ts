@@ -19,6 +19,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatRippleModule } from '@angular/material/core';
 import { AsyncPipe } from '@angular/common';
 import { filter, map, startWith } from 'rxjs/operators';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from './core/services/auth.service';
 import { ProductosService, Producto } from './core/services/productos.service';
 import { NotificacionPreferenciasService } from './core/services/notificacion-preferencias.service';
@@ -56,6 +59,7 @@ export class App {
 
   private router = inject(Router);
   private elRef = inject(ElementRef);
+  private dialog = inject(MatDialog);
   private authService = inject(AuthService);
   private productosService = inject(ProductosService);
   private notifPrefs = inject(NotificacionPreferenciasService);
@@ -115,6 +119,8 @@ export class App {
   private _productosCargados = false;
 
   constructor() {
+    this._initCapacitorBackButton();
+
     // Carga los productos y evalúa la alerta de stock una vez que hay
     // usuario autenticado Y ya se salió de las pantallas de login/registro
     // (es decir, ya se ve el dashboard/shell). No basta con que
@@ -376,5 +382,43 @@ export class App {
   irAProductosDesdeAlerta(): void {
     this.mostrarAlertaLogin.set(false);
     this.router.navigate(['/productos']);
+  }
+
+  private _initCapacitorBackButton(): void {
+    if (Capacitor.isNativePlatform()) {
+      CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+        // 1. Si hay diálogos de Angular Material abiertos (scanner, alerta), cerrarlos
+        if (this.dialog.openDialogs.length > 0) {
+          this.dialog.closeAll();
+          return;
+        }
+
+        // 2. Si el comprobante de venta POS está abierto en pantalla, simular clic en botón atrás
+        const modalBackBtn = document.querySelector('.btn-back-modal') as HTMLElement;
+        if (modalBackBtn) {
+          modalBackBtn.click();
+          return;
+        }
+
+        // 3. Si la alerta de login o paneles laterales están abiertos, cerrarlos
+        if (this.mostrarAlertaLogin()) {
+          this.mostrarAlertaLogin.set(false);
+          return;
+        }
+        if (this.showNotifPanel()) {
+          this.showNotifPanel.set(false);
+          return;
+        }
+        if (this.sidebarOpen()) {
+          this.sidebarOpen.set(false);
+          return;
+        }
+
+        // 4. Si hay historial dentro de la app, ir atrás sin salirse de la app
+        if (canGoBack) {
+          window.history.back();
+        }
+      });
+    }
   }
 }
