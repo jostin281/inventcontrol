@@ -12,6 +12,16 @@ export class ProductosController {
     return this.service.stats(req.user.companyId);
   }
 
+  @Get('alertas-stock')
+  findAlertasStock(@Req() req: any) {
+    return this.service.findAlertasStock(req.user.companyId);
+  }
+
+  @Post('enviar-alerta-email')
+  enviarAlertaEmail(@Body() body: { email?: string }, @Req() req: any) {
+    return this.service.enviarAlertaEmail(req.user.companyId, body?.email);
+  }
+
   @Get()
   findAll(@Req() req: any) {
     return this.service.findAll(req.user.companyId);

@@ -17,6 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NuevoProductoDialog } from './nuevo-producto-dialog';
 import { EtiquetaProductoDialog } from './etiqueta-producto-dialog';
+import { AlertaStockModalDialog } from '../../../shared/components/alerta-stock-modal/alerta-stock-modal';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { ProveedoresService } from '../../../core/services/proveedores.service';
@@ -42,10 +43,19 @@ export class ListaProductos implements OnInit {
   private dialog = inject(MatDialog);
   private fb     = inject(FormBuilder);
   private snack  = inject(MatSnackBar);
-  private productosService  = inject(ProductosService);
+  public productosService   = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proveedoresService= inject(ProveedoresService);
   private barcodeService    = inject(BarcodeGeneratorService);
+
+  abrirAlertasStock(): void {
+    this.dialog.open(AlertaStockModalDialog, {
+      width: '560px',
+      maxWidth: '95vw',
+      autoFocus: false,
+      restoreFocus: false,
+    });
+  }
 
   isLoading = signal(true);
   error     = signal<string | null>(null);

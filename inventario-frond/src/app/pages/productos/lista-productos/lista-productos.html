@@ -8,10 +8,18 @@
     <h1 class="page-title">Productos</h1>
     <p class="page-subtitle">{{ productos().length }} productos en inventario</p>
   </div>
-  <button mat-flat-button class="btn-nuevo" id="btn-nuevo-producto" (click)="abrirNuevoProducto()">
-    <mat-icon>add</mat-icon>
-    Nuevo producto
-  </button>
+  <div class="header-buttons" style="display: flex; gap: 10px; align-items: center;">
+    @if (productosService.hayAlertasStock()) {
+      <button mat-flat-button color="warn" class="btn-alerta-stock" (click)="abrirAlertasStock()" matTooltip="Alertas de Reabastecimiento WhatsApp / Correo">
+        <mat-icon>warning</mat-icon>
+        Alertas de Stock ({{ productosService.productosSinStock().length + productosService.productosStockBajo().length }})
+      </button>
+    }
+    <button mat-flat-button class="btn-nuevo" id="btn-nuevo-producto" (click)="abrirNuevoProducto()">
+      <mat-icon>add</mat-icon>
+      Nuevo producto
+    </button>
+  </div>
 </div>
 
 <!-- ── Barra de filtros ───────────────────────────────────── -->

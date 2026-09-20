@@ -18,6 +18,13 @@ export interface Producto {
   descripcion?: string;
 }
 
+export interface AlertaStockResponse {
+  totalAlertas: number;
+  productos: Producto[];
+  mensajeWhatsApp: string;
+  textoWhatsAppPlano: string;
+}
+
 const API = `${environment.apiUrl}/productos`;
 
 @Injectable({ providedIn: 'root' })
@@ -35,7 +42,7 @@ export class ProductosService {
     this._productos().filter(p => p.stock === 0)
   );
   readonly productosStockBajo = computed(() =>
-    this._productos().filter(p => p.stock > 0 && p.stock <= p.stockMax * 0.25)
+    this._productos().filter(p => p.stock > 0 && p.stock <= Math.max(5, p.stockMax * 0.25))
   );
   /** true si hay algún producto agotado o con stock bajo (para saber si hay "novedad"). */
   readonly hayAlertasStock = computed(() =>
@@ -59,6 +66,14 @@ export class ProductosService {
 
   obtenerPorSku(sku: string): Observable<Producto> {
     return this.http.get<Producto>(`${API}/sku/${encodeURIComponent(sku)}`);
+  }
+
+  getAlertasStock(): Observable<AlertaStockResponse> {
+    return this.http.get<AlertaStockResponse>(`${API}/alertas-stock`);
+  }
+
+  enviarAlertaEmail(email?: string): Observable<any> {
+    return this.http.post<any>(`${API}/enviar-alerta-email`, { email });
   }
 
   create(data: Omit<Producto, 'id' | 'ultimaActualizacion'>): Observable<Producto> {
