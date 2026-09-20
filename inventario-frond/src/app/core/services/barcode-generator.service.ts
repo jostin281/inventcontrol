@@ -150,15 +150,64 @@ export class BarcodeGeneratorService {
       <html>
       <head>
         <title>Etiqueta - ${producto.nombre}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <style>
           body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 12px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             background: #f3f4f6;
+            box-sizing: border-box;
+          }
+          .nav-bar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 360px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            z-index: 99999;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            box-sizing: border-box;
+          }
+          .btn-nav-close {
+            background: #334155;
+            color: #ffffff;
+            border: 1px solid #64748b;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: sans-serif;
+          }
+          .btn-nav-print {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: sans-serif;
           }
           .label-card {
             width: 320px;
@@ -168,6 +217,7 @@ export class BarcodeGeneratorService {
             padding: 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             text-align: center;
+            box-sizing: border-box;
           }
           .title {
             font-size: 16px;
@@ -205,12 +255,22 @@ export class BarcodeGeneratorService {
             height: 60px;
           }
           @media print {
+            .no-print { display: none !important; }
             body { background: white; padding: 0; }
             .label-card { border: 1px solid #000; box-shadow: none; }
           }
         </style>
       </head>
       <body>
+        <div class="nav-bar no-print">
+          <button class="btn-nav-close" onclick="window.close(); if(!window.closed){ history.back(); }">
+            ← Volver Atrás
+          </button>
+          <button class="btn-nav-print" onclick="window.print()">
+            🖨️ Imprimir
+          </button>
+        </div>
+
         <div class="label-card">
           <div class="title">${producto.nombre}</div>
           <div class="category">${producto.categoria || 'INVENTARIO'}</div>
@@ -224,6 +284,13 @@ export class BarcodeGeneratorService {
             <img class="qr" src="${qrImg}" alt="QR Code" />
           </div>
         </div>
+
+        <div class="no-print" style="margin-top: 16px; width: 100%; max-width: 320px;">
+          <button class="btn-nav-close" style="width: 100%; justify-content: center; padding: 10px; background: #0f172a; color: white;" onclick="window.close(); if(!window.closed){ history.back(); }">
+            ← Volver a Productos
+          </button>
+        </div>
+
         <script>
           window.onload = function() {
             setTimeout(function() { window.print(); }, 300);
