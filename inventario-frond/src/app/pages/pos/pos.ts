@@ -20,6 +20,7 @@ import { CategoriasService } from '../../core/services/categorias.service';
 import { VentasService, PosCheckoutResponse } from '../../core/services/ventas.service';
 import { TicketPrintService, TicketItem } from '../../core/services/ticket-print.service';
 import { BarcodeScannerModalDialog } from '../../shared/components/barcode-scanner-modal/barcode-scanner-modal';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 export interface CartItem {
   producto: Producto;
@@ -391,9 +392,23 @@ export class PosComponent implements OnInit {
   }
 
   // ── Gestión de Imágenes por Método (QR vs Transferencia Bancaria) ─────────
-  triggerFileInput(): void {
-    const el = document.getElementById('input-qr-file-hidden') as HTMLInputElement;
-    if (el) el.click();
+  async seleccionarImagenMetodo(): Promise<void> {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos, // Abrir directamente la Galería / Galería de Fotos de Android
+      });
+
+      if (image?.dataUrl) {
+        this.procesarStringImagen(image.dataUrl);
+      }
+    } catch (err: any) {
+      // Fallback a input file tradicional si ocurre en navegador web desktop
+      const input = document.getElementById('input-qr-file-fallback') as HTMLInputElement;
+      if (input) input.click();
+    }
   }
 
   onQrImagenChange(event: Event): void {
@@ -407,24 +422,30 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    const isQr = this.metodoPago === 'Pago por QR';
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      if (isQr) {
-        this.qrPagoImagen.set(result);
-        try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
-        this.authService.actualizarPerfilNegocio({ qrPagoImagen: result }).subscribe();
-        this.snack.open('✓ Imagen de Código QR guardada y sincronizada', 'OK', { duration: 3000 });
-      } else {
-        this.transferenciaImagen.set(result);
-        try { localStorage.setItem('invencontrol-transferencia-pago', result); } catch {}
-        this.authService.actualizarPerfilNegocio({ transferenciaImagen: result }).subscribe();
-        this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada y sincronizada', 'OK', { duration: 3000 });
+      if (result) {
+        this.procesarStringImagen(result);
       }
       input.value = '';
     };
     reader.readAsDataURL(file);
+  }
+
+  procesarStringImagen(result: string): void {
+    const isQr = this.metodoPago === 'Pago por QR';
+    if (isQr) {
+      this.qrPagoImagen.set(result);
+      try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
+      this.authService.actualizarPerfilNegocio({ qrPagoImagen: result }).subscribe();
+      this.snack.open('✓ Imagen de Código QR guardada y sincronizada', 'OK', { duration: 3000 });
+    } else {
+      this.transferenciaImagen.set(result);
+      try { localStorage.setItem('invencontrol-transferencia-pago', result); } catch {}
+      this.authService.actualizarPerfilNegocio({ transferenciaImagen: result }).subscribe();
+      this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada y sincronizada', 'OK', { duration: 3000 });
+    }
   }
 
   eliminarQrImagen(): void {

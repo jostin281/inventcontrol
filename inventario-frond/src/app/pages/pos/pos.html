@@ -273,15 +273,9 @@
                 <div class="qr-img-box">
                   <img [src]="imagenMetodoActual()" [alt]="tituloMetodoActual()" class="qr-preview-img" />
                   <div class="qr-actions-row">
-                    <label class="btn-qr-action-label">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        class="qr-file-input-hidden"
-                        (change)="onQrImagenChange($event)"
-                      />
+                    <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="seleccionarImagenMetodo()">
                       <mat-icon>photo_camera</mat-icon> Cambiar Imagen
-                    </label>
+                    </button>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
                     </button>
@@ -290,13 +284,7 @@
               </ng-container>
 
               <ng-template #noQrTemplate>
-                <label class="qr-upload-label">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="qr-file-input-hidden"
-                    (change)="onQrImagenChange($event)"
-                  />
+                <div class="qr-upload-placeholder" (click)="seleccionarImagenMetodo()">
                   <mat-icon class="upload-icon">add_a_photo</mat-icon>
                   <span class="upload-title">
                     {{ metodoPago === 'Pago por QR' ? 'Subir imagen de tu Código QR' : 'Subir imagen de tu Cuenta Bancaria' }}
@@ -304,11 +292,14 @@
                   <span class="upload-desc">
                     {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, etc.)' }}
                   </span>
-                  <div class="btn-select-qr-fake">
+                  <button type="button" mat-flat-button color="primary" class="btn-select-qr" (click)="$event.stopPropagation(); seleccionarImagenMetodo()">
                     <mat-icon>photo_camera</mat-icon> Seleccionar Imagen
-                  </div>
-                </label>
+                  </button>
+                </div>
               </ng-template>
+
+              <!-- File input oculto para respaldo en escritorio / web -->
+              <input id="input-qr-file-fallback" type="file" accept="image/*" style="display: none !important;" (change)="onQrImagenChange($event)" />
             </div>
 
             <!-- Input de Referencia o N° de Comprobante -->
