@@ -596,20 +596,13 @@
 
 .inputs-row {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
 }
 
 .input-half {
-  flex: 1 1 0%;
-  min-width: 0 !important;
-}
-
-@media (max-width: 480px) {
-  .inputs-row {
-    flex-direction: column;
-    gap: 0;
-  }
+  width: 100%;
 }
 
 /* CALCULADORA DE VUELTO / CAMBIO */
