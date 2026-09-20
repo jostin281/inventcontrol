@@ -330,9 +330,10 @@
    desaparecían justo al acercar el mouse. Ahora quedan siempre visibles. */
 .actions-cell {
   display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; flex-shrink: 0;
 }
 
-.action-btn { width: 32px !important; height: 32px !important; }
+.action-btn { width: 32px !important; height: 32px !important; flex-shrink: 0 !important; }
 .action-btn mat-icon { font-size: 17px; width: 17px; height: 17px; }
 
 .action-btn--view   { color: #24389c !important; }

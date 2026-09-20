@@ -143,10 +143,11 @@ html, body {
 
 .mat-mdc-form-field-icon-prefix,
 .mat-mdc-form-field-icon-suffix {
-  padding: 0 4px !important;
+  padding: 0 4px 0 0 !important;
   align-self: center !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
 }
 
 .mat-mdc-form-field-icon-prefix > .mat-icon,
@@ -155,12 +156,7 @@ html, body {
   vertical-align: middle !important;
 }
 
-/* Evitar traslape del label flotante con el icono matPrefix */
-.mat-mdc-form-field:has(.mat-mdc-form-field-icon-prefix) .mdc-floating-label {
-  left: 36px !important;
-}
-
-/* Corrección de traslape en MatCheckbox (Recordarme) */
+/* Corrección de traslape en MatCheckbox (Recordarme, etc.) */
 .mat-mdc-checkbox {
   display: inline-flex !important;
   align-items: center !important;
@@ -169,11 +165,12 @@ html, body {
 .mat-mdc-checkbox .mdc-form-field {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
 }
 
 .mat-mdc-checkbox .mdc-label {
-  padding-left: 28px !important;
+  padding-left: 0 !important;
+  margin-left: 2px !important;
   line-height: 1.4 !important;
   color: var(--ic-on-surface) !important;
   font-family: inherit !important;
