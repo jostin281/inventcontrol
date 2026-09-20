@@ -329,9 +329,7 @@
 .page-content {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
+  box-sizing: border-box;
   background: #F5F7FA;
   padding: 28px 32px;
 }

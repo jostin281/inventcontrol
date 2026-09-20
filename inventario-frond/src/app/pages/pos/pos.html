@@ -264,47 +264,9 @@
         <!-- Lista de Productos en el Carrito -->
         <div class="cart-items-list">
           @for (item of cart(); track item.producto.id) {
-            <div class="cart-item-row" id="cart-row-{{ item.producto.id }}">
-              <div class="item-info">
-                <h4 class="item-title">{{ item.producto.nombre }}</h4>
-                <div class="item-meta">
-                  <span class="item-price">${{ item.producto.precio | number:'1.2-2' }} c/u</span>
-                  <span class="item-sku" *ngIf="item.producto.sku">· {{ item.producto.sku }}</span>
-                </div>
-              </div>
-
-              <div class="item-controls">
-                <button
-                  mat-icon-button
-                  class="btn-qty"
-                  (click)="actualizarCantidad(item.producto.id, -1)"
-                  id="btn-minus-{{ item.producto.id }}"
-                >
-                  <mat-icon>remove</mat-icon>
-                </button>
-
-                <input
-                  type="number"
-                  class="qty-input"
-                  [value]="item.cantidad"
-                  (change)="cambiarCantidadDirecta(item.producto.id, $event)"
-                  min="1"
-                  [max]="item.producto.stock"
-                  id="input-qty-{{ item.producto.id }}"
-                />
-
-                <button
-                  mat-icon-button
-                  class="btn-qty"
-                  (click)="actualizarCantidad(item.producto.id, 1)"
-                  id="btn-plus-{{ item.producto.id }}"
-                >
-                  <mat-icon>add</mat-icon>
-                </button>
-              </div>
-
-              <div class="item-total">
-                <span>${{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}</span>
+            <div class="cart-item-card" id="cart-row-{{ item.producto.id }}">
+              <div class="cart-item-header">
+                <h4 class="item-title" [matTooltip]="item.producto.nombre">{{ item.producto.nombre }}</h4>
                 <button
                   mat-icon-button
                   color="warn"
@@ -315,6 +277,44 @@
                 >
                   <mat-icon>close</mat-icon>
                 </button>
+              </div>
+
+              <div class="cart-item-footer">
+                <div class="item-meta">
+                  <span class="item-price">${{ item.producto.precio | number:'1.2-2' }} c/u</span>
+                  <span class="item-sku" *ngIf="item.producto.sku">· {{ item.producto.sku }}</span>
+                  <span class="item-calc-total">${{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}</span>
+                </div>
+
+                <div class="item-controls">
+                  <button
+                    mat-icon-button
+                    class="btn-qty"
+                    (click)="actualizarCantidad(item.producto.id, -1)"
+                    id="btn-minus-{{ item.producto.id }}"
+                  >
+                    <mat-icon>remove</mat-icon>
+                  </button>
+
+                  <input
+                    type="number"
+                    class="qty-input"
+                    [value]="item.cantidad"
+                    (change)="cambiarCantidadDirecta(item.producto.id, $event)"
+                    min="1"
+                    [max]="item.producto.stock"
+                    id="input-qty-{{ item.producto.id }}"
+                  />
+
+                  <button
+                    mat-icon-button
+                    class="btn-qty"
+                    (click)="actualizarCantidad(item.producto.id, 1)"
+                    id="btn-plus-{{ item.producto.id }}"
+                  >
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
               </div>
             </div>
           }
