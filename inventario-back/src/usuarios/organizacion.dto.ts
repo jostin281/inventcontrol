@@ -25,4 +25,10 @@ export class ActualizarPerfilNegocioDto {
   // en el service, no acá: medirlo bien requiere decodificar el base64.
   @IsOptional() @IsString()
   logo?: string | null;
+
+  @IsOptional() @IsString()
+  qrPagoImagen?: string | null;
+
+  @IsOptional() @IsString()
+  transferenciaImagen?: string | null;
 }

@@ -78,6 +78,8 @@ export class OrganizacionService {
     if (dto.zona !== undefined) owner.zona = dto.zona;
     if (dto.moneda !== undefined) owner.moneda = dto.moneda;
     if (dto.logo !== undefined) owner.logo = dto.logo ?? null;
+    if (dto.qrPagoImagen !== undefined) owner.qrPagoImagen = dto.qrPagoImagen ?? null;
+    if (dto.transferenciaImagen !== undefined) owner.transferenciaImagen = dto.transferenciaImagen ?? null;
 
     await this.usuarioRepo.save(owner);
 
@@ -88,6 +90,8 @@ export class OrganizacionService {
       zona: owner.zona,
       moneda: owner.moneda,
       logo: owner.logo,
+      qrPagoImagen: owner.qrPagoImagen,
+      transferenciaImagen: owner.transferenciaImagen,
     };
   }
 

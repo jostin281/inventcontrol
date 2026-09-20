@@ -200,6 +200,8 @@ export class AuthService {
         zona: perfilNegocio.zona,
         moneda: perfilNegocio.moneda,
         logo: perfilNegocio.logo,
+        qrPagoImagen: perfilNegocio.qrPagoImagen,
+        transferenciaImagen: perfilNegocio.transferenciaImagen,
       },
     };
   }

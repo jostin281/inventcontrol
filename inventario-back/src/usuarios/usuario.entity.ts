@@ -58,6 +58,12 @@ export class Usuario {
   @Column({ type: 'text', nullable: true })
   logo?: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  qrPagoImagen?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  transferenciaImagen?: string | null;
+
   @Column({ default: true })
   activo: boolean;
 
