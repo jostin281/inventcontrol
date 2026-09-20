@@ -684,15 +684,20 @@
 }
 
 @media (max-width: 768px) {
+  .rpt-root {
+    gap: 16px;
+  }
   .rpt-header {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px 20px;
+    padding: 16px 18px;
+    border-radius: 16px;
   }
   .rpt-controls {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
   .rpt-select-field,
   .rpt-date-field {
@@ -700,9 +705,66 @@
   }
   .rpt-controls-divider { display: none; }
   .btn-export-pdf,
-  .btn-export-excel { width: 100%; }
+  .btn-export-excel {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
   .rpt-right-col { grid-template-columns: 1fr; }
-  .chart-area { height: 220px; }
+  .chart-area { height: 240px; }
   .rpt-card mat-card-content { padding: 16px 18px !important; }
   .rpt-card--table mat-card-content { padding: 16px 18px !important; }
+}
+
+@media (max-width: 600px) {
+  .rpt-title {
+    font-size: 20px;
+  }
+  .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .chart-toggle {
+    width: 100%;
+    display: flex;
+  }
+  :host ::ng-deep .chart-toggle .mat-button-toggle {
+    flex: 1;
+    text-align: center;
+  }
+  .chart-area {
+    height: 250px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .bars-container {
+    min-width: 290px;
+    padding: 0 4px;
+    gap: 6px;
+  }
+  .bar-value-label {
+    font-size: 9.5px;
+  }
+  .bar-label {
+    font-size: 9px;
+    max-width: 44px;
+  }
+  .lines-labels span {
+    font-size: 9px;
+    max-width: 44px;
+  }
+  .chart-legend {
+    gap: 8px 12px;
+  }
+  .legend-txt {
+    font-size: 11px;
+  }
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
