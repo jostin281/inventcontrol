@@ -33,6 +33,16 @@ import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/
         </h2>
         <div class="header-actions">
           <button
+            *ngIf="torchSupported()"
+            mat-icon-button
+            [color]="torchActive() ? 'accent' : 'primary'"
+            (click)="toggleTorch()"
+            [matTooltip]="torchActive() ? 'Apagar Linterna' : 'Encender Linterna'"
+            type="button"
+          >
+            <mat-icon>{{ torchActive() ? 'flashlight_on' : 'flashlight_off' }}</mat-icon>
+          </button>
+          <button
             *ngIf="availableCameras.length > 1"
             mat-icon-button
             color="primary"
@@ -178,6 +188,7 @@ import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/
       width: 100%;
       height: 100%;
       object-fit: cover;
+      filter: contrast(1.15) brightness(1.05);
     }
     .camera-video.hidden {
       display: none;
@@ -189,7 +200,7 @@ import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.25);
       pointer-events: none;
     }
     .scan-box {
@@ -219,7 +230,7 @@ import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/
       background: #ef4444;
       box-shadow: 0 0 10px #ef4444;
       border-radius: 2px;
-      animation: scan 2.2s infinite ease-in-out;
+      animation: scan 1.8s infinite ease-in-out;
     }
     @keyframes scan {
       0% { top: 12px; }
@@ -285,9 +296,14 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
   availableCameras: MediaDeviceInfo[] = [];
   selectedCameraId: string | null = null;
 
+  torchSupported = signal(false);
+  torchActive = signal(false);
+
   private codeReader: BrowserMultiFormatReader | null = null;
   private isScanning = false;
   private hasScanned = false;
+  private streamConfigured = false;
+  private activeTrack: MediaStreamTrack | null = null;
 
   ngOnInit(): void {
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -312,9 +328,10 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
       BarcodeFormat.ITF,
     ];
     hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(DecodeHintType.TRY_HARDER, true);
 
-    this.codeReader = new BrowserMultiFormatReader(hints);
+    // NOTA: Se remueve TRY_HARDER para eliminar lag/latencias masivas y sobrecarga de CPU en celulares.
+    // 100ms de delay entre intentos de decodificación para detección ultra rápida en tiempo real (<100ms).
+    this.codeReader = new BrowserMultiFormatReader(hints, 100);
   }
 
   async cargarDispositivos(): Promise<void> {
@@ -368,12 +385,18 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
 
       this.isScanning = true;
       this.hasScanned = false;
+      this.streamConfigured = false;
 
       const constraints: MediaStreamConstraints = targetDeviceId
-        ? { video: { deviceId: { exact: targetDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } } }
-        : { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
+        ? { video: { deviceId: { exact: targetDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } }
+        : { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } };
 
       this.codeReader.decodeFromConstraints(constraints, videoEl, (result, error) => {
+        if (!this.streamConfigured && videoEl.srcObject) {
+          this.streamConfigured = true;
+          this.activarAutofocoYCapacidades(videoEl.srcObject as MediaStream);
+        }
+
         if (result && !this.hasScanned && this.isScanning) {
           const barcodeText = result.getText();
           if (barcodeText) {
@@ -392,6 +415,43 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
         this.cameraStatus.set('No se pudo acceder a la cámara. Revisa los permisos de tu navegador o aplicación.');
       });
     }, 100);
+  }
+
+  private activarAutofocoYCapacidades(stream: MediaStream): void {
+    try {
+      const tracks = stream.getVideoTracks();
+      if (tracks.length > 0) {
+        this.activeTrack = tracks[0];
+        const capabilities = (this.activeTrack.getCapabilities ? this.activeTrack.getCapabilities() : {}) as any;
+
+        if (capabilities.torch) {
+          this.torchSupported.set(true);
+        }
+
+        const advancedConfig: any[] = [];
+        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+          advancedConfig.push({ focusMode: 'continuous' });
+        }
+        if (advancedConfig.length > 0) {
+          this.activeTrack.applyConstraints({ advanced: advancedConfig } as any).catch(() => {});
+        }
+      }
+    } catch (e) {
+      // Ignorar si el navegador/sensor no soporta restricciones avanzadas
+    }
+  }
+
+  toggleTorch(): void {
+    if (this.activeTrack && this.torchSupported()) {
+      const nextState = !this.torchActive();
+      this.activeTrack.applyConstraints({
+        advanced: [{ torch: nextState }]
+      } as any).then(() => {
+        this.torchActive.set(nextState);
+      }).catch(err => {
+        console.warn('No se pudo cambiar el estado de la linterna:', err);
+      });
+    }
   }
 
   private reproducirBeep(): void {
@@ -413,6 +473,14 @@ export class BarcodeScannerModalDialog implements OnInit, OnDestroy {
 
   detenerCamara(): void {
     this.isScanning = false;
+    this.streamConfigured = false;
+    if (this.torchActive() && this.activeTrack) {
+      this.activeTrack.applyConstraints({ advanced: [{ torch: false }] } as any).catch(() => {});
+      this.torchActive.set(false);
+    }
+    this.torchSupported.set(false);
+    this.activeTrack = null;
+
     if (this.codeReader) {
       try {
         this.codeReader.reset();
