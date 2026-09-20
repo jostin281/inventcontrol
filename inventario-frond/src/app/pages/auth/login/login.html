@@ -111,6 +111,8 @@
             <mat-error>Mínimo 6 caracteres.</mat-error>
           } @else if (contrasena.hasError('invalidCredentials')) {
             <mat-error>Correo o contraseña incorrectos.</mat-error>
+          } @else if (contrasena.hasError('networkError')) {
+            <mat-error>Error de conexión con el servidor. Revisa tu internet o intenta de nuevo.</mat-error>
           }
         </mat-form-field>
 

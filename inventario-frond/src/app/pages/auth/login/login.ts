@@ -127,9 +127,13 @@ export class Login implements OnInit, OnDestroy {
         this.isLoading.set(false);
         this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
-        this.form.get('contrasena')?.setErrors({ invalidCredentials: true });
+        if (err.status === 401 || err.status === 400) {
+          this.form.get('contrasena')?.setErrors({ invalidCredentials: true });
+        } else {
+          this.form.get('contrasena')?.setErrors({ networkError: true });
+        }
       }
     });
   }
