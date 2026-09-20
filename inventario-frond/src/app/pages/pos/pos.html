@@ -261,7 +261,7 @@
           <div class="qr-card">
             <div class="qr-card-header">
               <mat-icon class="qr-header-icon">qr_code_2</mat-icon>
-              <div>
+              <div class="qr-header-text">
                 <h4 class="qr-card-title">Pago con Transferencia / QR</h4>
                 <p class="qr-card-sub">Muestra este código QR o datos de tu cuenta al cliente para recibir el pago de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></p>
               </div>
@@ -273,15 +273,9 @@
                 <div class="qr-img-box">
                   <img [src]="qrPagoImagen()" alt="Código QR de Cobro" class="qr-preview-img" />
                   <div class="qr-actions-row">
-                    <label class="btn-qr-action-label">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        class="qr-file-input-overlay"
-                        (change)="onQrImagenChange($event)"
-                      />
+                    <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="triggerFileInput()">
                       <mat-icon>photo_camera</mat-icon> Cambiar QR
-                    </label>
+                    </button>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
                     </button>
@@ -290,21 +284,18 @@
               </ng-container>
 
               <ng-template #noQrTemplate>
-                <div class="qr-upload-placeholder">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="qr-file-input-overlay"
-                    (change)="onQrImagenChange($event)"
-                  />
+                <div class="qr-upload-placeholder" (click)="triggerFileInput()">
                   <mat-icon class="upload-icon">add_a_photo</mat-icon>
                   <span class="upload-title">Subir imagen de tu QR o datos de cuenta</span>
                   <span class="upload-desc">Formatos PNG, JPG hasta 4 MB (Deuna, Pichincha, Yape, etc.)</span>
-                  <span class="btn-select-qr">
+                  <button type="button" mat-flat-button color="primary" class="btn-select-qr" (click)="$event.stopPropagation(); triggerFileInput()">
                     Seleccionar Imagen
-                  </span>
+                  </button>
                 </div>
               </ng-template>
+
+              <!-- File Input 100% oculto -->
+              <input id="input-qr-file-hidden" type="file" accept="image/*" style="display: none !important;" (change)="onQrImagenChange($event)" />
             </div>
 
             <!-- Input de Referencia o N° de Comprobante -->

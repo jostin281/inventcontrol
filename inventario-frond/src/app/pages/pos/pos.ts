@@ -364,6 +364,11 @@ export class PosComponent implements OnInit {
   }
 
   // ── Gestión de Imagen QR de Cobro ────────────────────────
+  triggerFileInput(): void {
+    const el = document.getElementById('input-qr-file-hidden') as HTMLInputElement;
+    if (el) el.click();
+  }
+
   onQrImagenChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];

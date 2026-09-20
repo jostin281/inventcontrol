@@ -1019,6 +1019,8 @@
 .qr-payment-wrapper {
   margin-top: 12px;
   margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .qr-card {
@@ -1029,12 +1031,15 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .qr-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  width: 100%;
 }
 
 .qr-header-icon {
@@ -1042,6 +1047,13 @@
   width: 32px;
   height: 32px;
   color: #24389c;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.qr-header-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .qr-card-title {
@@ -1052,10 +1064,13 @@
 }
 
 .qr-card-sub {
-  margin: 2px 0 0 0;
+  margin: 3px 0 0 0;
   font-size: 0.82rem;
   color: #64748b;
-  line-height: 1.3;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .qr-image-container {
@@ -1084,6 +1099,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: #ffffff;
   padding: 8px;
+  box-sizing: border-box;
 }
 
 .qr-actions-row {
@@ -1093,33 +1109,7 @@
 
 .btn-qr-action {
   font-size: 0.8rem;
-  height: 34px;
-}
-
-.btn-qr-action-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid #24389c;
-  color: #24389c;
-  background: #ffffff;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.btn-qr-action-label:hover {
-  background: #eef2ff;
-}
-
-.btn-qr-action-label mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  height: 36px;
 }
 
 .qr-upload-placeholder {
@@ -1144,42 +1134,32 @@
 }
 
 .upload-icon {
-  font-size: 36px;
-  width: 36px;
-  height: 36px;
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
   color: #64748b;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .upload-title {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1e293b;
+  line-height: 1.3;
 }
 
 .upload-desc {
   font-size: 0.78rem;
   color: #64748b;
-  margin-top: 2px;
-  margin-bottom: 12px;
+  margin-top: 4px;
+  margin-bottom: 14px;
+  line-height: 1.3;
 }
 
 .btn-select-qr {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #ffffff;
-  background: #24389c;
-  padding: 8px 18px;
+  height: 38px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(36, 56, 156, 0.25);
-  transition: background 0.2s ease;
-}
-
-.qr-upload-placeholder:hover .btn-select-qr {
-  background: #1e2e80;
 }
 
 .qr-ref-input {
