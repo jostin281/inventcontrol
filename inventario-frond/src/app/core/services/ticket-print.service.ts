@@ -92,6 +92,7 @@ export class TicketPrintService {
       <html>
       <head>
         <title>Ticket POS - ${data.folio}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <style>
           @page {
             size: ${paperWidth} auto;
@@ -105,6 +106,7 @@ export class TicketPrintService {
             background: #ffffff;
             color: #000000;
             font-size: ${fontSize};
+            box-sizing: border-box;
           }
           .ticket-container {
             text-align: center;
@@ -167,12 +169,61 @@ export class TicketPrintService {
             height: auto;
             margin-top: 4px;
           }
+          .ticket-nav-bar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            z-index: 99999;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-sizing: border-box;
+          }
+          .btn-nav-close {
+            background: #334155;
+            color: #ffffff;
+            border: 1px solid #64748b;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: sans-serif;
+          }
+          .btn-nav-print {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: sans-serif;
+          }
           @media print {
+            .no-print { display: none !important; }
             body { padding: 2px; }
           }
         </style>
       </head>
       <body>
+        <div class="ticket-nav-bar no-print">
+          <button class="btn-nav-close" onclick="window.close(); if(!window.closed){ history.back(); }">
+            ← Volver
+          </button>
+          <button class="btn-nav-print" onclick="window.print()">
+            🖨️ Imprimir
+          </button>
+        </div>
+
         <div class="ticket-container">
           <div class="header-title">${nombreNegocio}</div>
           <div class="sub-header">COMPROBANTE INTERNO DE VENTA (POS)</div>
@@ -218,11 +269,17 @@ export class TicketPrintService {
             <img class="barcode-img" src="${barcodeImg}" alt="Barcode Ticket" />
             <div style="font-size: 9px; margin-top: 4px;">Conserve este ticket como comprobante de entrega</div>
           </div>
+
+          <div class="no-print" style="margin-top: 14px;">
+            <button class="btn-nav-close" style="width: 100%; padding: 8px; background: #0f172a; color: white;" onclick="window.close(); if(!window.closed){ history.back(); }">
+              ← Regresar al Punto de Venta
+            </button>
+          </div>
         </div>
 
         <script>
           window.onload = function() {
-            setTimeout(function() { window.print(); }, 250);
+            setTimeout(function() { window.print(); }, 300);
           };
         </script>
       </body>

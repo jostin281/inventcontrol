@@ -329,11 +329,8 @@ export class PosComponent implements OnInit {
         this.procesandoCobro.set(false);
         this.ultimaVentaExitosa.set(response);
 
-        // Prevenir que el botón atrás de Android cierre la app al ver el ticket
+        // Prevenir que el botón atrás de Android cierre la app al ver el comprobante
         try { window.history.pushState({ posModal: true }, ''); } catch {}
-
-        // Imprimir ticket automáticamente con vuelto y dinero recibido
-        this.imprimirTicketRespuesta(response);
 
         // Refrescar inventario en toda la app
         this.productosSvc.cargar().subscribe();
