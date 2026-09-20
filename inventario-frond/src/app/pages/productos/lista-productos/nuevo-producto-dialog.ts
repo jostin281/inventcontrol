@@ -118,8 +118,14 @@ export class NuevoProductoDialog {
       this.form.markAllAsTouched();
       return;
     }
+    const rawVal = this.form.value;
+    const userSku = rawVal.sku ? rawVal.sku.trim() : '';
+    // Si el usuario no ingresa código físico, generar un código de barras de 12 dígitos escaneable
+    const autoSku = userSku || ('789' + Math.floor(100000000 + Math.random() * 900000000));
+
     this.dialogRef.close({
-      ...this.form.value,
+      ...rawVal,
+      sku: autoSku,
       ...this.atributosActivos,
       imagen: this.imagenPreview
     });

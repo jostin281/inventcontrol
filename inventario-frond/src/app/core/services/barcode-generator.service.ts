@@ -1,137 +1,103 @@
 import { Injectable } from '@angular/core';
 
+const CODE128_PATTERNS: number[][] = [
+  [2,1,2,2,2,2], [2,2,2,1,2,2], [2,2,2,2,2,1], [1,2,1,2,2,3], [1,2,1,3,2,2], [1,3,1,2,2,2],
+  [1,2,2,2,1,3], [1,2,2,3,1,2], [1,3,2,2,1,2], [2,2,1,2,1,3], [2,2,1,3,1,2], [2,3,1,2,1,2],
+  [1,1,2,2,3,2], [1,2,2,1,3,2], [1,2,2,2,3,1], [1,1,3,2,2,2], [1,2,3,1,2,2], [1,2,3,2,2,1],
+  [2,2,3,2,1,1], [2,2,1,1,3,2], [2,2,1,2,3,1], [2,1,3,2,1,2], [2,2,3,1,1,2], [3,1,2,1,3,1],
+  [3,1,1,2,2,2], [3,2,1,1,2,2], [3,2,1,2,2,1], [3,1,2,2,1,2], [3,2,2,1,1,2], [3,2,2,2,1,1],
+  [2,1,2,1,2,3], [2,1,2,3,2,1], [2,3,2,1,2,1], [1,1,1,3,2,3], [1,3,1,1,2,3], [1,3,1,3,2,1],
+  [1,1,2,3,1,3], [1,3,2,1,1,3], [1,3,2,3,1,1], [2,1,1,3,1,3], [2,3,1,1,1,3], [2,3,1,3,1,1],
+  [1,1,2,1,3,3], [1,1,2,3,3,1], [1,3,2,1,3,1], [1,1,3,1,2,3], [1,1,3,3,2,1], [1,3,3,1,2,1],
+  [3,1,3,1,2,1], [2,1,1,3,3,1], [2,3,1,1,3,1], [2,1,3,1,1,3], [2,1,3,3,1,1], [2,1,3,1,3,1],
+  [3,1,1,1,2,3], [3,1,1,3,2,1], [3,3,1,1,2,1], [3,1,2,1,1,3], [3,1,2,3,1,1], [3,3,2,1,1,1],
+  [3,1,4,1,1,1], [2,2,1,4,1,1], [4,3,1,1,1,1], [1,1,1,2,2,4], [1,1,1,4,2,2], [1,2,1,1,2,4],
+  [1,2,1,4,2,1], [1,4,1,1,2,2], [1,4,1,2,2,1], [1,1,2,2,1,4], [1,1,2,4,1,2], [1,2,2,1,1,4],
+  [1,2,2,4,1,1], [1,4,2,1,1,2], [1,4,2,2,1,1], [2,4,1,2,1,1], [2,2,1,1,1,4], [4,1,3,1,1,1],
+  [2,4,1,1,1,2], [1,3,4,1,1,1], [1,1,1,2,4,2], [1,2,1,1,4,2], [1,2,1,2,4,1], [1,1,4,2,1,2],
+  [1,2,4,1,1,2], [1,2,4,2,1,1], [4,1,1,2,1,2], [4,2,1,1,1,2], [4,2,1,2,1,1], [2,1,2,1,4,1],
+  [2,1,4,1,2,1], [4,1,2,1,2,1], [1,1,1,1,4,3], [1,1,1,3,4,1], [1,3,1,1,4,1], [1,1,4,1,1,3],
+  [1,1,4,3,1,1], [4,1,1,1,1,3], [4,1,1,3,1,1], [1,1,3,1,4,1], [1,1,4,1,3,1], [3,1,1,1,4,1],
+  [4,1,1,1,3,1], // 102
+  [2,1,1,4,1,2], // 103 (Start A)
+  [2,1,1,2,1,4], // 104 (Start B)
+  [2,1,1,2,3,2], // 105 (Start C)
+  [2,3,3,1,1,1,2] // 106 (Stop)
+];
+
 @Injectable({ providedIn: 'root' })
 export class BarcodeGeneratorService {
 
   /**
-   * Genera una imagen Data URL (PNG) con un código de barras Code 128 trazado en un Canvas.
+   * Genera una imagen Data URL (PNG) con un código de barras Code 128 100% estándar e ISO escaneable.
    */
-  generateBarcodeDataUrl(text: string, width = 300, height = 100): string {
+  generateBarcodeDataUrl(text: string, width = 340, height = 110): string {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
-
     if (!ctx) return '';
 
-    // Fondo blanco
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
 
-    if (!text || text.trim() === '') return canvas.toDataURL('image/png');
+    const cleanText = (text || '').trim();
+    if (!cleanText) return canvas.toDataURL('image/png');
 
-    const cleanText = text.trim();
-
-    // Dibujar patrón Code128 visual limpio
-    ctx.fillStyle = '#000000';
-    const margin = 20;
-    const barAreaWidth = width - margin * 2;
-    const barHeight = height - 35;
-
-    const bars: number[] = [];
-    bars.push(2, 1, 1, 2);
+    // Codificación estándar Code 128 B
+    const symbols: number[] = [104]; // Start B
+    let checkSum = 104;
 
     for (let i = 0; i < cleanText.length; i++) {
-      const charCode = cleanText.charCodeAt(i);
-      bars.push((charCode % 3) + 1);
-      bars.push(((charCode >> 2) % 3) + 1);
-      bars.push(((charCode >> 4) % 3) + 1);
+      const code = Math.max(0, Math.min(94, cleanText.charCodeAt(i) - 32));
+      symbols.push(code);
+      checkSum += (i + 1) * code;
     }
-    bars.push(2, 3, 1, 2, 1, 3);
 
-    const totalUnits = bars.reduce((a, b) => a + b, 0);
-    const unitWidth = barAreaWidth / totalUnits;
+    const checkSymbol = checkSum % 103;
+    symbols.push(checkSymbol);
+    symbols.push(106); // Stop
 
-    let currentX = margin;
-    let isBar = true;
+    const totalModules = (symbols.length - 1) * 11 + 13;
+    const quietZone = 20;
+    const barAreaWidth = width - quietZone * 2;
+    const moduleWidth = barAreaWidth / totalModules;
+    const barHeight = height - 34;
 
-    for (const bWidth of bars) {
-      const w = bWidth * unitWidth;
-      if (isBar) {
-        ctx.fillRect(currentX, 10, w, barHeight);
+    let currentX = quietZone;
+    ctx.fillStyle = '#000000';
+
+    for (let sIdx = 0; sIdx < symbols.length; sIdx++) {
+      const sCode = symbols[sIdx];
+      const pattern = CODE128_PATTERNS[sCode];
+      if (!pattern) continue;
+
+      let isBar = true;
+      for (let p = 0; p < pattern.length; p++) {
+        const w = pattern[p] * moduleWidth;
+        if (isBar) {
+          ctx.fillRect(currentX, 10, w, barHeight);
+        }
+        currentX += w;
+        isBar = !isBar;
       }
-      currentX += w;
-      isBar = !isBar;
     }
 
-    // Texto descriptivo centrado abajo
-    ctx.font = 'bold 14px monospace';
+    // Texto descriptivo abajo
+    ctx.font = 'bold 15px monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#111827';
-    ctx.fillText(cleanText, width / 2, height - 8);
+    ctx.fillText(cleanText, width / 2, height - 6);
 
     return canvas.toDataURL('image/png');
   }
 
   /**
-   * Genera un patrón QR simétrico en Data URL (PNG).
+   * Genera un Código QR 100% válido y escaneable.
    */
   generateQrDataUrl(text: string, size = 200): string {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return '';
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, size, size);
-
-    const cleanText = text || 'INV';
-    const modules = 21;
-    const cellSize = (size - 20) / modules;
-    const margin = 10;
-
-    ctx.fillStyle = '#000000';
-
-    const grid: boolean[][] = Array.from({ length: modules }, () => Array(modules).fill(false));
-
-    const addFinder = (row: number, col: number) => {
-      for (let r = 0; r < 7; r++) {
-        for (let c = 0; c < 7; c++) {
-          if (
-            r === 0 || r === 6 || col === 0 || col === 6 ||
-            (r >= 2 && r <= 4 && c >= 2 && c <= 4)
-          ) {
-            grid[row + r][col + c] = true;
-          }
-        }
-      }
-    };
-
-    addFinder(0, 0);
-    addFinder(0, modules - 7);
-    addFinder(modules - 7, 0);
-
-    let seed = 0;
-    for (let i = 0; i < cleanText.length; i++) {
-      seed = (seed * 31 + cleanText.charCodeAt(i)) & 0xffffffff;
-    }
-
-    const pseudoRandom = () => {
-      seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-      return (seed >>> 0) / 4294967296;
-    };
-
-    for (let r = 0; r < modules; r++) {
-      for (let c = 0; c < modules; c++) {
-        if ((r < 8 && c < 8) || (r < 8 && c >= modules - 8) || (r >= modules - 8 && c < 8)) {
-          continue;
-        }
-        if (pseudoRandom() > 0.5) {
-          grid[r][c] = true;
-        }
-      }
-    }
-
-    for (let r = 0; r < modules; r++) {
-      for (let c = 0; c < modules; c++) {
-        if (grid[r][c]) {
-          ctx.fillRect(margin + c * cellSize, margin + r * cellSize, cellSize + 0.3, cellSize + 0.3);
-        }
-      }
-    }
-
-    return canvas.toDataURL('image/png');
+    const cleanText = encodeURIComponent((text || 'INV').trim());
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${cleanText}`;
   }
 
   /**
