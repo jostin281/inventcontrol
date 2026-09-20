@@ -183,7 +183,6 @@
           <mat-form-field appearance="outline" class="input-full compact-field">
             <mat-label>Cliente</mat-label>
             <input matInput [(ngModel)]="clienteNombre" placeholder="Cliente Mostrador" id="input-pos-cliente" />
-            <mat-icon matPrefix>person</mat-icon>
           </mat-form-field>
 
           <div class="inputs-row">
@@ -195,7 +194,6 @@
                 <mat-option value="Transferencia">Transferencia Bancaria</mat-option>
                 <mat-option value="Otro">Otro</mat-option>
               </mat-select>
-              <mat-icon matPrefix>payments</mat-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="input-half compact-field">
@@ -204,7 +202,6 @@
                 <mat-option value="80mm">80 mm (Estándar)</mat-option>
                 <mat-option value="58mm">58 mm (Móvil)</mat-option>
               </mat-select>
-              <mat-icon matPrefix>print</mat-icon>
             </mat-form-field>
           </div>
         </div>
@@ -224,7 +221,6 @@
                 placeholder="Ej: 20.00"
                 id="input-dinero-recibido"
               />
-              <mat-icon matPrefix>attach_money</mat-icon>
               <button
                 *ngIf="dineroRecibido()"
                 matSuffix

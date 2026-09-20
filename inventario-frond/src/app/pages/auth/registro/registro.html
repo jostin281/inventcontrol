@@ -60,7 +60,6 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre del negocio</mat-label>
-            <mat-icon matPrefix class="field-icon">store</mat-icon>
             <input matInput id="reg-nombre-negocio" formControlName="nombreNegocio"
                    placeholder="Distribuidora López" />
             @if (nombreNegocio.hasError('required') && nombreNegocio.touched) {
@@ -70,7 +69,6 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Tipo de negocio</mat-label>
-            <mat-icon matPrefix class="field-icon">category</mat-icon>
             <mat-select id="reg-tipo-negocio" formControlName="tipoNegocio">
               @for (tipo of tiposNegocio; track tipo.value) {
                 <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
@@ -86,7 +84,6 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre completo</mat-label>
-            <mat-icon matPrefix class="field-icon">person</mat-icon>
             <input matInput id="reg-nombre" formControlName="nombreCompleto"
                    placeholder="María García" autocomplete="name" />
             @if (nombreCompleto.hasError('required') && nombreCompleto.touched) {
@@ -96,7 +93,6 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Correo electrónico</mat-label>
-            <mat-icon matPrefix class="field-icon">email</mat-icon>
             <input matInput id="reg-correo" type="email" formControlName="correo"
                    placeholder="admin@negocio.com" autocomplete="email" />
             @if (correo.hasError('required') && correo.touched) {
@@ -113,7 +109,6 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Contraseña</mat-label>
-            <mat-icon matPrefix class="field-icon">lock</mat-icon>
             <input matInput id="reg-contrasena"
                    [type]="hidePass() ? 'password' : 'text'"
                    formControlName="contrasena"
@@ -133,7 +128,6 @@
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Confirmar contraseña</mat-label>
-            <mat-icon matPrefix class="field-icon">lock_reset</mat-icon>
             <input matInput id="reg-confirmar"
                    [type]="hidePass2() ? 'password' : 'text'"
                    formControlName="confirmarContrasena"
