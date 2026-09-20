@@ -164,7 +164,7 @@ export class ListaProductos implements OnInit {
         // bajo") tiene que quedar por encima del stock inicial que
         // acabas de ingresar, si no la barra se ve "desbordada" desde el
         // primer momento (ej. 50/25).
-        stockMax:      Math.max(20, (resultado.stockMinimo || 0) * 10, stockInicial * 2),
+        stockMax:      Number(resultado.stockMinimo) > 0 ? Number(resultado.stockMinimo) : (stockInicial > 0 ? stockInicial : 1),
         precio:        resultado.precio ?? 0,
         proveedor:     resultado.proveedor || 'Sin proveedor',
         sku:           resultado.sku ?? '',
