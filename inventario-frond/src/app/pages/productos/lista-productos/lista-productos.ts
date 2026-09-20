@@ -16,6 +16,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NuevoProductoDialog } from './nuevo-producto-dialog';
+import { EtiquetaProductoDialog } from './etiqueta-producto-dialog';
 import { ProductosService, Producto } from '../../../core/services/productos.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { ProveedoresService } from '../../../core/services/proveedores.service';
@@ -134,11 +135,17 @@ export class ListaProductos implements OnInit {
   }
 
   imprimirEtiquetaProducto(p: Producto): void {
-    this.barcodeService.imprimirEtiqueta({
-      nombre: p.nombre,
-      sku: p.sku,
-      precio: p.precio,
-      categoria: p.categoria,
+    this.dialog.open(EtiquetaProductoDialog, {
+      width: '380px',
+      maxWidth: '95vw',
+      data: {
+        nombre: p.nombre,
+        sku: p.sku,
+        precio: p.precio,
+        categoria: p.categoria,
+      },
+      autoFocus: false,
+      restoreFocus: false,
     });
   }
 
