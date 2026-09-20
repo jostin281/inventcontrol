@@ -422,6 +422,7 @@ export class PosComponent implements OnInit {
         this.authService.actualizarPerfilNegocio({ transferenciaImagen: result }).subscribe();
         this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada y sincronizada', 'OK', { duration: 3000 });
       }
+      input.value = '';
     };
     reader.readAsDataURL(file);
   }

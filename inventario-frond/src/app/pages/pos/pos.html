@@ -273,17 +273,15 @@
                 <div class="qr-img-box">
                   <img [src]="imagenMetodoActual()" [alt]="tituloMetodoActual()" class="qr-preview-img" />
                   <div class="qr-actions-row">
-                    <div class="btn-qr-action-wrapper">
+                    <label class="btn-qr-action-label">
                       <input
                         type="file"
                         accept="image/*"
-                        class="qr-file-input-overlay"
+                        class="qr-file-input-hidden"
                         (change)="onQrImagenChange($event)"
                       />
-                      <button type="button" mat-stroked-button color="primary" class="btn-qr-action">
-                        <mat-icon>photo_camera</mat-icon> Cambiar Imagen
-                      </button>
-                    </div>
+                      <mat-icon>photo_camera</mat-icon> Cambiar Imagen
+                    </label>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
                     </button>
@@ -292,11 +290,11 @@
               </ng-container>
 
               <ng-template #noQrTemplate>
-                <div class="qr-upload-placeholder">
+                <label class="qr-upload-label">
                   <input
                     type="file"
                     accept="image/*"
-                    class="qr-file-input-overlay"
+                    class="qr-file-input-hidden"
                     (change)="onQrImagenChange($event)"
                   />
                   <mat-icon class="upload-icon">add_a_photo</mat-icon>
@@ -306,10 +304,10 @@
                   <span class="upload-desc">
                     {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, etc.)' }}
                   </span>
-                  <button type="button" mat-flat-button color="primary" class="btn-select-qr">
-                    Seleccionar Imagen
-                  </button>
-                </div>
+                  <div class="btn-select-qr-fake">
+                    <mat-icon>photo_camera</mat-icon> Seleccionar Imagen
+                  </div>
+                </label>
               </ng-template>
             </div>
 
