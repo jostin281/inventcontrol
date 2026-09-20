@@ -1062,6 +1062,14 @@
   color: #22c55e;
 }
 
+.bank-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
 .qr-card-header {
   display: flex;
   align-items: flex-start;

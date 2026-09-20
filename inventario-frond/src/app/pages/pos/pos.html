@@ -256,28 +256,28 @@
           </div>
         </div>
 
-        <!-- PANEL DE PAGO CON CÓDIGO QR / TRANSFERENCIA BANCARIA -->
-        <div *ngIf="metodoPago === 'Pago por QR' || metodoPago === 'Transferencia Bancaria' || metodoPago === 'Transferencia'" class="qr-payment-wrapper">
-          <div class="qr-card" [ngClass]="metodoPago === 'Pago por QR' ? 'theme-qr-pago' : 'theme-transferencia-pago'">
+        <!-- PANEL DE PAGO CON CÓDIGO QR -->
+        <div *ngIf="metodoPago === 'Pago por QR'" class="qr-payment-wrapper">
+          <div class="qr-card theme-qr-pago">
             <div class="qr-card-header">
-              <mat-icon class="qr-header-icon">{{ iconoMetodoActual() }}</mat-icon>
+              <mat-icon class="qr-header-icon">qr_code_2</mat-icon>
               <div class="qr-header-text">
-                <h4 class="qr-card-title">{{ tituloMetodoActual() }}</h4>
+                <h4 class="qr-card-title">Pago con Código QR</h4>
                 <p class="qr-card-sub">
-                  {{ subtituloMetodoActual() }}
+                  Muestra este código QR al cliente para recibir el pago
                   <span *ngIf="cart().length > 0"> de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></span>
                 </p>
               </div>
             </div>
 
-            <!-- Vista de Imagen de QR o Datos de Cuenta -->
+            <!-- Vista de Imagen de QR -->
             <div class="qr-image-container">
-              <ng-container *ngIf="imagenMetodoActual(); else noQrTemplate">
+              <ng-container *ngIf="qrPagoImagen(); else noQrTemplate">
                 <div class="qr-img-box">
-                  <img [src]="imagenMetodoActual()" [alt]="tituloMetodoActual()" class="qr-preview-img" />
+                  <img [src]="qrPagoImagen()!" alt="Código QR" class="qr-preview-img" />
                   <div class="qr-actions-row">
                     <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="seleccionarImagenMetodo()">
-                      <mat-icon>photo_camera</mat-icon> {{ metodoPago === 'Pago por QR' ? 'Cambiar QR' : 'Cambiar Cuenta' }}
+                      <mat-icon>photo_camera</mat-icon> Cambiar QR
                     </button>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
@@ -288,29 +288,96 @@
 
               <ng-template #noQrTemplate>
                 <div class="qr-upload-placeholder" (click)="seleccionarImagenMetodo()">
-                  <mat-icon class="upload-icon">{{ iconoMetodoActual() }}</mat-icon>
-                  <span class="upload-title">
-                    {{ metodoPago === 'Pago por QR' ? 'Subir imagen de tu Código QR' : 'Subir imagen de tu Cuenta Bancaria' }}
-                  </span>
-                  <span class="upload-desc">
-                    {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, Pichincha QR, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, Produbanco, etc.)' }}
-                  </span>
+                  <mat-icon class="upload-icon">qr_code_scanner</mat-icon>
+                  <span class="upload-title">Subir imagen de tu Código QR</span>
+                  <span class="upload-desc">Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, Pichincha QR, etc.)</span>
                   <button type="button" mat-flat-button color="primary" class="btn-select-qr" (click)="$event.stopPropagation(); seleccionarImagenMetodo()">
-                    <mat-icon>photo_camera</mat-icon>
-                    {{ metodoPago === 'Pago por QR' ? 'Seleccionar Imagen de QR' : 'Seleccionar Imagen de Cuenta' }}
+                    <mat-icon>photo_camera</mat-icon> Seleccionar Imagen de QR
                   </button>
                 </div>
               </ng-template>
 
-              <!-- File input oculto para respaldo en escritorio / web -->
               <input id="input-qr-file-fallback" type="file" accept="image/*" style="display: none !important;" (change)="onQrImagenChange($event)" />
             </div>
 
-            <!-- Input de Referencia o N° de Comprobante -->
+            <!-- Input de Referencia QR -->
             <div class="qr-ref-input" *ngIf="cart().length > 0">
               <mat-form-field appearance="outline" class="input-full compact-field">
-                <mat-label>{{ metodoPago === 'Pago por QR' ? 'N° de comprobante QR / Referencia' : 'N° de comprobante / Transferencia' }}</mat-label>
-                <input matInput [ngModel]="referenciaPago()" (ngModelChange)="referenciaPago.set($event)" placeholder="Ej. Ref 987654" id="input-ref-pago" />
+                <mat-label>N° de comprobante QR / Referencia (opcional)</mat-label>
+                <input matInput [ngModel]="referenciaPago()" (ngModelChange)="referenciaPago.set($event)" placeholder="Ej. Ref 987654" id="input-ref-pago-qr" />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL DE PAGO POR TRANSFERENCIA BANCARIA (DATOS MANUALES DE CUENTA) -->
+        <div *ngIf="metodoPago === 'Transferencia Bancaria' || metodoPago === 'Transferencia'" class="qr-payment-wrapper">
+          <div class="qr-card theme-transferencia-pago">
+            <div class="qr-card-header">
+              <mat-icon class="qr-header-icon">account_balance</mat-icon>
+              <div class="qr-header-text">
+                <h4 class="qr-card-title">Pago por Transferencia Bancaria</h4>
+                <p class="qr-card-sub">
+                  Ingresa o muestra los datos de tu cuenta bancaria para recibir la transferencia
+                  <span *ngIf="cart().length > 0"> de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Formulario de Datos Manuales de Cuenta -->
+            <div class="bank-form-group">
+              <mat-form-field appearance="outline" class="input-full compact-field">
+                <mat-label>Banco / Entidad Financiera</mat-label>
+                <input
+                  matInput
+                  [ngModel]="bancoNombre()"
+                  (ngModelChange)="bancoNombre.set($event); guardarDatosBanco()"
+                  placeholder="Ej. Banco Pichincha, Banco Guayaquil"
+                  id="input-banco-nombre"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="input-full compact-field">
+                <mat-label>Tipo y N° de Cuenta</mat-label>
+                <input
+                  matInput
+                  [ngModel]="numeroCuenta()"
+                  (ngModelChange)="numeroCuenta.set($event); guardarDatosBanco()"
+                  placeholder="Ej. Ahorros N° 2200123456"
+                  id="input-num-cuenta"
+                />
+              </mat-form-field>
+
+              <div class="inputs-row">
+                <mat-form-field appearance="outline" class="input-half compact-field">
+                  <mat-label>Nombre del Titular</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="titularCuenta()"
+                    (ngModelChange)="titularCuenta.set($event); guardarDatosBanco()"
+                    placeholder="Ej. Josué Pérez"
+                    id="input-titular-cuenta"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="input-half compact-field">
+                  <mat-label>CI / RUC del Titular</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="cedulaTitular()"
+                    (ngModelChange)="cedulaTitular.set($event); guardarDatosBanco()"
+                    placeholder="Ej. 1712345678"
+                    id="input-cedula-titular"
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Input de Referencia de Transferencia -->
+            <div class="qr-ref-input" *ngIf="cart().length > 0">
+              <mat-form-field appearance="outline" class="input-full compact-field">
+                <mat-label>N° de comprobante / Transferencia (opcional)</mat-label>
+                <input matInput [ngModel]="referenciaPago()" (ngModelChange)="referenciaPago.set($event)" placeholder="Ej. Ref 987654" id="input-ref-pago-transf" />
               </mat-form-field>
             </div>
           </div>

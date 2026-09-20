@@ -65,7 +65,7 @@ export class PosComponent implements OnInit {
   metodoPago = 'Efectivo';
   anchoPapel: '58mm' | '80mm' = '80mm';
 
-  // Pago con QR / Transferencia (Imágenes separadas y sincronizadas con el Backend)
+  // Pago con QR / Transferencia
   qrPagoImagen = signal<string | null>(
     this.authService.currentUser()?.qrPagoImagen || localStorage.getItem('invencontrol-qr-pago')
   );
@@ -74,9 +74,14 @@ export class PosComponent implements OnInit {
   );
   referenciaPago = signal<string>('');
 
+  // Datos manuales para Transferencia Bancaria
+  bancoNombre = signal<string>('');
+  numeroCuenta = signal<string>('');
+  titularCuenta = signal<string>('');
+  cedulaTitular = signal<string>('');
+
   imagenMetodoActual = computed(() => {
     if (this.metodoPago === 'Pago por QR') return this.qrPagoImagen();
-    if (this.metodoPago === 'Transferencia Bancaria' || this.metodoPago === 'Transferencia') return this.transferenciaImagen();
     return null;
   });
 
@@ -87,7 +92,7 @@ export class PosComponent implements OnInit {
   subtituloMetodoActual = computed(() => {
     return this.metodoPago === 'Pago por QR'
       ? 'Muestra este código QR al cliente para recibir el pago'
-      : 'Muestra la foto de tus datos de cuenta bancaria al cliente para la transferencia';
+      : 'Ingresa o muestra los datos de tu cuenta bancaria para recibir la transferencia';
   });
 
   iconoMetodoActual = computed(() => {
@@ -152,6 +157,7 @@ export class PosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatos();
+    this.cargarDatosBanco();
   }
 
   cargarDatos(): void {
@@ -161,6 +167,34 @@ export class PosComponent implements OnInit {
       next: () => this.isLoading.set(false),
       error: () => this.isLoading.set(false),
     });
+  }
+
+  cargarDatosBanco(): void {
+    const savedLocal = localStorage.getItem('invencontrol-banco-datos');
+    const raw = this.authService.currentUser()?.transferenciaImagen || savedLocal;
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        if (data.banco) this.bancoNombre.set(data.banco);
+        if (data.numCuenta) this.numeroCuenta.set(data.numCuenta);
+        if (data.titular) this.titularCuenta.set(data.titular);
+        if (data.cedula) this.cedulaTitular.set(data.cedula);
+      } catch {
+        // Ignorar si era un string de imagen previamente
+      }
+    }
+  }
+
+  guardarDatosBanco(): void {
+    const data = {
+      banco: this.bancoNombre(),
+      numCuenta: this.numeroCuenta(),
+      titular: this.titularCuenta(),
+      cedula: this.cedulaTitular(),
+    };
+    const str = JSON.stringify(data);
+    try { localStorage.setItem('invencontrol-banco-datos', str); } catch {}
+    this.authService.actualizarPerfilNegocio({ transferenciaImagen: str }).subscribe();
   }
 
   // ── Escaneo Rápido Directo ("de una") ──────────────────────
