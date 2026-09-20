@@ -256,25 +256,25 @@
           </div>
         </div>
 
-        <!-- PANEL DE PAGO CON CÓDIGO QR / TRANSFERENCIA -->
+        <!-- PANEL DE PAGO CON CÓDIGO QR / TRANSFERENCIA BANCARIA -->
         <div *ngIf="(metodoPago === 'Pago por QR' || metodoPago === 'Transferencia Bancaria' || metodoPago === 'Transferencia') && cart().length > 0" class="qr-payment-wrapper">
           <div class="qr-card">
             <div class="qr-card-header">
-              <mat-icon class="qr-header-icon">qr_code_2</mat-icon>
+              <mat-icon class="qr-header-icon">{{ iconoMetodoActual() }}</mat-icon>
               <div class="qr-header-text">
-                <h4 class="qr-card-title">Pago con Transferencia / QR</h4>
-                <p class="qr-card-sub">Muestra este código QR o datos de tu cuenta al cliente para recibir el pago de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></p>
+                <h4 class="qr-card-title">{{ tituloMetodoActual() }}</h4>
+                <p class="qr-card-sub">{{ subtituloMetodoActual() }} de <strong>${{ totalVenta() | number:'1.2-2' }}</strong></p>
               </div>
             </div>
 
-            <!-- Vista de Imagen de QR o Botón de Carga -->
+            <!-- Vista de Imagen de QR o Datos de Cuenta -->
             <div class="qr-image-container">
-              <ng-container *ngIf="qrPagoImagen(); else noQrTemplate">
+              <ng-container *ngIf="imagenMetodoActual(); else noQrTemplate">
                 <div class="qr-img-box">
-                  <img [src]="qrPagoImagen()" alt="Código QR de Cobro" class="qr-preview-img" />
+                  <img [src]="imagenMetodoActual()" [alt]="tituloMetodoActual()" class="qr-preview-img" />
                   <div class="qr-actions-row">
                     <button type="button" mat-stroked-button color="primary" class="btn-qr-action" (click)="triggerFileInput()">
-                      <mat-icon>photo_camera</mat-icon> Cambiar QR
+                      <mat-icon>photo_camera</mat-icon> Cambiar Imagen
                     </button>
                     <button type="button" mat-stroked-button color="warn" class="btn-qr-action" (click)="eliminarQrImagen()">
                       <mat-icon>delete</mat-icon> Eliminar
@@ -286,8 +286,12 @@
               <ng-template #noQrTemplate>
                 <div class="qr-upload-placeholder" (click)="triggerFileInput()">
                   <mat-icon class="upload-icon">add_a_photo</mat-icon>
-                  <span class="upload-title">Subir imagen de tu QR o datos de cuenta</span>
-                  <span class="upload-desc">Formatos PNG, JPG hasta 4 MB (Deuna, Pichincha, Yape, etc.)</span>
+                  <span class="upload-title">
+                    {{ metodoPago === 'Pago por QR' ? 'Subir imagen de tu Código QR' : 'Subir imagen de tu Cuenta Bancaria' }}
+                  </span>
+                  <span class="upload-desc">
+                    {{ metodoPago === 'Pago por QR' ? 'Formatos PNG, JPG hasta 4 MB (Deuna, Yape, Plin, etc.)' : 'Formatos PNG, JPG hasta 4 MB (Pichincha, Guayaquil, etc.)' }}
+                  </span>
                   <button type="button" mat-flat-button color="primary" class="btn-select-qr" (click)="$event.stopPropagation(); triggerFileInput()">
                     Seleccionar Imagen
                   </button>

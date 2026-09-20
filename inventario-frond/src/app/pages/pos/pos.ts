@@ -62,9 +62,30 @@ export class PosComponent implements OnInit {
   metodoPago = 'Efectivo';
   anchoPapel: '58mm' | '80mm' = '80mm';
 
-  // Pago con QR / Transferencia
+  // Pago con QR / Transferencia (Imágenes separadas)
   qrPagoImagen = signal<string | null>(localStorage.getItem('invencontrol-qr-pago'));
+  transferenciaImagen = signal<string | null>(localStorage.getItem('invencontrol-transferencia-pago'));
   referenciaPago = signal<string>('');
+
+  imagenMetodoActual = computed(() => {
+    if (this.metodoPago === 'Pago por QR') return this.qrPagoImagen();
+    if (this.metodoPago === 'Transferencia Bancaria' || this.metodoPago === 'Transferencia') return this.transferenciaImagen();
+    return null;
+  });
+
+  tituloMetodoActual = computed(() => {
+    return this.metodoPago === 'Pago por QR' ? 'Pago con Código QR' : 'Pago por Transferencia Bancaria';
+  });
+
+  subtituloMetodoActual = computed(() => {
+    return this.metodoPago === 'Pago por QR'
+      ? 'Muestra este código QR al cliente para recibir el pago'
+      : 'Muestra la foto de tus datos de cuenta bancaria al cliente para la transferencia';
+  });
+
+  iconoMetodoActual = computed(() => {
+    return this.metodoPago === 'Pago por QR' ? 'qr_code_2' : 'account_balance';
+  });
 
   // Escaneo directo de código
   codigoDirectoInput = signal('');
@@ -363,7 +384,7 @@ export class PosComponent implements OnInit {
     }
   }
 
-  // ── Gestión de Imagen QR de Cobro ────────────────────────
+  // ── Gestión de Imágenes por Método (QR vs Transferencia Bancaria) ─────────
   triggerFileInput(): void {
     const el = document.getElementById('input-qr-file-hidden') as HTMLInputElement;
     if (el) el.click();
@@ -380,20 +401,33 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    const isQr = this.metodoPago === 'Pago por QR';
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      this.qrPagoImagen.set(result);
-      try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
-      this.snack.open('✓ Imagen QR guardada para cobros', 'OK', { duration: 3000 });
+      if (isQr) {
+        this.qrPagoImagen.set(result);
+        try { localStorage.setItem('invencontrol-qr-pago', result); } catch {}
+        this.snack.open('✓ Imagen de Código QR guardada', 'OK', { duration: 3000 });
+      } else {
+        this.transferenciaImagen.set(result);
+        try { localStorage.setItem('invencontrol-transferencia-pago', result); } catch {}
+        this.snack.open('✓ Imagen de Datos de Cuenta / Transferencia guardada', 'OK', { duration: 3000 });
+      }
     };
     reader.readAsDataURL(file);
   }
 
   eliminarQrImagen(): void {
-    this.qrPagoImagen.set(null);
-    try { localStorage.removeItem('invencontrol-qr-pago'); } catch {}
-    this.snack.open('Imagen QR eliminada', 'OK', { duration: 2500 });
+    if (this.metodoPago === 'Pago por QR') {
+      this.qrPagoImagen.set(null);
+      try { localStorage.removeItem('invencontrol-qr-pago'); } catch {}
+      this.snack.open('Imagen de Código QR eliminada', 'OK', { duration: 2500 });
+    } else {
+      this.transferenciaImagen.set(null);
+      try { localStorage.removeItem('invencontrol-transferencia-pago'); } catch {}
+      this.snack.open('Imagen de Transferencia Bancaria eliminada', 'OK', { duration: 2500 });
+    }
   }
 
   getInitials(nombre: string): string {
