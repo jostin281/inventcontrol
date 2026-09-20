@@ -146,6 +146,21 @@
           </mat-form-field>
         </div>
 
+        <!-- Fila 4: Código de Autorización Master -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Código de autorización / Licencia</mat-label>
+            <input matInput id="reg-codigo-autorizacion" formControlName="codigoAutorizacion"
+                   placeholder="Clave maestra proporcionada por el desarrollador" autocomplete="off" />
+            <mat-icon matSuffix>vpn_key</mat-icon>
+            @if (codigoAutorizacion.hasError('required') && codigoAutorizacion.touched) {
+              <mat-error>Requieres el código del propietario para crear una cuenta.</mat-error>
+            } @else if (codigoAutorizacion.hasError('invalidCode')) {
+              <mat-error>Código de autorización incorrecto.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
         @if (form.hasError('serverError')) {
           <p class="server-error-msg">No se pudo crear la cuenta. Verificá tu conexión e intentá de nuevo.</p>
         }

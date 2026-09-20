@@ -78,6 +78,9 @@ export class Registro {
       correo:              ['', [Validators.required, Validators.email]],
       contrasena:          ['', [Validators.required, Validators.minLength(8)]],
       confirmarContrasena: ['', Validators.required],
+
+      // Sección 3 – Autorización del Propietario
+      codigoAutorizacion:  ['', Validators.required],
     },
     { validators: passwordMatchValidator }
   );
@@ -89,6 +92,7 @@ export class Registro {
   get correo()              { return this.form.get('correo')!; }
   get contrasena()          { return this.form.get('contrasena')!; }
   get confirmarContrasena() { return this.form.get('confirmarContrasena')!; }
+  get codigoAutorizacion()  { return this.form.get('codigoAutorizacion')!; }
 
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -98,11 +102,12 @@ export class Registro {
     const v = this.form.value;
 
     this.authService.registro({
-      nombre:        v.nombreCompleto ?? '',
-      correo:        v.correo ?? '',
-      contrasena:    v.contrasena ?? '',
-      nombreNegocio: v.nombreNegocio ?? '',
-      tipoNegocio:   v.tipoNegocio ?? '',
+      nombre:             v.nombreCompleto ?? '',
+      correo:             v.correo ?? '',
+      contrasena:         v.contrasena ?? '',
+      nombreNegocio:      v.nombreNegocio ?? '',
+      tipoNegocio:        v.tipoNegocio ?? '',
+      codigoAutorizacion: v.codigoAutorizacion ?? '',
     }).subscribe({
       next: () => {
         this.isLoading.set(false);
@@ -113,6 +118,8 @@ export class Registro {
         const msg = err?.error?.message;
         if (typeof msg === 'string' && msg.includes('correo')) {
           this.correo.setErrors({ emailTaken: true });
+        } else if (typeof msg === 'string' && (msg.includes('autorización') || msg.includes('Código'))) {
+          this.codigoAutorizacion.setErrors({ invalidCode: true });
         } else {
           this.form.setErrors({ serverError: true });
         }

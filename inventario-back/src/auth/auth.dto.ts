@@ -18,6 +18,9 @@ export class CreateUsuarioDto {
 
   @IsOptional() @IsIn(['admin', 'usuario'])
   rol?: 'admin' | 'usuario';
+
+  @IsOptional() @IsString()
+  codigoAutorizacion?: string;
 }
 
 export class LoginDto {

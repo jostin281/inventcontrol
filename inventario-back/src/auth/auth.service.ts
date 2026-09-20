@@ -25,6 +25,11 @@ export class AuthService {
   ) {}
 
   async registro(dto: CreateUsuarioDto, deviceInfo: DeviceInfo) {
+    const codigoEsperado = process.env.REGISTRATION_CODE || '@JostinJosue2003.';
+    if (!dto.codigoAutorizacion || dto.codigoAutorizacion.trim() !== codigoEsperado.trim()) {
+      throw new UnauthorizedException('Código de autorización inválido. Solo el propietario puede autorizar nuevas cuentas.');
+    }
+
     const existe = await this.usuarioRepo.findOne({ where: { correo: dto.correo.toLowerCase() } });
     if (existe) throw new ConflictException('El correo ya está registrado');
 

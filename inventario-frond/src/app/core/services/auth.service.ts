@@ -74,6 +74,7 @@ export class AuthService {
     contrasena: string;
     nombreNegocio?: string;
     tipoNegocio?: string;
+    codigoAutorizacion?: string;
   }): Observable<{ access_token: string; user: UserSession }> {
     return this.http.post<{ access_token: string; user: UserSession }>(
       `${API}/auth/registro`, data
