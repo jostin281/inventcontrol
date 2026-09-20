@@ -95,6 +95,21 @@ export class OrganizacionService {
     };
   }
 
+  async obtenerPerfilNegocio(companyId: number) {
+    const owner = await this.usuarioRepo.findOne({ where: { id: companyId } });
+    if (!owner) throw new NotFoundException('Negocio no encontrado');
+    return {
+      nombreNegocio: owner.nombreNegocio,
+      correoOperaciones: owner.correoOperaciones,
+      direccion: owner.direccion,
+      zona: owner.zona,
+      moneda: owner.moneda,
+      logo: owner.logo,
+      qrPagoImagen: owner.qrPagoImagen,
+      transferenciaImagen: owner.transferenciaImagen,
+    };
+  }
+
   async eliminarOrganizacion(adminId: number, companyId: number, password: string): Promise<void> {
     const admin = await this.usuarioRepo.findOne({ where: { id: adminId, companyId } });
     if (!admin) throw new NotFoundException('Usuario no encontrado');

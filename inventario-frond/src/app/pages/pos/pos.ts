@@ -162,6 +162,12 @@ export class PosComponent implements OnInit {
 
   cargarDatos(): void {
     this.isLoading.set(true);
+    this.authService.obtenerPerfilNegocio().subscribe(() => {
+      if (this.authService.currentUser()?.qrPagoImagen) {
+        this.qrPagoImagen.set(this.authService.currentUser()?.qrPagoImagen!);
+      }
+      this.cargarDatosBanco();
+    });
     this.categoriasSvc.cargar().subscribe();
     this.productosSvc.cargar().subscribe({
       next: () => this.isLoading.set(false),

@@ -156,6 +156,13 @@ export class AuthService {
   }
 
   // ── Perfil del negocio (nombre, dirección, zona, moneda, logo) ───────
+  obtenerPerfilNegocio(): Observable<Partial<UserSession>> {
+    return this.http.get<Partial<UserSession>>(`${API}/usuarios/organizacion/perfil`).pipe(
+      tap(cambios => this._actualizarPerfilLocal(cambios)),
+      catchError(() => of({}))
+    );
+  }
+
   actualizarPerfilNegocio(data: PerfilNegocioUpdate): Observable<Partial<UserSession>> {
     return this.http.patch<Partial<UserSession>>(
       `${API}/usuarios/organizacion/perfil`, data

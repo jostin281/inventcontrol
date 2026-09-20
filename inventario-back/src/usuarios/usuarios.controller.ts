@@ -33,6 +33,11 @@ export class UsuariosController {
     return this.organizacionService.eliminarOrganizacion(req.user.id, req.user.companyId, dto.password);
   }
 
+  @Get('organizacion/perfil')
+  obtenerPerfilNegocio(@Req() req: any) {
+    return this.organizacionService.obtenerPerfilNegocio(req.user.companyId);
+  }
+
   @Patch('organizacion/perfil')
   actualizarPerfilNegocio(@Req() req: any, @Body() dto: ActualizarPerfilNegocioDto) {
     return this.organizacionService.actualizarPerfilNegocio(req.user.companyId, dto);
