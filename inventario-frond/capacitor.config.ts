@@ -14,7 +14,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 //   ng build --configuration mobile-local
 //   npx cap sync android
 //   Remove-Item Env:APP_VARIANT   (para volver a compilar la de nube después)
-const isLocal = process.env.APP_VARIANT === 'local';
+const isLocal = process.env['APP_VARIANT'] === 'local';
 
 const config: CapacitorConfig = {
   appId: isLocal ? 'com.invencontrol.app.local' : 'com.invencontrol.app',

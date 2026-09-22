@@ -15,7 +15,6 @@ export const routes: Routes = [
   { path: 'movimientos',  canActivate: [authGuard], loadComponent: () => import('./pages/movimientos/movimientos').then(m => m.Movimientos) },
   { path: 'proveedores',  canActivate: [authGuard], loadComponent: () => import('./pages/proveedores/proveedores').then(m => m.Proveedores) },
   { path: 'reportes',     canActivate: [authGuard], loadComponent: () => import('./pages/reportes/reportes').then(m => m.Reportes) },
-  { path: 'asistente-ia', canActivate: [authGuard], loadComponent: () => import('./pages/asistente-ia/asistente-ia').then(m => m.AsistenteIa) },
   { path: 'configuracion',canActivate: [authGuard], loadComponent: () => import('./pages/configuracion/configuracion').then(m => m.Configuracion) },
   {
     path: 'pos',

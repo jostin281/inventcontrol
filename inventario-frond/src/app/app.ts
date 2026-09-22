@@ -212,7 +212,6 @@ export class App {
     { label: 'Movimientos',    icon: 'swap_horiz',     link: '/movimientos' },
     { label: 'Proveedores',    icon: 'local_shipping', link: '/proveedores' },
     { label: 'Reportes',       icon: 'bar_chart',      link: '/reportes' },
-    { label: 'Asistente IA',   icon: 'smart_toy',      link: '/asistente-ia' },
   ];
 
   readonly adminMenu = [

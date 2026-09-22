@@ -5,7 +5,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { GeminiFreeProvider, OpenAiProProvider } from './core/services/ai-provider.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,7 +14,5 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
-    GeminiFreeProvider,
-    OpenAiProProvider,
   ]
 };

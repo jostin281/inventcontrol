@@ -8,7 +8,6 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
 import { VentasModule } from './ventas/ventas.module';
-import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -21,7 +20,6 @@ import { AiModule } from './ai/ai.module';
     ProveedoresModule,
     MovimientosModule,
     VentasModule,
-    AiModule,
   ],
 })
 export class AppModule {}
