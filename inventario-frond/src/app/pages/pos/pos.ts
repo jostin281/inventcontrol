@@ -18,6 +18,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProductosService, Producto } from '../../core/services/productos.service';
 import { CategoriasService } from '../../core/services/categorias.service';
 import { VentasService, PosCheckoutResponse } from '../../core/services/ventas.service';
+import { MovimientosService } from '../../core/services/movimientos.service';
 import { TicketPrintService, TicketItem } from '../../core/services/ticket-print.service';
 import { BarcodeScannerModalDialog } from '../../shared/components/barcode-scanner-modal/barcode-scanner-modal';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -53,6 +54,7 @@ export class PosComponent implements OnInit {
   private productosSvc = inject(ProductosService);
   private categoriasSvc = inject(CategoriasService);
   private ventasSvc = inject(VentasService);
+  private movimientosSvc = inject(MovimientosService);
   private ticketSvc = inject(TicketPrintService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
@@ -169,6 +171,8 @@ export class PosComponent implements OnInit {
       this.cargarDatosBanco();
     });
     this.categoriasSvc.cargar().subscribe();
+    this.movimientosSvc.cargar().subscribe();
+    this.ventasSvc.cargar().subscribe();
     this.productosSvc.cargar().subscribe({
       next: () => this.isLoading.set(false),
       error: () => this.isLoading.set(false),
@@ -372,8 +376,10 @@ export class PosComponent implements OnInit {
         // Prevenir que el botón atrás de Android cierre la app al ver el comprobante
         try { window.history.pushState({ posModal: true }, ''); } catch {}
 
-        // Refrescar inventario en toda la app
+        // Refrescar inventario, movimientos de stock y registro de ventas en toda la app
         this.productosSvc.cargar().subscribe();
+        this.movimientosSvc.cargar().subscribe();
+        this.ventasSvc.cargar().subscribe();
 
         // Vaciar carrito
         this.vaciarCarrito();

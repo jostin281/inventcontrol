@@ -27,6 +27,9 @@ export class UsuariosService {
     if (!data.correo) {
       throw new BadRequestException('El correo es requerido');
     }
+    if (!data.contrasena || typeof data.contrasena !== 'string' || data.contrasena.trim().length < 6) {
+      throw new BadRequestException('La contraseña es requerida y debe tener al menos 6 caracteres');
+    }
     const correoLower = data.correo.toLowerCase();
     const existe = await this.repo.findOne({ where: { correo: correoLower } });
     if (existe) {

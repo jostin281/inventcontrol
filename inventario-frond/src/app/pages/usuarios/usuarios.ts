@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NuevoUsuarioDialog } from './nuevo-usuario-dialog';
 import { UsuariosService, UsuarioBackend } from '../../core/services/usuarios.service';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
@@ -40,6 +41,7 @@ export class Usuarios implements OnInit {
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
   private usuariosSvc = inject(UsuariosService);
+  private snack = inject(MatSnackBar);
 
   columnas = ['nombre', 'rol', 'estado', 'acciones'];
   roles = ['Administrador', 'Operador'];
@@ -112,9 +114,13 @@ export class Usuarios implements OnInit {
         rol: res.rol === 'Administrador' ? 'admin' : 'usuario',
         activo: res.estado === 'Activo',
       }).subscribe({
-        next: () => {},
+        next: () => {
+          this.usuariosSvc.cargar().subscribe();
+          this.snack.open('✓ Usuario creado correctamente', 'OK', { duration: 3000 });
+        },
         error: (err) => {
-          alert(err.error?.message || 'Error al crear el usuario');
+          const msg = err.error?.message || 'Error al crear el usuario';
+          this.snack.open(`✕ ${msg}`, 'Cerrar', { duration: 5000, panelClass: ['snack-error'] });
         }
       });
     });
@@ -162,7 +168,11 @@ export class Usuarios implements OnInit {
   guardarEdicion(): void {
     this.errorEdicion.set('');
     this.errorPassword.set('');
-    if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      this.errorEdicion.set('Por favor completa los campos obligatorios correctamente.');
+      return;
+    }
     const editando = this.usuarioEditando();
     if (!editando) return;
 
@@ -190,7 +200,11 @@ export class Usuarios implements OnInit {
     }
 
     this.usuariosSvc.update(editando.id, updatePayload).subscribe({
-      next: () => this.cerrarEditar(),
+      next: () => {
+        this.usuariosSvc.cargar().subscribe();
+        this.snack.open('✓ Usuario actualizado correctamente', 'OK', { duration: 3000 });
+        this.cerrarEditar();
+      },
       error: (err) => this.errorEdicion.set(err.error?.message || 'Error al actualizar usuario')
     });
   }
@@ -213,12 +227,16 @@ export class Usuarios implements OnInit {
     this.usuariosSvc.delete(u.id).subscribe({
       next: () => {
         this.eliminando.set(false);
+        this.usuariosSvc.cargar().subscribe();
         this.usuarioEliminar.set(null);
         this.errorEliminar.set('');
+        this.snack.open('✓ Usuario eliminado correctamente', 'OK', { duration: 3000 });
       },
       error: (err) => {
         this.eliminando.set(false);
-        this.errorEliminar.set(err.error?.message || 'Error al eliminar usuario');
+        const msg = err.error?.message || 'Error al eliminar usuario';
+        this.errorEliminar.set(msg);
+        this.snack.open(`✕ ${msg}`, 'Cerrar', { duration: 5000, panelClass: ['snack-error'] });
       }
     });
   }
