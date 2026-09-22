@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -46,34 +46,35 @@ export class Usuarios implements OnInit {
   columnas = ['nombre', 'rol', 'estado', 'acciones'];
   roles = ['Administrador', 'Operador'];
 
-  filtroStr = '';
+  filtroStr = signal('');
   isLoading = signal(true);
+
+  readonly usuarios = computed<UsuarioResumen[]>(() =>
+    this.usuariosSvc.usuarios().map(u => ({
+      id: u.id,
+      nombre: u.nombre,
+      correo: u.correo,
+      rol: u.rol === 'admin' ? 'Administrador' : 'Operador',
+      estado: u.activo ? 'Activo' : 'Inactivo',
+    }))
+  );
+
+  readonly usuariosFiltrados = computed<UsuarioResumen[]>(() => {
+    const t = this.filtroStr().toLowerCase().trim();
+    const list = this.usuarios();
+    if (!t) return list;
+    return list.filter(u =>
+      u.nombre.toLowerCase().includes(t) ||
+      u.correo.toLowerCase().includes(t) ||
+      u.rol.toLowerCase().includes(t)
+    );
+  });
 
   ngOnInit(): void {
     this.usuariosSvc.cargar().subscribe({
       next: () => this.isLoading.set(false),
       error: () => this.isLoading.set(false)
     });
-  }
-
-  get usuarios(): UsuarioResumen[] {
-    return this.usuariosSvc.usuarios().map(u => ({
-      id: u.id,
-      nombre: u.nombre,
-      correo: u.correo,
-      rol: u.rol === 'admin' ? 'Administrador' : 'Operador',
-      estado: u.activo ? 'Activo' : 'Inactivo',
-    }));
-  }
-
-  get usuariosFiltrados(): UsuarioResumen[] {
-    const t = this.filtroStr.toLowerCase();
-    if (!t) return this.usuarios;
-    return this.usuarios.filter(u =>
-      u.nombre.toLowerCase().includes(t) ||
-      u.correo.toLowerCase().includes(t) ||
-      u.rol.toLowerCase().includes(t)
-    );
   }
 
   // ── Signals estilo Productos ──────────────────────────────

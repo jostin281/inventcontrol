@@ -17,7 +17,8 @@
       <mat-icon class="search-icon-local">search</mat-icon>
       <input
         class="search-input-local"
-        [(ngModel)]="filtroStr"
+        [ngModel]="filtroStr()"
+        (ngModelChange)="filtroStr.set($event)"
         placeholder="Buscar por nombre, correo o rol…"
         id="input-buscar-usuario"
       />
@@ -26,7 +27,7 @@
 
   <!-- Tabla -->
   <div class="table-card">
-    <table mat-table [dataSource]="usuariosFiltrados" class="usuarios-table">
+    <table mat-table [dataSource]="usuariosFiltrados()" class="usuarios-table">
 
       <!-- Nombre / Correo -->
       <ng-container matColumnDef="nombre">
@@ -65,16 +66,16 @@
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let u">
           <div class="actions-cell">
-            <button mat-icon-button class="action-btn action-btn--view"
-                    matTooltip="Ver" (click)="abrirDetalle(u)">
+            <button type="button" mat-icon-button class="action-btn action-btn--view"
+                    matTooltip="Ver" (click)="$event.stopPropagation(); abrirDetalle(u)">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button class="action-btn action-btn--edit"
-                    matTooltip="Editar" (click)="abrirEditar(u)">
+            <button type="button" mat-icon-button class="action-btn action-btn--edit"
+                    matTooltip="Editar" (click)="$event.stopPropagation(); abrirEditar(u)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="action-btn action-btn--delete"
-                    matTooltip="Eliminar" (click)="abrirConfirmarEliminar(u)">
+            <button type="button" mat-icon-button class="action-btn action-btn--delete"
+                    matTooltip="Eliminar" (click)="$event.stopPropagation(); abrirConfirmarEliminar(u)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -97,7 +98,7 @@
     </table>
 
     <div class="table-footer">
-      <span class="table-count">{{ usuariosFiltrados.length }} usuario{{ usuariosFiltrados.length !== 1 ? 's' : '' }}</span>
+      <span class="table-count">{{ usuariosFiltrados().length }} usuario{{ usuariosFiltrados().length !== 1 ? 's' : '' }}</span>
     </div>
   </div>
 
